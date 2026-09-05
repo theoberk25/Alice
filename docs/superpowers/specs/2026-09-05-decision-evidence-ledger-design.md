@@ -4,8 +4,9 @@ Date: 2026-09-05
 
 Base: `main`, `e0796d03ffd5d80e94401737836c70ebac129ed6`.
 
-Status: design incorporates the user's accepted direction and latest signing and
-physical-sensor decisions; awaiting written-spec review before implementation.
+Status: design incorporates the user's accepted direction, physical-sensor
+decision, on-premises storage assumption and explicit Ed25519 preference;
+awaiting written-spec approval before implementation.
 
 ## Purpose and scope
 
@@ -19,6 +20,21 @@ The target is Raspberry Pi 4 Model B with 2 GB RAM. Python 3.11+ and the existin
 `jsonschema` dependency remain supported. SQLite, JSON and hashing use the standard
 library. Ed25519 uses a maintained cryptographic library in a separate pinned audit
 requirements file; there is no handwritten cryptographic implementation.
+
+Deployment assumption supplied by the user: the physical device will likely
+operate on premises, for example at a military base, with substantially greater
+site storage capacity available for long-term retention. This is an expected
+deployment setting, not a verified storage allocation or availability guarantee.
+The USB stick is not the intended long-term archive or the only authoritative
+copy of DDIL history. Site retention capacity and the Pi's local DDIL storage
+budget are separate concerns; the 2 GB Pi memory target remains unchanged.
+
+Size local storage for the expected disconnected interval, event volume and
+recovery reserve. Make that budget configurable rather than assuming a small USB
+capacity defines mission retention. Larger site storage can receive replicated
+audit/evidence through later integration, but local durability must not depend on
+its reachability. Long-term archival and retention management are outside this
+first slice, and upstream acknowledgement alone does not authorize local deletion.
 
 Out of scope: policy fusion, endpoint execution, authority-transfer protocols,
 sensor drivers, Wazuh integration, enterprise connectors, evidence collection,
@@ -125,7 +141,10 @@ sequence, unique IDs, predecessor links and hashes.
 
 ## Replaceable signing and trusted verification
 
-User decision: keep signing plug and play; Ed25519 is the likely first choice.
+User decision: Ed25519 is the explicit first-choice algorithm and implementation
+priority. Keep signing plug and play so a supported alternative can be configured
+if Ed25519 proves incompatible with the eventual deployment. This is replacement
+capability, not automatic algorithm switching after a signing failure.
 
 Separate the storage engine from a checkpoint signer and trusted verifier registry.
 A signer exposes its algorithm ID and key ID and signs canonical checkpoint bytes.
