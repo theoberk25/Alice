@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "event_type": "alice.agent_status",
+  "timestamp": "2026-09-05T15:44:04Z",
+  "agent_id": "diagnostic-agent-04",
+  "agent_type": "diagnostic",
+  "model": "llama3.3:70b",
+  "status": "AWAITING_REVIEW",
+  "mission_id": "MISSION-291",
+  "current_activity": {
+    "type": "review",
+    "label": "Awaiting technician review"
+  },
+  "health": "HEALTHY"
+}

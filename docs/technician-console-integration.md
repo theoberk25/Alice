@@ -1,5 +1,12 @@
 # Technician console integration
 
+Repository migration note (2026-09-05): the console source is now located in
+[`workstation/`](../workstation/README.md), with its executable contracts,
+fixtures and tests. See the [migration assessment](../workstation/docs/integration/main-repository-migration.md)
+and [new verification record](../workstation/docs/development/verification.md#main-repository-migration-verification).
+The earlier handoff-based assessment below is retained as historical context;
+source colocation does not implement the cross-system agreements described here.
+
 Updated: 2026-09-05. This document connects the ALICE core work to the separate
 `ALICE_TechnicalReview` technician-console project. It is an integration agreement
 draft, not a declaration that the two systems are connected.

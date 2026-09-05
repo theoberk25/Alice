@@ -1,0 +1,63 @@
+import { useState } from 'react';
+import { Modal, Badge } from '@alice/ui';
+import { useConsole } from '../../state/console';
+import { isNative, nativeCall } from '../../lib/native';
+export function SettingsModal({ onClose }: { onClose: () => void }) {
+  const { llm, refreshLLM, mode } = useConsole();
+  const [model, setModel] = useState(llm.status === 'READY' ? llm.model : ''),
+    [error, setError] = useState(''),
+    [busy, setBusy] = useState(false);
+  return (
+    <Modal title="Local connections" onClose={onClose}>
+      <div className="settings-content">
+        <Badge tone={mode === 'mock' ? 'warning' : 'information'}>
+          {mode === 'mock' ? 'MOCK ALICE TRANSPORT' : 'REMOTE ALICE TRANSPORT'}
+        </Badge>
+        <h3>Local language gateway</h3>
+        <p>
+          Ollama runs on this Mac. Select an already installed model. Core review controls remain
+          available when the model is offline.
+        </p>
+        <form
+          className="stack-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setBusy(true);
+            void nativeCall('configure_llm', { model })
+              .then(refreshLLM)
+              .catch((e) => setError(String(e)))
+              .finally(() => setBusy(false));
+          }}
+        >
+          <label>
+            Ollama model
+            <input
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              placeholder="e.g. qwen2.5:7b"
+            />
+          </label>
+          <button className="primary-button" disabled={!isNative || busy}>
+            {busy ? 'Checking model…' : 'Save & check connection'}
+          </button>
+        </form>
+        <p>
+          Gateway: <strong>{llm.status}</strong> · {llm.model || 'No model selected'}
+        </p>
+        {!isNative && (
+          <p className="inline-notice">
+            Open the native app to configure Ollama and biometric connections.
+          </p>
+        )}
+        <p className="inline-error">{error}</p>
+        <div className="settings-boundary">
+          <h3>Face identity</h3>
+          <p>
+            ArcFace identity matching is available through the local biometric service. Liveness and
+            deepfake detection are not configured.
+          </p>
+        </div>
+      </div>
+    </Modal>
+  );
+}
