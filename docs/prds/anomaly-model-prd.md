@@ -14,6 +14,12 @@ The [canonical architecture](../architecture.md) now distinguishes **ONLINE**, w
 
 The initial increment delivered this PRD. Jared subsequently authorized implementation: the nested result schema, Python validation/binding, deterministic score mapper, eight result fixtures and local replay are implemented. The [feature-builder increment](../anomaly-features.md) implements 11 fixed features, trusted snapshot/baseline validation, cohort selection and five feature fixtures. A separate [Mac training lab](../anomaly-training.md) now fits and evaluates a synthetic Web-01 candidate in memory and emits JSON reports; it does not save or deploy a model. See [the output-contract guide](../anomaly-contract.md) for that boundary. The live evaluator, model persistence/loading, outer decision schema, fusion and device integration remain future increments.
 
+The newer [general contextual interface](../contextual-behavior-model.md) supports
+separate before-action and after-action profiles with arbitrary named numeric
+features and exact categorical context. It is a distinct internal contract;
+this PRD's cyber schema/fixtures remain unchanged. Actual ESP light/voltage data
+and the adapter into the canonical decision result are still pending.
+
 The [2026-09-05 data update](../data-direction-2026-09-05.md) records the newer single-USB layout and motor-control demo direction. Motor requests require a separately agreed/versioned profile; this cyber implementation does not score them. Jared selected a separate diagnostic/state-change calibration experiment; its completed Mac comparison and measured limitations are in the training guide. The [implementation tracker](../implementation-tracker.md) preserves all 118 requested tasks and their current evidence.
 
 ### Source context and precedence

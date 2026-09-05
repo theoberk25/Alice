@@ -75,7 +75,8 @@ The anomaly implementation baseline for this revision is commit `18174cc` on
 `main`; no `dev` branch was present in the inspected checkout. It contains the
 bounded anomaly output contract, the Web-01 feature
 builder, deterministic fixtures and the Mac synthetic training/comparison lab.
-The last recorded full core suite passed **103 tests**. These are component/lab
+That baseline suite passed **103 tests**; the [tracker](../implementation-tracker.md)
+records the current expanded suite. These are component/lab
 checks, not proof of connected execution, DDIL governance or console integration.
 
 The real Mac lab fits a small Isolation Forest in memory and records measured
@@ -87,6 +88,13 @@ Policy/permissions evaluation, full decision fusion, package verification,
 authority transfer, live transports, protected execution, persistent audit and
 cloud reconciliation remain integration work. The `workstation/` files in this
 repository are placeholders, not the external console's implemented application.
+
+The new [contextual behavior model](../contextual-behavior-model.md) adds separate
+PRE_ACTION/POST_ACTION profile validation, per-context forests and frozen normal
+references, with source/time checks and explicit unavailable results. It consumes
+supplied named features; actual ESP ingestion/voltage conversion and normal data
+remain future work. Wazuh is selected as a planned permissions-related/audit
+integration, with ALICE-specific mapping and adapters still to be agreed.
 
 ### External `ALICE_TechnicalReview` console
 
@@ -251,7 +259,7 @@ their own contract; do not feed motor values into the Web-01 cyber model.
    and exact approvals, then measure actual Pi memory/latency and physical results.
 
 These checkpoints are requirements, not code delivered by this handoff. Preserve
-the existing 103-test cyber regression suite while adding real cross-component
+the cyber and contextual regression suites while adding real cross-component
 tests. Complete the demo only when its authority, transport, identity provider,
 audit delivery and independently observed execution are named in the evidence;
 mock ACCEPTED events and successful face login do not establish that outcome.

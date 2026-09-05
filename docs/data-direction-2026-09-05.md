@@ -11,6 +11,22 @@ This revision supersedes this note's earlier always-through-the-Pi description.
 The [architecture](prds/ALICE-DCAMR-Architecture.md) defines the full lifecycle;
 the table below records what changed and what still requires agreement.
 
+## Latest implementation direction
+
+Jared now plans to integrate a Wazuh agent for permissions-related context and
+some auditing. The likely physical demo is an ESP with lights and a voltage
+sensor, replacing the motor example as the immediate direction. Exact hardware,
+units, action meanings and normal data remain to be agreed; earlier motor angles
+are not requirements for the light/voltage demo.
+
+Jared explicitly selected **both before-action and after-action assessment**.
+The [general contextual model](contextual-behavior-model.md) implements separate
+profiles and exact-context forests with explicit measurement timing, missing-data
+handling and calibration from supplied normal collections. It does not implement
+raw sensor aggregation, Wazuh permissions or execution, and no actual ESP data has
+been created or declared normal. Wazuh integration does not turn its alerts into
+normal training labels automatically.
+
 ## Accepted direction
 
 | Topic | Current direction | Implementation consequence |
@@ -63,23 +79,23 @@ chain alone cannot prove that an entire log was not deleted.
 
 ## Physical demo and model compatibility
 
-The switch connects the ALICE Pi, Technician Mac, Agent Mac and protected motor
+The switch connects the ALICE Pi, Technician Mac, Agent Mac and protected device
 controller; the router provides the enterprise uplink. Disconnecting that uplink
 must leave the internal LAN, local addressing, credentials and technician path
 usable. Neither a switch nor physical adjacency implements execution enforcement.
 
 The confirmed decision node remains **Pi 4 Model B, 2 GB RAM, OS Lite**. The
 reported 64 GB is treated as the storage allocation; confirm the OS architecture
-and measured resource use before deployment. The controller choice is still a
-second Pi or ESP. Mac training, face processing and the local LLM stay off the Pi.
+and measured resource use before deployment. The current likely controller is an ESP with lights and a voltage sensor. Mac
+training, face processing and the local LLM stay off the Pi.
 
-| Boundary | Existing cyber slice | Required motor/lifecycle follow-up |
+| Boundary | Existing cyber slice | Device/lifecycle follow-up |
 | --- | --- | --- |
-| Action request | Five cyber actions with fixed parameter semantics. | Motor operation, units, absolute/relative meaning, target and exact retry binding. |
-| Normal behavior | Frequencies, known endpoints and transition counts. | Approved position/movement, rate and sequence profiles; operating context and available measurements. |
+| Action request | Five cyber actions with fixed parameter semantics. | ESP/light operation, parameters, units, target and exact retry binding; motor meanings only if retained. |
+| Normal behavior | Frequencies, known endpoints and transition counts. | Approved light/output/voltage, rate and sequence profiles; operating context and available measurements. |
 | Local telemetry | Trusted proposal/execution history supplied to the feature builder. | Authenticated controller observations with timestamps, freshness and availability. |
-| Permissions | Runtime remains a skeleton. | Agent/user delegation, mission scope, hard motor bounds, technician capabilities and cache validity rules. |
-| Anomaly model | Mac-trained synthetic Web-01 Isolation Forest experiment. | Separately versioned motor feature/model/reference contracts and representative data. |
+| Permissions | Runtime remains a skeleton. | Agent/user delegation, mission scope, hard device bounds, technician capabilities and cache validity rules. |
+| Anomaly model | Mac-trained synthetic Web-01 Isolation Forest experiment. | General PRE/POST context-profile interface now exists; select actual sensor features and collect representative device data. |
 | Controller | No execution integration. | Current-authority enforcement, idempotency, actual completion and available physical feedback. |
 | Activity/audit | No durable mission writer or enterprise connector. | Every offline event, online feed coverage, immutable reconciliation and recoverable upstream delivery. |
 
@@ -101,8 +117,9 @@ establish a motor profile or a production-ready model.
   releases, feed coverage, credentials, cache freshness, upload IDs/ACKs and quotas.
 - Console agreement: full schema exports, anomaly mapping, authenticated native
   transport, request/parameter-bound remote face proof and execution receipts.
-- Motor scope: motor-first with cyber regression coverage, or both demo domains;
-  absolute angle versus relative move; controller/sensors; normal and hard bounds.
+- Device scope: confirm ESP/output/sensor hardware, units and sample rate; choose
+  request parameters, trusted context and pre/post feature windows, including
+  settling time. Motor angle semantics are deferred unless that demo returns.
 - Storage: privileged update owner, accepted-generation activation, USB removal,
   durable audit/outbox retention and recovery.
 
