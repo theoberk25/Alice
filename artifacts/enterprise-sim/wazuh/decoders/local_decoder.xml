@@ -1,0 +1,18 @@
+<!--
+  Install as /var/ossec/etc/decoders/local_decoder.xml.
+
+  Example line this matches:
+  feeder-a-rtu esp32[1421]: setpoint cmd=482.500 bus=480.100 load=214.30 mode=grid_tied
+
+  Device telemetry is evidence about a feeder. It is not an authorization, and
+  a line claiming a mode does not establish that mode.
+-->
+<decoder name="esp-feeder">
+  <program_name>^esp32</program_name>
+</decoder>
+
+<decoder name="esp-feeder-setpoint">
+  <parent>esp-feeder</parent>
+  <regex>setpoint cmd=(\S+) bus=(\S+) load=(\S+) mode=(\w+)</regex>
+  <order>esp.commanded_v, esp.bus_v, esp.load_a, esp.operating_mode</order>
+</decoder>

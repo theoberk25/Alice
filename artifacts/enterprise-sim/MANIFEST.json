@@ -1,0 +1,122 @@
+{
+  "site": "Sentinel Air Force Base (fictional)",
+  "generator": "lab.enterprise_sim",
+  "deterministic_seed": 1729,
+  "permissions": {
+    "bundle_id": "sen-permissions-000042",
+    "edge_cached_generation": 42,
+    "published_generations": [
+      42,
+      43,
+      44
+    ],
+    "current_generation": 44,
+    "generation": 42,
+    "digests": {
+      "subjects.json": "cffe927535fa473560318963056f79de34d6b1556b4cdd49fff41a4d9c52fa14",
+      "grants.json": "ce56d439739162488b6c2aa74001b9ca5c1d7bd895c4a4bd118550722ac19baa",
+      "prohibitions.json": "41e3ac67f7846f7945a47b6d2c3cbd45d354e7302873ebcbc0bde19f7d18402a",
+      "revocations.json": "be92e8538883db3bba90f4c17d3fec3d7be077c9ee12649ac0dfd9383fee6bd5"
+    },
+    "signature_b64": "wIjAMN4DDn9DqOEXEFBMEvhjJ+4aFYFSVLShV4WgD4Ams9qjOQkrnoidjWbPfgOrgOvdrp3XrQS+N3lkYdnKAQ==",
+    "grant_count": 16,
+    "prohibition_count": 9,
+    "user_count": 9,
+    "agent_count": 9
+  },
+  "normal_behavior": {
+    "baseline_sha256": "f925d7804bb9b3855fe5926ba23c1a05b1d0b877b193e3b8ed979d51ec5c7cbd",
+    "baseline_profiles": 15,
+    "baseline_targets": 9,
+    "pre_profile_sha256": "36cb90d7572199ab93af62e76129a4aa005ad4bcd65cdf365ecd6058d1e8ae49",
+    "post_profile_sha256": "7da28b9615bdb4fabb69f6eb3e843329572b68fd29e7e4da892adc4d7d9afc3b"
+  },
+  "datasets": {
+    "pre": {
+      "train": 960,
+      "calibration": 3600,
+      "evaluation": 720,
+      "challenges": 7
+    },
+    "post": {
+      "train": 960,
+      "calibration": 3600,
+      "evaluation": 720,
+      "challenges": 8
+    }
+  },
+  "wazuh": {
+    "endpoints": 13,
+    "groups": 6,
+    "rule_ids": [
+      100100,
+      100110,
+      100111,
+      100112,
+      100113,
+      100114,
+      100120,
+      100121,
+      100122,
+      100123,
+      100124,
+      100130,
+      100131,
+      100140,
+      100141,
+      100142,
+      100143,
+      100150,
+      100151,
+      100152,
+      100160,
+      100161,
+      100162,
+      100163,
+      100170,
+      100171,
+      100172,
+      100180,
+      100181
+    ]
+  },
+  "logs": {
+    "audit_events": 48,
+    "audit_chain_head": "f9c380019ee15bee2174d26fd248ea480eb2b2494a8c4f202eb24a5be317e112",
+    "it_events": 69,
+    "event_types": [
+      "ANOMALY_ASSESSMENT",
+      "AUDIT_CAPACITY_BLOCK",
+      "AUDIT_CHECKPOINT",
+      "AUTHORITY_TRANSITION",
+      "DECISION",
+      "ENTERPRISE_FEED_RECEIVED",
+      "EVIDENCE_RECONCILED",
+      "EXECUTION_ATTEMPTED",
+      "EXECUTION_EFFECT_MISMATCH",
+      "EXECUTION_RESULT",
+      "FACE_VERIFICATION_FAILED",
+      "OFFLINE_READINESS",
+      "OUTBOX_DELIVERY_RESUMED",
+      "PERMISSIONS_ACTIVATED",
+      "PERMISSIONS_CANDIDATE_STAGED",
+      "PERMISSIONS_DRIFT",
+      "PERMISSIONS_EXPIRED",
+      "PERMISSIONS_REJECTED",
+      "PERMISSIONS_VERIFIED",
+      "SERVICE_REAUTHENTICATED",
+      "SYNC_COMPLETED",
+      "TECHNICIAN_APPROVAL_ACCEPTED",
+      "TECHNICIAN_APPROVAL_REJECTED",
+      "TECHNICIAN_REVIEW_OPENED"
+    ]
+  },
+  "validation": {
+    "baseline_profiles": 15,
+    "cohort_fallback": "electrician-power_distribution-cohort via COHORT",
+    "pre_observations_parsed": 50,
+    "post_observations_parsed": 50,
+    "audit_chain": "intact"
+  },
+  "validation_failures": []
+}

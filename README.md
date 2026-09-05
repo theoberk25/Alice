@@ -28,6 +28,7 @@ Model training, the explanatory LLM and facial verification belong on the Mac.
 - [Web-01 feature builder](docs/anomaly-features.md)
 - [Mac synthetic training lab](docs/anomaly-training.md)
 - [General before/after behavior model](docs/contextual-behavior-model.md)
+- [Enterprise SIEM simulation and Wazuh setup](docs/enterprise-sim-handoff.md)
 
 The anomaly contract, cyber feature builder, Mac training lab and general
 context-conditioned Isolation Forest interface are implemented components. The
@@ -38,8 +39,9 @@ motor execution and Pi deployment remain integration work. The separate console
 handoff reports real face enrollment/login with mock edge transport; it is not yet
 connected to this core. See the tracker for evidence and scope.
 
-Wazuh is the planned integration for permissions-related context and some auditing.
-Its ALICE action-permission mapping and audit adapters are not implemented. The
+The enterprise simulation supplies Wazuh configuration, demonstration permissions
+releases and synthetic behavioral data. Pi permission resolution, trusted cache
+synchronization and durable audit adapters remain unimplemented. The
 likely physical demo now uses an ESP with lights and a voltage sensor; actual
 measurements, units and operating ranges still need agreement.
 
@@ -73,3 +75,17 @@ Run `cd workstation && npm ci && npm run dev` for the independent mock dashboard
 See its README for native Tauri operation, biometric setup, Ollama, tests and
 `ALICE.app` packaging, and the [repository integration guide](docs/workstation.md)
 for scope and shared-contract boundaries. Remote core transport remains fail-closed.
+
+## Enterprise Simulation
+
+For the enterprise simulation, use **Python 3.12 on the development Mac** and
+regenerate the ignored datasets once after cloning, before running its fit command:
+
+```sh
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements-anomaly-training.txt cryptography
+.venv/bin/python -m lab.enterprise_sim
+```
+
+See the [enterprise handoff](docs/enterprise-sim-handoff.md) for fitting, console
+startup and trust boundaries. Generated signing material is demonstration-only.
