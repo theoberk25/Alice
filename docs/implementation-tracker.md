@@ -10,8 +10,8 @@ The current [parent PRD][prd], [architecture][architecture] and
 [developer handoff][handoff] define the product boundary. The external console's
 reported progress is documented separately in the [console integration note][console-integration];
 it does not change core task status without a working cross-system connection.
-The current increment adds a general contextual model interface; previous
-two-mode requirements still need their own runtime integrations.
+The current increment adds the [local Decision Evidence Ledger][audit-guide];
+two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
 
@@ -23,28 +23,46 @@ two-mode requirements still need their own runtime integrations.
 - **Planned** — the requested behavior is not implemented in this checkout.
   A PRD proposal or empty skeleton is not completion evidence.
 
-Current totals: **12 Done component, 25 Partial,
-81 Planned**. These are task-status counts, not a percentage of product
+Current totals: **12 Done component, 34 Partial,
+72 Planned**. These are task-status counts, not a percentage of product
 readiness or an estimate of remaining effort.
 
 The current model increment is a [general contextual Isolation Forest][context-guide]
 for separately bound PRE_ACTION and POST_ACTION observations. Jared selected both
-phases and expects to create operating data later. Context profiles define named
+phases; synthetic enterprise data is now available, with real ESP collection pending. Context profiles define named
 numeric inputs, units and timing; each supported context has a separate forest
 and held-out normal reference. Missing/stale readings, unseen context and an
 untrained model produce UNKNOWN/null scores. Input/source validation, in-memory
 fitting and repeatable scoring are implemented; actual ESP extraction and data
 collection, artifact loading, fusion and deployment are not.
 
-The current suite passes **148 tests**, including 45 new parser/model checks;
+The pre-ledger checkpoint passed **148 tests**, including 45 parser/model checks;
 both existing cyber fixture replays still pass. New test data is unitless,
 synthetic and temporary, not a light/voltage operating baseline. New assessments
 retain training-range evidence independently of ML score and use a separate
 internal contract, pending the canonical anomaly/decision adapter.
 
+
+The [durable ledger slice][audit-guide] adds local SQLite recording, strict compact
+contracts, trusted Ed25519 checkpoints, bounded delivery bookkeeping and linked
+findings. Latest verification: **236 Python tests passed, zero skips**, plus both
+cyber replays (8 anomaly fixtures, 7 rank cases, 5 feature vectors) and the
+[model-to-ledger replay][context-ledger-replay] (6 synthetic assessment cases).
+That replay verifies real PRE/POST scoring and explicit failure outcomes through
+compact projection, exact retained evidence, sealing, anchored restart and duplicate
+retry; it does not establish live producer integration. Independent
+whole-branch review found a runtime metadata-validation gap; a two-line check and
+regression test now reject changed stored metadata before further writes. Rereview
+has no open material findings. No live producer, sender, admission gate, execution fence,
+sensor driver or Pi hardware acceptance is implied. Original history is retained;
+acknowledgement does not permit deletion or prove execution.
+
 The probable demo hardware is now an ESP with lights and a voltage sensor.
-Wazuh is selected for planned permissions-related context and some auditing;
-its ALICE permissions export/mapping and audit integration remain unimplemented.
+The [enterprise simulation](enterprise-sim-handoff.md) now supplies Wazuh
+configuration, demonstration permissions releases 42–44, synthetic voltage
+observations and authored audit fixtures. Pi permissions loading/resolution and
+live audit integration remain unimplemented. Synthetic electrical limits and
+internal-authoritative audit storage are proposals, not accepted hardware rules.
 The next model dependency is the device/action/context data contract. **Execution
 authority and trusted synchronization** remain required integration work. The product has
 exactly two modes:
@@ -68,7 +86,7 @@ The Technician Mac is not a manual relay. Returning ONLINE must fence local
 commands and approvals; a successful connection or upload does not itself grant
 execution authority or prove that the whole audit backlog was acknowledged.
 
-All current **Done component** statuses remain scoped to the cyber components
+All current **Done component** statuses remain scoped to the existing components
 below. The topology, authority transfer, live cache sync and motor path are not
 implemented here. See the supplemental planned requirements after the original
 118-task tables; they are deliberately excluded from the original status counts.
@@ -206,20 +224,20 @@ workflows run with explicit no-unintended-execution assertions.
 | 001 | Define Agent Action Request Schema | Partial | [Internal feature-request shape][feature-schema] is validated; the public [action-request schema][action-schema] is still an empty skeleton. |
 | 002 | Define Context Push-Back Schema | Planned | The core [challenge skeleton][challenge-schema] is empty. The external console reports `alice.context_request`; cross-system schema agreement and real producer/routing remain. |
 | 003 | Define Agent Context Response Schema | Planned | No accepted core agent context-response contract exists. The [external console][console-integration] reports a local `alice.agent_response` schema; exchange and adapter validation remain. |
-| 004 | Define Policy Package Schema | Planned | The [package manifest skeleton][package-schema] is empty. This original policy task now covers the signed authorized-permissions package; existing code keys have not been renamed. |
+| 004 | Define Policy Package Schema | Planned | The [package manifest skeleton][package-schema] is empty. This original policy task now covers the signed authorized-permissions package; existing code keys have not been renamed. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 005 | Define Normal Operations Package Schema | Partial | [Baseline payload schema][baseline-schema] exists. The signed normal-operations package envelope, manifest and lifecycle are not defined by that payload schema. |
-| 006 | Define User Permissions Schema | Planned | No permissions-package or user-permissions schema is implemented. |
+| 006 | Define User Permissions Schema | Planned | No permissions-package or user-permissions schema is implemented. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 007 | Define Local Telemetry Schema | Planned | Trusted history input is defined, but the general telemetry/sensor contract is not. |
 | 008 | Define Decision Output Schema | Partial | [Nested anomaly result][result-schema] and [validator][contract] exist; the [core complete decision record][decision-schema] is empty. The reported console `alice.decision` requires an agreed adapter, not a guessed payload. |
-| 009 | Define Reconciliation Event Schema | Planned | No core reconciliation-event producer/contract exists. The console reports later annotations against immutable decisions; direct Pi/enterprise integration remains. |
+| 009 | Define Reconciliation Event Schema | Partial | [Local ledger finding contract][audit-schema] binds an original event ID/hash and source metadata; [ledger tests][audit-outbox-tests] preserve originals. This is independent of the still-unimplemented public reconciliation wire contract, producer and enterprise comparison workflow. |
 
 ## Initial package loading and trust (010–014)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 010 | Load Policy Data from SD Card | Planned | Desired medium/path: USB `permissions/`. No discovery, authorized-permissions package load or activation exists; legacy policy keys/paths remain unchanged. |
+| 010 | Load Policy Data from SD Card | Planned | Desired medium/path: USB `permissions/`. No discovery, authorized-permissions package load or activation exists; legacy policy keys/paths remain unchanged. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 011 | Load Normal Operations Data from SD Card | Planned | Current medium: USB `normal_behavior/`. The baseline byte loader exists, but no removable-media package load path is implemented. |
-| 012 | Load User Permissions from SD Card | Planned | Desired permissions input is USB `permissions/`; trusted user/agent identity and delegated permissions contracts/loaders remain unimplemented. |
+| 012 | Load User Permissions from SD Card | Planned | Desired permissions input is USB `permissions/`; trusted user/agent identity and delegated permissions contracts/loaders remain unimplemented. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 013 | Verify Package Signatures | Planned | Expected byte-digest checks are not signature/issuer verification; [package verifier][package-verifier] remains a skeleton. |
 | 014 | Validate Package Versions | Partial | [Schema/profile versions][feature-validation] and baseline labels are checked. Package freshness, rollback prevention and compatible activation are not implemented. |
 
@@ -290,14 +308,14 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 058 | Generate Decision Provenance | Partial | [Immutable feature provenance][feature-types] and [anomaly provenance fields][result-schema] exist; final DCAMR decision provenance is not generated. |
-| 059 | Record Source of Every Decision Factor | Partial | [Builder][features] supplies a source for every feature. Policy, evidence and final fused decision factors are not yet produced. |
-| 060 | Record Model Metadata | Partial | [Mac report][training-report] records actual fit parameters, tree counts and runtime versions; [anomaly contract][result-schema] supports binding metadata. No persisted/signed model artifact or live decision metadata exists. |
-| 061 | Record Policy Metadata | Planned | No live authorized-permission result or source recorder exists in core. Original task label and existing policy keys remain unchanged. |
+| 058 | Generate Decision Provenance | Partial | [Immutable feature provenance][feature-types] and [anomaly provenance][result-schema] remain; the [local ledger][audit-guide] durably records supplied bounded provenance and exact bindings. Final authoritative decision generation and live adapters remain. |
+| 059 | Record Source of Every Decision Factor | Partial | [Builder][features] supplies feature sources. The [ledger][audit-guide] records compact evidence references and contextual source IDs; it does not produce or verify policy/evidence/fused factors. Numeric contextual factors remain referenced evidence. |
+| 060 | Record Model Metadata | Partial | [Mac report][training-report] records fitted metadata. [Compact ledger projection][audit-contract] preserves model ID, in-memory fingerprint, profile/input/calibration digests and independent dispatch binding without copying numeric scores/factors. Signed deployable artifacts and live inference integration remain. |
+| 061 | Record Policy Metadata | Partial | [Local ledger schema][audit-schema] persists supplied policy identity/digest or explicit absence; [contract tests][audit-contract-tests] cover it. Permissions evaluation, authenticated release loading and live recording remain absent. |
 | 062 | Record Baseline Metadata | Done component | [Baseline loader][baseline] records payload identity/version and verified expected byte digest; [FeatureBatch][feature-types] preserves them. Enclosing package identity stays separate. |
-| 063 | Record Evidence Metadata | Planned | No live evidence-verification result or evidence-metadata recorder exists. |
-| 064 | Record Connectivity State | Planned | No authoritative connectivity/authority state recorder exists. An ONLINE connection is not proof of endpoint control or completed synchronization. |
-| 065 | Write Tamper-Evident Audit Record | Planned | The core [audit writer][audit] is empty. Required ONLINE feed audit and every OFFLINE request/decision/attempt/result have no tamper-evident mission store yet; console-local audit is separate. |
+| 063 | Record Evidence Metadata | Partial | [Ledger contract][audit-schema] and [tests][audit-contract-tests] record bounded evidence references/digests, source identity, verification, freshness and availability. Evidence collection, authentication, retention and verification are not implemented. |
+| 064 | Record Connectivity State | Partial | [Ledger][audit-guide] captures supplied mode/connectivity/owner/interval/confirmation with events. [Tests][audit-contract-tests] enforce claim consistency; no live connectivity detector or endpoint authority transfer exists. |
+| 065 | Write Tamper-Evident Audit Record | Partial | [SQLite ledger][audit] implements canonical append-only history, hash validation, Ed25519 checkpoints, independent anchors, quotas/reserve and durable outbox metadata; [storage][audit-tests] and [integrity tests][audit-integrity-tests] cover failure/restart. Full live audit coverage, admission/enforcement and Pi acceptance remain absent. Tamper-evident under documented storage/key assumptions; whole-store rollback needs an independent anchor. |
 
 ## Dashboard, technician and execution (066–076)
 
@@ -309,8 +327,8 @@ workflows run with explicit no-unintended-execution assertions.
 | 069 | Receive Technician Decision | Planned | No real core technician-action receiver exists. The console reports local action construction/persistence; authenticated delivery and receipts remain. |
 | 070 | Require Technician Authentication for Approval | Planned | Console local ArcFace enrollment/login and approval grants are reported. Core-verifiable, fresh, one-use proof bound to current decision/request/authority remains; live approval camera acceptance is pending. |
 | 071 | Execute Approved Action | Planned | The [enforcement gateway][enforcement] is empty. OFFLINE local execution requires the endpoint fence; ONLINE enterprise control remains direct. |
-| 072 | Record Technician Decision | Planned | No core mission-audit technician-decision recorder exists. The external console reports local records; durable delivery/acknowledgement to core remains. |
-| 073 | Record Action Execution Result | Planned | The builder consumes supplied execution history; core does not execute or persist results. A console receipt currently reports NOT_EXECUTED and is not controller confirmation. |
+| 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
+| 073 | Record Action Execution Result | Partial | [Ledger][audit-guide] persists separate supplied execution attempts, controller receipts/results and sensor observations with identity/time/evidence binding. [Tests][audit-contract-tests] preserve UNKNOWN outcomes. No controller execution, authenticated result receiver or sensor driver is connected. |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |
 | 075 | Compare Expected vs Actual Result | Planned | No expected-versus-observed execution-outcome comparison exists. |
 | 076 | Flag Post-Execution Anomalies | Partial | [POST_ACTION scoring][context-model] requires a separately trained profile/context and at least one temporally valid resulting-state feature. [Tests][context-model-tests] cover post timing and scoring; real execution/sensor ingestion, outcome validation and response remain unimplemented. |
@@ -333,24 +351,24 @@ workflows run with explicit no-unintended-execution assertions.
 | 088 | Fetch Pending External Evidence | Planned | No direct Pi/enterprise pending-evidence fetch workflow exists; the technician is not the manual relay. |
 | 089 | Reconcile Local Evidence with Cloud Evidence | Planned | The core [reconciliation component][reconciliation] is empty. Direct Pi comparison/upload and append-only findings remain. |
 | 090 | Detect Evidence Discrepancies | Planned | No local/cloud evidence discrepancy detector exists. |
-| 091 | Append Reconciliation Results | Planned | No core reconciliation appender or persistent mission-audit integration exists. Console annotation display is reported; original decisions must remain intact. |
-| 092 | Preserve Original Decision History | Planned | Core feature/dispatch objects are immutable, but persistent mission-decision history is absent. The external console reports its own immutable cache/lineage; that does not complete core audit. |
+| 091 | Append Reconciliation Results | Partial | [Ledger finding append][audit] and [outbox tests][audit-outbox-tests] require original ID/hash and source attribution; reconciliation marker requires original ACK plus linked finding. Actual evidence fetching/comparison and enterprise reconciliation remain absent. |
+| 092 | Preserve Original Decision History | Partial | [Durable ledger][audit] retains original canonical events through restart, delivery and linked findings; [history tests][audit-tests] reject ordinary edits and verify tamper evidence. Public decision production/lineage and console integration remain separate. |
 
 ## Package updates and connected recovery (093–107)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 093 | Fetch Updated User Permissions | Planned | Direct Pi synchronization is the selected path; authoritative enterprise permissions source, trust and update adapters remain unimplemented. |
-| 094 | Validate Updated User Permissions | Planned | No updated permissions schema, signature or validity checks exist. |
-| 095 | Write Updated User Permissions to SD Card | Planned | Desired medium/path is USB `permissions/`; no verified permission-update writer exists. Pi synchronization is selected, while release/retention/failure rules remain to be agreed. |
-| 096 | Fetch Updated Policy Package | Planned | This original policy task now covers authorized-permissions releases; no authenticated direct Pi/enterprise fetch path exists. |
-| 097 | Validate Updated Policy Package | Planned | No updated authorized-permissions signature, validity or compatibility verifier exists; the original policy label and current code keys remain. |
-| 098 | Write Updated Policy Package to SD Card | Planned | Desired path is USB `permissions/`; no update writer exists. Existing policy-named code is not migrated by this documentation change. |
+| 093 | Fetch Updated User Permissions | Planned | Direct Pi synchronization is the selected path; authoritative enterprise permissions source, trust and update adapters remain unimplemented. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 094 | Validate Updated User Permissions | Planned | A candidate permissions release shape exists in the simulation; Pi-side schema, signature and validity checks do not. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 095 | Write Updated User Permissions to SD Card | Planned | Desired medium/path is USB `permissions/`; no verified permission-update writer exists. Pi synchronization is selected, while release/retention/failure rules remain to be agreed. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 096 | Fetch Updated Policy Package | Planned | This original policy task now covers authorized-permissions releases; no authenticated direct Pi/enterprise fetch path exists. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 097 | Validate Updated Policy Package | Planned | No updated authorized-permissions signature, validity or compatibility verifier exists; the original policy label and current code keys remain. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 098 | Write Updated Policy Package to SD Card | Planned | Desired path is USB `permissions/`; no update writer exists. Existing policy-named code is not migrated by this documentation change. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 099 | Fetch Updated Normal Operations Package | Planned | No authenticated direct Pi/enterprise normal-behavior update fetch path exists. |
 | 100 | Validate Updated Normal Operations Package | Partial | [Baseline payload validation][baseline] checks digest, schema and table consistency. An updated package still needs signature/issuer/expiry checks and activation handling. |
 | 101 | Write Updated Normal Operations Package to SD Card | Planned | No USB `normal_behavior/` update writer exists; direct Pi sync is selected, while verified release and failure handling remain. |
-| 102 | Reload Updated Permissions | Planned | No atomic permissions activation/reload path exists. |
-| 103 | Reload Updated Policy | Planned | No atomic authorized-permissions activation/reload exists; the original task label and current policy keys remain legacy names. |
+| 102 | Reload Updated Permissions | Planned | No atomic permissions activation/reload path exists. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 103 | Reload Updated Policy | Planned | No atomic authorized-permissions activation/reload exists; the original task label and current policy keys remain legacy names. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 104 | Reload Updated Baseline | Partial | [Loader][baseline] creates a fresh immutable payload instance. USB watching, atomic replacement and in-flight evaluation coordination are not implemented. |
 | 105 | Version All Updated Packages | Planned | Per-payload baseline labels exist; versioning and compatibility across all package types are not implemented. |
 | 106 | Reject Invalid or Tampered Updates | Partial | [Payload digest/schema checks][feature-validation] reject altered or malformed supplied bytes. Signed update verification, rollback prevention and replacement recovery remain. |
@@ -446,3 +464,12 @@ Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 [training-report]: reports/anomaly-lab/candidate-002/training-report.json
 [training-calibration]: reports/anomaly-lab/candidate-002/calibration-reference.json
 [training-manifest]: reports/anomaly-lab/candidate-002/dataset-manifest.json
+
+[audit-guide]: decision-evidence-ledger.md
+[audit-schema]: ../common/schemas/audit_event.json
+[audit-contract]: ../dcamr/audit/event_contract.py
+[audit-contract-tests]: ../tests/test_audit_contract.py
+[audit-tests]: ../tests/test_audit_log.py
+[audit-outbox-tests]: ../tests/test_audit_outbox.py
+[audit-integrity-tests]: ../tests/test_audit_integrity.py
+[context-ledger-replay]: ../lab/replay_contextual_ledger.py

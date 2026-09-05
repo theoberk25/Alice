@@ -1,0 +1,90 @@
+{
+  "index_patterns": [
+    "alice-audit-*"
+  ],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    },
+    "mappings": {
+      "dynamic": "true",
+      "properties": {
+        "event_id": {
+          "type": "keyword"
+        },
+        "node_id": {
+          "type": "keyword"
+        },
+        "boot_id": {
+          "type": "keyword"
+        },
+        "sequence": {
+          "type": "long"
+        },
+        "recorded_at": {
+          "type": "date"
+        },
+        "event_type": {
+          "type": "keyword"
+        },
+        "mode": {
+          "type": "keyword"
+        },
+        "authority": {
+          "type": "keyword"
+        },
+        "decision": {
+          "type": "keyword"
+        },
+        "agent_id": {
+          "type": "keyword"
+        },
+        "responsible_user": {
+          "type": "keyword"
+        },
+        "delegator": {
+          "type": "keyword"
+        },
+        "action": {
+          "type": "keyword"
+        },
+        "target": {
+          "type": "keyword"
+        },
+        "prohibition_id": {
+          "type": "keyword"
+        },
+        "grant_id": {
+          "type": "keyword"
+        },
+        "permissions_generation": {
+          "type": "long"
+        },
+        "permissions_freshness": {
+          "type": "keyword"
+        },
+        "band": {
+          "type": "keyword"
+        },
+        "score": {
+          "type": "float"
+        },
+        "reason_codes": {
+          "type": "keyword"
+        },
+        "prev_hash": {
+          "type": "keyword"
+        },
+        "event_hash": {
+          "type": "keyword"
+        }
+      }
+    }
+  },
+  "priority": 500,
+  "_meta": {
+    "owner": "ALICE",
+    "note": "Written by the Pi on reconnection with _bulk create and _id = event_id, so replay is idempotent."
+  }
+}

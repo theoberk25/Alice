@@ -2,3 +2,15 @@ __pycache__/
 *.py[cod]
 .venv/
 artifacts/anomaly-lab/
+
+# Generated enterprise simulation. The USB image, Wazuh configuration, returned
+# audit and experiment reports ARE committed, so everyone shares one release set
+# and verifies against identical bytes. See docs/enterprise-sim-handoff.md.
+#
+# The contextual training datasets are ~21 MB and regenerate deterministically
+# from seed 1729, so they stay out of the repository:
+artifacts/enterprise-sim/datasets/
+#
+# Never commit a signing key, even a demonstration one. Only the public
+# verifying key belongs here.
+artifacts/enterprise-sim/keys/*.sk

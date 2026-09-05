@@ -71,6 +71,20 @@ Each workstream increment should provide a short PRD or implementation note with
 
 ### Alice core repository
 
+The [enterprise simulation](../enterprise-sim-handoff.md) adds a deterministic
+Sentinel AFB generator, signed demonstration permissions generations 42–44,
+Wazuh configuration, cyber baselines, separate synthetic PRE_ACTION/POST_ACTION
+voltage datasets and a local enterprise console. Regenerate the ignored datasets
+on a Python 3.12 development machine before fitting. The enterprise console is
+separate from the technician review application. Its audit history is authored
+fixture data, not decisions captured from a live Pi.
+
+Next, agree the permissions `resolve()`/fusion seam with core integration and
+implement trusted package synchronization and durable audit delivery. USB ext4,
+internal-authoritative audit storage and the voltage envelope remain proposals;
+no electrical limits are approved by these fixtures. Model export to a verified
+data-only artifact and resource measurements on the 2 GB Pi remain pending.
+
 The anomaly implementation baseline for this revision is commit `18174cc` on
 `main`; no `dev` branch was present in the inspected checkout. It contains the
 bounded anomaly output contract, the Web-01 feature

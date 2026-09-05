@@ -1,0 +1,596 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:alice:audit-event:v1",
+  "title": "ALICE bounded audit event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "alice-audit-event-v1"},
+    "canonicalization_version": {"const": "alice-json-v1"},
+    "ledger_id": {"$ref": "#/$defs/identifier"},
+    "node_id": {"$ref": "#/$defs/identifier"},
+    "event_id": {"$ref": "#/$defs/identifier"},
+    "sequence": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+    "event_type": {
+      "enum": [
+        "REQUEST",
+        "REJECTION",
+        "ASSESSMENT",
+        "DECISION",
+        "CONTEXT_CHALLENGE",
+        "CONTEXT_RESPONSE",
+        "TECHNICIAN_ACTION",
+        "EXECUTION_ATTEMPT",
+        "CONTROLLER_RECEIPT",
+        "EXECUTION_RESULT",
+        "OBSERVED_STATE",
+        "AUTHORITY_TRANSITION",
+        "CACHE_ACTIVATION",
+        "RECONCILIATION_FINDING",
+        "RECORDER_FAILURE"
+      ]
+    },
+    "correlation": {"$ref": "#/$defs/correlation"},
+    "time": {"$ref": "#/$defs/time"},
+    "attribution": {"$ref": "#/$defs/attribution"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "provenance": {"$ref": "#/$defs/provenance"},
+    "detail": {"type": "object"},
+    "previous_hash": {"$ref": "#/$defs/digest"},
+    "event_hash": {"$ref": "#/$defs/digest"},
+    "outbox_id": {"$ref": "#/$defs/identifier"},
+    "initial_state": {"const": "LOCAL"}
+  },
+  "required": [
+    "schema_version",
+    "canonicalization_version",
+    "ledger_id",
+    "node_id",
+    "event_id",
+    "sequence",
+    "event_type",
+    "correlation",
+    "time",
+    "attribution",
+    "authority",
+    "provenance",
+    "detail",
+    "previous_hash",
+    "event_hash",
+    "outbox_id",
+    "initial_state"
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/@-]*(?![\\s\\S])"
+    },
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "source_event_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "observed_at": {
+          "anyOf": [
+            {"type": "string", "maxLength": 40, "format": "date-time", "pattern": "Z(?![\\s\\S])"},
+            {"type": "null"}
+          ]
+        },
+        "confidence": {"enum": ["TRUSTED", "UNCERTAIN", "UNAVAILABLE"]},
+        "verification": {"enum": ["VERIFIED", "UNVERIFIED", "UNKNOWN"]},
+        "freshness": {"enum": ["FRESH", "STALE", "UNKNOWN"]},
+        "availability": {"enum": ["AVAILABLE", "UNAVAILABLE", "UNKNOWN"]}
+      },
+      "required": ["source_id", "source_event_id", "observed_at", "confidence", "verification", "freshness", "availability"]
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "sha256": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
+        "missing_reason": {"anyOf": [{"enum": ["MISSING", "UNAVAILABLE", "NOT_APPLICABLE", "UNRECEIVED"]}, {"type": "null"}]}
+      },
+      "required": ["id", "sha256", "missing_reason"]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ref": {"$ref": "#/$defs/identifier"},
+        "sha256": {"$ref": "#/$defs/digest"},
+        "source": {"$ref": "#/$defs/source"}
+      },
+      "required": ["ref", "sha256", "source"]
+    },
+    "time": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recorded_at": {
+          "anyOf": [
+            {"type": "string", "maxLength": 40, "format": "date-time", "pattern": "Z(?![\\s\\S])"},
+            {"type": "null"}
+          ]
+        },
+        "clock_source": {"$ref": "#/$defs/identifier"},
+        "confidence": {"enum": ["TRUSTED", "UNCERTAIN", "UNAVAILABLE"]},
+        "boot_id": {"$ref": "#/$defs/identifier"},
+        "monotonic_ns": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807}
+      },
+      "required": ["recorded_at", "clock_source", "confidence", "boot_id", "monotonic_ns"]
+    },
+    "correlation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "correlation_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "request_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "request_sha256": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
+        "assessment_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "action_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "execution_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "parent_event_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]}
+      },
+      "required": [
+        "correlation_id",
+        "request_id",
+        "request_sha256",
+        "assessment_id",
+        "action_id",
+        "execution_id",
+        "parent_event_id"
+      ]
+    },
+    "attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actor_kind": {"enum": ["SYSTEM", "AGENT", "USER", "TECHNICIAN", "CONTROLLER", "SENSOR", "ENTERPRISE", "UNKNOWN"]},
+        "actor_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "authenticated_requester_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "agent_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "responsible_user_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "delegator_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "technician_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "assignment_source_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "resolution": {"enum": ["RESOLVED", "UNRESOLVED", "NOT_APPLICABLE"]}
+      },
+      "required": [
+        "actor_kind",
+        "actor_id",
+        "authenticated_requester_id",
+        "agent_id",
+        "responsible_user_id",
+        "delegator_id",
+        "technician_id",
+        "assignment_source_id",
+        "resolution"
+      ]
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "product_mode": {"enum": ["ONLINE", "OFFLINE", "UNRECEIVED"]},
+        "connectivity": {"enum": ["CONNECTED", "DISCONNECTED", "DEGRADED", "UNKNOWN"]},
+        "execution_owner": {"enum": ["ENTERPRISE", "ALICE", "UNKNOWN"]},
+        "authority_interval_ref": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "confirmation": {"enum": ["CONFIRMED", "UNCONFIRMED", "UNKNOWN"]}
+      },
+      "required": ["product_mode", "connectivity", "execution_owner", "authority_interval_ref", "confirmation"]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "policy": {"$ref": "#/$defs/artifact"},
+        "baseline": {"$ref": "#/$defs/artifact"},
+        "model": {"$ref": "#/$defs/artifact"},
+        "calibration": {"$ref": "#/$defs/artifact"},
+        "snapshot": {"$ref": "#/$defs/artifact"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}, "maxItems": 16}
+      },
+      "required": ["policy", "baseline", "model", "calibration", "snapshot", "evidence"]
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {"enum": ["RECEIVED", "ADMITTED"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["outcome", "reason_codes"]
+    },
+    "rejection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {"enum": ["REJECTED"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      },
+      "required": ["outcome", "reason_codes"]
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"enum": ["POLICY", "CYBER_ANOMALY", "CONTEXTUAL_ML"]},
+        "status": {"enum": ["OK", "UNAVAILABLE", "INVALID_INPUT", "TIMEOUT", "ERROR", "SKIPPED"]},
+        "result": {"enum": ["PASS", "FAIL", "LOW", "ELEVATED", "HIGH", "UNKNOWN"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "contextual": {"anyOf": [{"$ref": "#/$defs/contextual"}, {"type": "null"}]}
+      },
+      "required": ["kind", "status", "result", "reason_codes", "contextual"]
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {"enum": ["ALLOW", "DENY", "CHALLENGE", "UNKNOWN"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["outcome", "reason_codes"]
+    },
+    "context_challenge": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "challenge_id": {"$ref": "#/$defs/identifier"},
+        "outcome": {"enum": ["ISSUED", "EXPIRED", "CANCELLED"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["challenge_id", "outcome", "reason_codes"]
+    },
+    "context_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "challenge_id": {"$ref": "#/$defs/identifier"},
+        "outcome": {"enum": ["RECEIVED", "ACCEPTED", "REJECTED", "UNAVAILABLE"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["challenge_id", "outcome", "reason_codes"]
+    },
+    "technician_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "intent": {"enum": ["REQUEST_APPROVAL", "REQUEST_DENIAL", "REQUEST_STOP", "PROVIDE_CONTEXT", "ACKNOWLEDGE"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["intent", "reason_codes"]
+    },
+    "execution_attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "command_ref": {"$ref": "#/$defs/identifier"},
+        "command_sha256": {"$ref": "#/$defs/digest"},
+        "outcome": {"enum": ["ATTEMPTED"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["command_ref", "command_sha256", "outcome", "reason_codes"]
+    },
+    "controller_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {"enum": ["ACCEPTED", "REJECTED", "UNKNOWN"]},
+        "source": {"$ref": "#/$defs/source"},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["outcome", "source", "reason_codes"]
+    },
+    "execution_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {"enum": ["ACCEPTED", "STARTED", "COMPLETED", "FAILED", "UNKNOWN"]},
+        "source": {"$ref": "#/$defs/source"},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["outcome", "source", "reason_codes"]
+    },
+    "observed_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {"$ref": "#/$defs/identifier"},
+        "sensor_id": {"$ref": "#/$defs/identifier"},
+        "origin": {"enum": ["INDEPENDENT_SENSOR", "ACTUATOR_FEEDBACK", "SIMULATED"]},
+        "property": {"$ref": "#/$defs/identifier"},
+        "value": {
+          "anyOf": [
+            {"type": "string", "maxLength": 80, "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?(?![\\s\\S])"},
+            {"type": "null"}
+          ]
+        },
+        "unit": {"type": "string", "minLength": 1, "maxLength": 32, "pattern": "^[A-Za-z0-9%°/_.^*-]+(?![\\s\\S])"},
+        "quality": {"enum": ["GOOD", "DEGRADED", "INVALID", "UNAVAILABLE", "UNKNOWN"]},
+        "correlation_absence_reason": {"anyOf": [{"enum": ["UNSOLICITED", "UNKNOWN"]}, {"type": "null"}]},
+        "source": {"$ref": "#/$defs/source"},
+        "evidence_ref": {"$ref": "#/$defs/identifier"}
+      },
+      "required": [
+        "asset_id",
+        "sensor_id",
+        "origin",
+        "property",
+        "value",
+        "unit",
+        "quality",
+        "correlation_absence_reason",
+        "source",
+        "evidence_ref"
+      ]
+    },
+    "authority_transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "previous_owner": {"enum": ["ENTERPRISE", "ALICE", "UNKNOWN"]},
+        "new_owner": {"enum": ["ENTERPRISE", "ALICE", "UNKNOWN"]},
+        "interval_ref": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "outcome": {"enum": ["OBSERVED", "CONFIRMED", "REJECTED"]},
+        "source": {"$ref": "#/$defs/source"},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["previous_owner", "new_owner", "interval_ref", "outcome", "source", "reason_codes"]
+    },
+    "cache_activation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cache_id": {"$ref": "#/$defs/identifier"},
+        "cache_sha256": {"$ref": "#/$defs/digest"},
+        "outcome": {"enum": ["ACTIVATED", "REJECTED", "UNAVAILABLE"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["cache_id", "cache_sha256", "outcome", "reason_codes"]
+    },
+    "reconciliation_finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "original_event_id": {"$ref": "#/$defs/identifier"},
+        "original_event_hash": {"$ref": "#/$defs/digest"},
+        "finding": {"enum": ["CONSISTENT", "MISMATCH", "UNRESOLVED", "EVIDENCE_UNAVAILABLE"]},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "source": {"$ref": "#/$defs/source"}
+      },
+      "required": ["original_event_id", "original_event_hash", "finding", "reason_codes", "source"]
+    },
+    "recorder_failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation": {"enum": ["APPEND", "SEAL", "QUEUE", "ACKNOWLEDGE", "RECONCILE", "OPEN", "VALIDATE"]},
+        "error_code": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+        "reason_codes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Z][A-Z0-9_]*(?![\\s\\S])"},
+          "maxItems": 16,
+          "uniqueItems": true
+        }
+      },
+      "required": ["operation", "error_code", "reason_codes"]
+    },
+    "contextual_dispatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assessment_id": {"$ref": "#/$defs/identifier"},
+        "request_id": {"$ref": "#/$defs/identifier"},
+        "request_sha256": {"$ref": "#/$defs/digest"},
+        "input_sha256": {"$ref": "#/$defs/digest"},
+        "execution_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "profile_sha256": {"$ref": "#/$defs/digest"},
+        "phase": {"enum": ["PRE_ACTION", "POST_ACTION"]}
+      },
+      "required": [
+        "assessment_id",
+        "request_id",
+        "request_sha256",
+        "input_sha256",
+        "execution_id",
+        "profile_sha256",
+        "phase"
+      ]
+    },
+    "contextual": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"const": "alice-contextual-projection-v1"},
+        "assessment_schema_version": {"const": "context-behavior-assessment-v1"},
+        "phase": {"enum": ["PRE_ACTION", "POST_ACTION"]},
+        "dispatch": {"$ref": "#/$defs/contextual_dispatch"},
+        "parsed": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "observation_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+            "request_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+            "input_sha256": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
+            "execution_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]}
+          },
+          "required": ["observation_id", "request_id", "input_sha256", "execution_id"]
+        },
+        "profile_sha256": {"$ref": "#/$defs/digest"},
+        "model_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+        "model_fingerprint": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
+        "calibration_sha256": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
+        "context": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {"key": {"$ref": "#/$defs/identifier"}, "value": {"$ref": "#/$defs/identifier"}},
+            "required": ["key", "value"]
+          }
+        },
+        "request_at_ms": {"anyOf": [{"type": "integer", "minimum": 0, "maximum": 9223372036854775807}, {"type": "null"}]},
+        "cutoff_at_ms": {"anyOf": [{"type": "integer", "minimum": 0, "maximum": 9223372036854775807}, {"type": "null"}]},
+        "execution_at_ms": {"anyOf": [{"type": "integer", "minimum": 0, "maximum": 9223372036854775807}, {"type": "null"}]},
+        "source_ids": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/identifier"}},
+        "assessment_evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {"ref": {"$ref": "#/$defs/identifier"}, "sha256": {"$ref": "#/$defs/digest"}},
+          "required": ["ref", "sha256"]
+        }
+      },
+      "required": [
+        "schema_version",
+        "assessment_schema_version",
+        "phase",
+        "dispatch",
+        "parsed",
+        "profile_sha256",
+        "model_id",
+        "model_fingerprint",
+        "calibration_sha256",
+        "context",
+        "request_at_ms",
+        "cutoff_at_ms",
+        "execution_at_ms",
+        "source_ids",
+        "assessment_evidence"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"event_type": {"const": "REQUEST"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/request"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "REJECTION"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/rejection"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "ASSESSMENT"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/assessment"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "DECISION"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/decision"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "CONTEXT_CHALLENGE"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/context_challenge"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "CONTEXT_RESPONSE"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/context_response"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "TECHNICIAN_ACTION"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/technician_action"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "EXECUTION_ATTEMPT"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/execution_attempt"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "CONTROLLER_RECEIPT"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/controller_receipt"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "EXECUTION_RESULT"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/execution_result"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "OBSERVED_STATE"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/observed_state"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "AUTHORITY_TRANSITION"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/authority_transition"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "CACHE_ACTIVATION"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/cache_activation"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "RECONCILIATION_FINDING"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/reconciliation_finding"}}}
+    },
+    {
+      "if": {"properties": {"event_type": {"const": "RECORDER_FAILURE"}}},
+      "then": {"properties": {"detail": {"$ref": "#/$defs/recorder_failure"}}}
+    }
+  ]
+}

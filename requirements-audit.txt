@@ -1,0 +1,3 @@
+# Local ledger only; model training dependencies remain separate.
+-r requirements-anomaly.txt
+cryptography==46.0.3

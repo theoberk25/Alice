@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enterprise SIEM — Sentinel AFB</title>
+<style>
+  :root {
+    --bg:#0e1116; --panel:#161b23; --panel2:#1c222c; --line:#2a323f;
+    --ink:#e6edf6; --dim:#8b97a8; --faint:#5d6878;
+    --ok:#3fb950; --warn:#d29922; --bad:#f85149; --info:#58a6ff; --accent:#a371f7;
+    --down:#58a6ff; --up:#3fb950;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+  header{padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel);
+         display:flex;align-items:center;gap:18px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+  h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.4px}
+  h1 b{color:var(--accent);font-weight:700}
+  h1 span{color:var(--dim);font-weight:400}
+  .tag{font:10px/1 var(--mono);color:var(--faint);border:1px solid var(--line);
+       padding:4px 7px;border-radius:4px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto}
+  .chip{font:11px/1 var(--mono);padding:6px 9px;border-radius:5px;border:1px solid var(--line);
+        background:var(--panel2);color:var(--dim);white-space:nowrap}
+  .chip b{color:var(--ink);font-weight:600}
+  .chip.live{border-color:#1f6f34;background:#0f2716;color:#7ee891}
+  .chip.local{border-color:#6b5514;background:#241d08;color:#e3c14e}
+  .chip.bad{border-color:#6e2b28;background:#2a1210;color:#ff9c94}
+  nav{display:flex;gap:2px;padding:0 20px;border-bottom:1px solid var(--line);
+      background:var(--panel);position:sticky;top:53px;z-index:19;overflow-x:auto}
+  nav button{background:none;border:0;color:var(--dim);padding:11px 13px;cursor:pointer;
+             font-size:13px;border-bottom:2px solid transparent;white-space:nowrap}
+  nav button:hover{color:var(--ink)}
+  nav button.on{color:var(--ink);border-bottom-color:var(--accent)}
+  nav .dir{font-family:var(--mono);font-size:10px;margin-right:5px}
+  .d-down{color:var(--down)} .d-up{color:var(--up)}
+  main{padding:20px;max-width:1600px}
+  section{display:none} section.on{display:block}
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .card h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.7px;
+           color:var(--dim);font-weight:600}
+  .card.alert{border-color:#6e2b28}
+  .card.alert h3{color:#ff9c94}
+  .big{font-size:26px;font-weight:600;font-family:var(--mono)}
+  .sub{color:var(--faint);font-size:11px;margin-top:3px}
+  table{border-collapse:collapse;width:100%;font-size:12px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  tbody tr:hover{background:var(--panel2)}
+  code,.mono{font-family:var(--mono);font-size:11px}
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+  .matrix{border-collapse:separate;border-spacing:2px;font-size:11px}
+  .matrix th.act{writing-mode:vertical-rl;transform:rotate(180deg);height:150px;
+                 padding:6px 3px;font-family:var(--mono);text-transform:none;letter-spacing:0;
+                 font-size:10px;border:0;color:var(--dim)}
+  .matrix th.ag{position:sticky;left:0;background:var(--bg);z-index:2;border:0;
+                font-family:var(--mono);text-transform:none;letter-spacing:0;
+                font-size:11px;color:var(--ink);font-weight:500;padding-right:12px;white-space:nowrap}
+  .matrix td{border:0;padding:0}
+  .cell{width:30px;height:26px;border-radius:4px;display:flex;align-items:center;
+        justify-content:center;font-size:10px;cursor:pointer;border:1px solid transparent}
+  .cell:hover{outline:2px solid var(--info);outline-offset:1px}
+  .c-permit{background:#12341c;border-color:#1f6f34;color:#7ee891}
+  .c-approval{background:#2e2408;border-color:#6b5514;color:#e3c14e}
+  .c-prohibited{background:#33100e;border-color:#6e2b28;color:#ff9c94}
+  .c-none{background:#141922;border-color:#1f2530}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0;font-size:11px;color:var(--dim)}
+  .legend i{display:inline-block;width:13px;height:13px;border-radius:3px;
+            vertical-align:-2px;margin-right:5px;border:1px solid}
+  .b{display:inline-block;padding:2px 7px;border-radius:4px;font:11px/1.6 var(--mono);border:1px solid}
+  .b-allow,.b-low,.b-ok{background:#12341c;border-color:#1f6f34;color:#7ee891}
+  .b-deny,.b-high{background:#33100e;border-color:#6e2b28;color:#ff9c94}
+  .b-hold,.b-elev{background:#2e2408;border-color:#6b5514;color:#e3c14e}
+  .b-ctx{background:#101f33;border-color:#1f4d7a;color:#8cc6ff}
+  .b-unk{background:#1c222c;border-color:#2a323f;color:#8b97a8}
+  .note{color:var(--faint);font-size:11px;font-style:italic;margin-top:4px}
+  .banner{border-radius:8px;padding:11px 14px;margin-bottom:16px;font-size:12px;
+          border:1px solid var(--line);background:var(--panel2);color:var(--dim)}
+  .banner.warn{border-color:#6b5514;background:#1e1808;color:#e3c14e}
+  .banner.bad{border-color:#6e2b28;background:#22100f;color:#ff9c94}
+  #detail{position:fixed;right:16px;bottom:16px;width:380px;max-height:60vh;overflow:auto;
+          background:var(--panel);border:1px solid var(--info);border-radius:8px;
+          padding:14px;display:none;z-index:50;box-shadow:0 12px 40px #0009}
+  #detail h4{margin:0 0 8px;font-size:12px;font-family:var(--mono)}
+  #detail button{position:absolute;top:8px;right:10px;background:none;border:0;
+                 color:var(--dim);cursor:pointer;font-size:16px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:11px}
+  .kv div:nth-child(odd){color:var(--dim)}
+  .kv div:nth-child(even){font-family:var(--mono)}
+  .tree{font-size:12px}
+  .tree>li{margin-bottom:14px;list-style:none}
+  .tree ul{margin:5px 0 0;padding-left:18px;border-left:1px solid var(--line);list-style:none}
+  .tree li li{padding:3px 0 3px 10px}
+  .who{font-weight:600} .role{color:var(--dim)}
+  .flag{color:var(--warn);font-size:11px;font-family:var(--mono)}
+  .flow{display:flex;align-items:stretch;gap:0;margin:4px 0 18px;flex-wrap:wrap}
+  .tier{flex:1;min-width:210px;border:1px solid var(--line);background:var(--panel);
+        border-radius:8px;padding:11px 13px}
+  .tier h4{margin:0 0 4px;font-size:12px}
+  .tier p{margin:0;color:var(--faint);font-size:11px}
+  .tier.self{border-color:var(--accent);background:#191426}
+  .arrow{display:flex;flex-direction:column;justify-content:center;padding:0 12px;
+         font-family:var(--mono);font-size:11px;gap:4px;min-width:150px}
+  .arrow span{white-space:nowrap}
+</style>
+</head>
+<body>
+<header>
+  <h1><b>ENTERPRISE SIEM</b> <span>/ Sentinel Air Force Base</span></h1>
+  <span class="tag">ALICE EDGE INTEGRATION</span>
+  <div class="chips" id="chips"></div>
+</header>
+<nav id="nav"></nav>
+<main>
+  <div class="banner" id="banner"></div>
+  <section id="s-overview" class="on"></section>
+  <section id="s-fleet"></section>
+  <section id="s-identity"></section>
+  <section id="s-permissions"></section>
+  <section id="s-activity"></section>
+  <section id="s-models"></section>
+  <section id="s-telemetry"></section>
+</main>
+<div id="detail"><button onclick="closeDetail()">&times;</button><div id="detail-body"></div></div>
+
+<script>
+const TABS = [
+  ["overview","Overview",""],
+  ["fleet","Edge fleet","↕"],
+  ["identity","Identity","↓"],
+  ["permissions","Published permissions","↓"],
+  ["activity","Returned activity","↑"],
+  ["models","Behavior models","↓"],
+  ["telemetry","Endpoints &amp; alerts",""],
+];
+let S = null;
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $ = id => document.getElementById(id);
+const card = (t,v,s,cls="") => `<div class="card ${cls}"><h3>${t}</h3><div class="big">${v}</div><div class="sub">${s}</div></div>`;
+
+function tabs(){
+  $("nav").innerHTML = TABS.map(([k,l,d],i)=>{
+    const dir = d==="↓" ? `<span class="dir d-down">↓</span>`
+              : d==="↑" ? `<span class="dir d-up">↑</span>`
+              : d==="↕" ? `<span class="dir">↕</span>` : "";
+    return `<button data-k="${k}" class="${i===0?"on":""}">${dir}${l}</button>`;
+  }).join("");
+  $("nav").onclick = e => {
+    const b = e.target.closest("button"); if(!b) return;
+    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll("main section").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); $("s-"+b.dataset.k).classList.add("on"); window.scrollTo(0,0);
+  };
+}
+
+function chips(){
+  const src = S.sources, ix = src.indexer, d = S.sync_delta;
+  const behind = d.available && d.published_generation !== d.cached_generation;
+  $("chips").innerHTML = [
+    `<span class="chip ${ix.reachable?"live":"local"}">SIEM <b>${ix.reachable?"LIVE":"OFFLINE"}</b></span>`,
+    `<span class="chip">published <b>gen ${S.manifest.generation ?? "?"}</b></span>`,
+    `<span class="chip ${behind?"local":"live"}">edge <b>gen ${d.cached_generation ?? "?"}</b></span>`,
+    `<span class="chip ${S.chain_intact?"live":"bad"}">returned chain <b>${S.chain_intact?"intact":"BROKEN"}</b></span>`,
+  ].join("");
+}
+
+function banner(){
+  const live = S.sources.indexer.reachable;
+  $("banner").className = "banner" + (live?"":" warn");
+  $("banner").innerHTML = live
+    ? `Live Wazuh indexer at <code>${esc(S.sources.indexer.endpoint)}</code> (cluster
+       <code>${esc(S.sources.indexer.cluster||"?")}</code>, version <code>${esc(S.sources.indexer.version||"?")}</code>).
+       This is the enterprise platform's own view. It publishes releases downstream and
+       receives edge activity upstream; it does not make or replay edge decisions.`
+    : `The indexer is not reachable, so this is the <b>generated release set and returned
+       audit on disk</b>, not live enterprise data. Everything below is simulated.`;
+}
+
+function topology(){
+  return `<div class="flow">
+    <div class="tier self"><h4>Enterprise SIEM <span class="role">— you are here</span></h4>
+      <p>Authoritative permissions, baselines and model releases. Holds the returned
+         record of what edge nodes did while disconnected.</p></div>
+    <div class="arrow">
+      <span class="d-down">↓ publishes releases</span>
+      <span class="d-up">↑ returns audit &amp; findings</span></div>
+    <div class="tier"><h4>ALICE Pi <span class="role">— edge decision node</span></h4>
+      <p>Caches the last accepted releases, governs local agent actions while
+         disconnected, and reports on reconnection.</p></div>
+    <div class="arrow"><span>↔ data and decisions</span></div>
+    <div class="tier"><h4>ALICE technician software <span class="role">— Mac</span></h4>
+      <p>Operator surface. Connects to the Pi for state and review; it is not
+         an enterprise client.</p></div>
+  </div>`;
+}
+
+function overview(){
+  const m = S.manifest, perm = S.matrix.cells, d = S.sync_delta;
+  let permits=0, approvals=0, prohibited=0;
+  for(const a in perm) for(const k in perm[a]){
+    const e = perm[a][k].effect;
+    if(e==="PERMIT") permits++; else if(e==="PERMIT_WITH_APPROVAL") approvals++;
+    else if(e==="PROHIBITED") prohibited++;
+  }
+  const denies = S.decisions.filter(x=>x.decision==="DENY").length;
+  const holds  = S.decisions.filter(x=>x.decision==="HOLD").length;
+  const hard   = S.decisions.filter(x=>x.prohibition_id).length;
+  const behind = d.available && d.published_generation !== d.cached_generation;
+  const stale  = d.available ? d.grants_withdrawn_but_still_cached.length : 0;
+
+  $("s-overview").innerHTML = topology() + `
+  <div class="grid g3" style="margin-bottom:14px">
+    ${card("Published release", "gen "+(m.generation??"?"), esc(m.release_note||"").slice(0,80))}
+    ${card("Edge fleet", S.edge_nodes.length, behind
+        ? `alice-pi-01 is ${d.published_generation-d.cached_generation} releases behind`
+        : "all nodes on the current release", behind?"alert":"")}
+    ${card("Stale grants at the edge", stale, stale
+        ? "withdrawn upstream, still cached downstream" : "none", stale?"alert":"")}
+    ${card("Identities governed", Object.keys(S.users).length+" / "+Object.keys(S.agents).length,
+        "humans / AI agents")}
+    ${card("Permission surface", permits+" + "+approvals, "open + step-up cells, "+prohibited+" denied")}
+    ${card("Activity returned", S.decisions.length, denies+" denied, "+holds+" held, "+hard+" by prohibition")}
+  </div>
+  <div class="grid g2">
+    <div class="card"><h3><span class="d-down">↓</span> Current published release</h3>
+      <div class="kv">
+        <div>bundle</div><div>${esc(m.bundle_id||"—")}</div>
+        <div>generation</div><div>${esc(m.generation)}</div>
+        <div>issuer</div><div>${esc(m.issuer_id||"—")}</div>
+        <div>distribution</div><div>${esc(m.transport||"—")}</div>
+        <div>valid</div><div>${esc(m.not_before||"?")} → ${esc(m.not_after||"?")}</div>
+        <div>offline grace</div><div>${m.offline_grace_seconds? (m.offline_grace_seconds/86400)+" days":"—"}</div>
+        <div>revocation epoch</div><div>${esc(m.revocation_epoch)}</div>
+        <div>signature</div><div>${esc(m.signature?m.signature.algorithm:"—")}</div>
+      </div>
+      <div class="note">${esc(m.transport_note||"")}</div>
+    </div>
+    <div class="card"><h3>Rules an edge node applies when this release expires</h3>
+      <div class="kv">
+        <div>prohibitions</div><div><span class="b b-deny">${esc(m.on_expiry?m.on_expiry.prohibitions:"—")}</span></div>
+        <div>grants</div><div><span class="b b-hold">${esc(m.on_expiry?m.on_expiry.grants:"—")}</span></div>
+      </div>
+      <div class="note">${esc(m.on_expiry?m.on_expiry.note:"")}</div>
+      <h3 style="margin-top:16px">Electrical envelope published to the fleet</h3>
+      <div class="kv">
+        <div>nominal</div><div>${S.electrical.nominal_v} V</div>
+        <div>grant band</div><div>${S.electrical.normal_min_v} – ${S.electrical.normal_max_v} V</div>
+        <div>hard band</div><div>${S.electrical.hard_min_v} – ${S.electrical.hard_max_v} V</div>
+      </div>
+      <div class="note">${esc(S.electrical.note)}</div>
+    </div>
+  </div>`;
+}
+
+function fleet(){
+  const d = S.sync_delta;
+  const nodes = S.edge_nodes.map(n=>{
+    const behind = n.published_generation !== n.active_generation;
+    return `<div class="card ${behind?"alert":""}" style="margin-bottom:14px">
+      <h3>${esc(n.node_id)} ${behind?"— OUT OF SYNC":"— in sync"}</h3>
+      <div class="grid g2">
+        <div><div class="kv">
+          <div>boot</div><div>${esc(n.boot_id)}</div>
+          <div>last reported</div><div>${esc(n.last_seen||"—")}</div>
+          <div>last known mode</div><div><span class="b ${n.last_mode==="OFFLINE"?"b-hold":"b-ctx"}">${esc(n.last_mode)}</span>
+            / ${esc(n.last_authority)}</div>
+          <div>published gen</div><div>${esc(n.published_generation)}</div>
+          <div>active gen at node</div><div><span class="b ${behind?"b-deny":"b-ok"}">${esc(n.active_generation)}</span></div>
+          <div>cache freshness</div><div><span class="b ${n.permissions_freshness==="EXPIRED"?"b-deny":"b-ok"}">${esc(n.permissions_freshness||"—")}</span></div>
+          <div>baseline cached</div><div>${esc(n.baseline_package)} v${esc(n.baseline_version)}</div>
+        </div></div>
+        <div><div class="kv">
+          <div>events returned</div><div>${n.events_returned}</div>
+          <div>sequence complete</div><div><span class="b ${n.sequence_complete?"b-ok":"b-deny"}">${n.sequence_complete?"no gaps":"GAP DETECTED"}</span></div>
+          <div>checkpoints held</div><div>${n.checkpoints} (last seq ${esc(n.last_checkpoint_sequence)})</div>
+          <div>chain head</div><div>${esc((n.chain_head||"").slice(0,24))}…</div>
+          <div>outbox at resume</div><div>${esc(n.outbox_pending_at_resume)} pending → ${esc(n.outbox_backlog_remaining)} remaining</div>
+          <div>offline outcomes</div><div>${Object.entries(n.outcomes).map(([k,v])=>`${k}:${v}`).join("  ")||"—"}</div>
+          <div>audit capacity</div><div>${n.audit_capacity_blocked?`<span class="b b-deny">BLOCKED</span>`:`<span class="b b-ok">OK</span>`}</div>
+        </div></div>
+      </div>
+      ${n.reject_reason?`<div class="note">Refused candidate generation ${esc(n.rejected_candidate)}: <b>${esc(n.reject_reason)}</b></div>`:""}
+      ${n.drift_affected?`<div class="note">Reported ${n.drift_affected} offline decisions taken under a superseded generation; enterprise was at ${esc(n.drift_enterprise_generation)}.</div>`:""}
+    </div>`;
+  }).join("");
+
+  let deltaHtml = `<div class="banner">No cached release available to compare.</div>`;
+  if(d.available){
+    const rows = [];
+    d.grants_withdrawn_but_still_cached.forEach(g=>rows.push(
+      `<tr><td><span class="b b-deny">STILL HONOURED</span></td>
+        <td><code>${esc(g.grant_id)}</code></td>
+        <td class="mono">${esc(g.agents.join(", "))}</td>
+        <td class="mono">${esc(g.actions.join(", "))}
+        <div class="note">Withdrawn upstream. The node has not seen the withdrawal and
+        keeps applying it until it resynchronizes.</div></td></tr>`));
+    d.unseen_revocations.forEach(r=>rows.push(
+      `<tr><td><span class="b b-deny">UNSEEN REVOCATION</span></td>
+        <td><code>${esc(r.subject_id)}</code></td>
+        <td class="mono">${esc(r.subject_type)}</td>
+        <td class="mono">${esc(r.reason_code)}
+        ${r.note?`<div class="note">${esc(r.note)}</div>`:""}</td></tr>`));
+    d.grants_changed.forEach(c=>rows.push(
+      `<tr><td><span class="b b-hold">CHANGED</span></td>
+        <td><code>${esc(c.grant_id)}</code></td>
+        <td class="mono">${esc(c.field)}</td>
+        <td class="mono">${c.field==="agents"
+          ? `${esc((c.was||[]).join(", "))} → ${esc((c.now||[]).join(", "))}`
+          : `${esc(JSON.stringify(c.was))}<br>→ ${esc(JSON.stringify(c.now))}`}</td></tr>`));
+    d.grants_added.forEach(g=>rows.push(
+      `<tr><td><span class="b b-ctx">ADDED</span></td><td><code>${esc(g)}</code></td>
+        <td class="mono">—</td><td class="mono">Not present in the cached release.</td></tr>`));
+
+    deltaHtml = `
+      <div class="banner ${d.grants_withdrawn_but_still_cached.length?"bad":"warn"}">
+        The node cached <b>generation ${d.cached_generation}</b>; the enterprise publishes
+        <b>generation ${d.published_generation}</b>. Revocation epoch ${d.revocation_epoch.cached}
+        at the node against ${d.revocation_epoch.published} upstream. This is the enterprise's
+        view of the gap, computed by comparing two signed releases — not a claim about what
+        the node actually did with the release it holds.</div>
+      <div class="scroll"><table><thead><tr>
+        <th>Delta</th><th>Rule</th><th>Field / subject</th><th>Detail</th>
+      </tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+  }
+  $("s-fleet").innerHTML = topology() + nodes +
+    `<h3 style="font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim)">
+     Synchronization delta</h3>` + deltaHtml;
+}
+
+function identity(){
+  const byUser = {};
+  for(const [id,a] of Object.entries(S.agents))
+    (byUser[a.responsible_user] = byUser[a.responsible_user]||[]).push([id,a]);
+  const items = Object.entries(S.users).map(([uid,u])=>{
+    const mine = byUser[uid]||[];
+    const extra = [];
+    if(!u.deploys_agents) extra.push("deploys no agents");
+    if(u.technician_console) extra.push("ALICE technician software");
+    if(u.escort_required) extra.push("escorted");
+    return `<li>
+      <span class="who">${esc(u.display_name)}</span>
+      <span class="role">— ${esc(u.role.replace(/_/g," "))}, ${esc(u.unit)}</span>
+      <span class="chip" style="margin-left:8px">ceiling $${(u.purchase_ceiling_usd||0).toLocaleString()}</span>
+      ${extra.length?`<span class="chip">${extra.join(" · ")}</span>`:""}
+      ${u.approval_authority && u.approval_authority.length
+        ? `<div class="note">may approve: ${u.approval_authority.map(esc).join(", ")}</div>`
+        : `<div class="note">no approval authority</div>`}
+      ${mine.length?`<ul>${mine.map(([id,a])=>`<li>
+          <code>${esc(id)}</code> <span class="role">${esc(a.type.replace(/_/g," "))}</span>
+          ${!a.baseline_profile?`<span class="flag">◆ NO_AGENT_BASELINE → cohort</span>`:""}
+          ${a.expires_at?`<span class="flag">◆ expires ${esc(a.expires_at)}</span>`:""}
+          <div class="note">delegated by ${esc(a.delegator)} · targets ${a.targets.map(esc).join(", ")}</div>
+        </li>`).join("")}</ul>`:""}
+    </li>`;
+  }).join("");
+  $("s-identity").innerHTML = `
+    <div class="banner">The authoritative identity and delegation record, published
+      downstream in every release. An edge node resolves agent-to-user attribution from
+      its cached copy; an agent-supplied ownership claim never establishes it.</div>
+    <div class="card"><h3><span class="d-down">↓</span> Who answers for which agent</h3>
+    <ul class="tree" style="padding-left:0">${items}</ul></div>`;
+}
+
+function permissions(){
+  const {actions, cells} = S.matrix, d = S.sync_delta;
+  const cls = {PERMIT:"c-permit", PERMIT_WITH_APPROVAL:"c-approval",
+               PROHIBITED:"c-prohibited", NOT_GRANTED:"c-none"};
+  const glyph = {PERMIT:"✓", PERMIT_WITH_APPROVAL:"⇧", PROHIBITED:"✕", NOT_GRANTED:""};
+  const head = `<tr><th class="ag"></th>${actions.map(a=>`<th class="act">${esc(a)}</th>`).join("")}</tr>`;
+  const rows = Object.keys(cells).map(ag=>{
+    const tds = actions.map(a=>{
+      const c = cells[ag][a];
+      return `<td><div class="cell ${cls[c.effect]}" data-ag="${esc(ag)}" data-act="${esc(a)}"
+              title="${esc(ag)} · ${esc(a)} · ${esc(c.effect)}">${glyph[c.effect]}</div></td>`;
+    }).join("");
+    return `<tr><th class="ag">${esc(ag)}</th>${tds}</tr>`;
+  }).join("");
+
+  const behind = d.available && d.published_generation !== d.cached_generation;
+  $("s-permissions").innerHTML = `
+    <div class="banner ${behind?"warn":""}">
+      This is <b>published generation ${esc(S.manifest.generation)}</b> — what the enterprise
+      authorizes now.${behind?` The edge node is still enforcing <b>generation ${esc(d.cached_generation)}</b>,
+      so this matrix is not what alice-pi-01 is applying while disconnected. See the
+      Edge fleet tab for the delta.`:""}</div>
+    <div class="legend">
+      <span><i class="c-permit"></i>permit</span>
+      <span><i class="c-approval"></i>permit, technician step-up required</span>
+      <span><i class="c-prohibited"></i>hard prohibition (absolute)</span>
+      <span><i class="c-none"></i>not granted (default deny)</span>
+      <span style="color:var(--faint)">click any cell for the governing rule</span>
+    </div>
+    <div class="scroll" style="padding:14px"><table class="matrix">${head}${rows}</table></div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="card"><h3>Hard prohibitions — the edge evaluates these before grants, with no model call</h3>
+        <table><thead><tr><th>ID</th><th>Reason</th><th>Scope</th></tr></thead><tbody>
+        ${S.prohibitions.map(p=>`<tr>
+          <td><code>${esc(p.prohibition_id)}</code></td>
+          <td><span class="b b-deny">${esc(p.reason_code)}</span></td>
+          <td class="mono">${esc(p.agents.join(", "))} → ${esc(p.actions.length>4?p.actions.length+" actions":p.actions.join(", "))}
+          ${p.parameter_match?`<div class="note">conditional on ${esc(Object.keys(p.parameter_match).join(", "))}</div>`:""}
+          ${p.note?`<div class="note">${esc(p.note)}</div>`:""}</td></tr>`).join("")}
+        </tbody></table></div>
+      <div class="card"><h3>Revocations — epoch ${esc(S.revocations.revocation_epoch)}</h3>
+        <table><thead><tr><th>Subject</th><th>Revoked</th><th>Reason</th></tr></thead><tbody>
+        ${S.revocations.revocations.map(r=>`<tr>
+          <td><code>${esc(r.subject_id)}</code><div class="note">${esc(r.subject_type)}</div></td>
+          <td class="mono">${esc(r.revoked_at.slice(0,10))}</td>
+          <td><span class="b b-unk">${esc(r.reason_code)}</span>
+          ${r.note?`<div class="note">${esc(r.note)}</div>`:""}</td></tr>`).join("")}
+        </tbody></table>
+        <div class="note">Carried in every release so a stale cached bundle cannot
+        resurrect a revoked subject — provided the node has actually received it.</div></div>
+    </div>`;
+
+  document.querySelectorAll(".cell").forEach(el=>{
+    el.onclick = () => showCell(el.dataset.ag, el.dataset.act);
+  });
+}
+
+function showCell(agent, action){
+  const c = S.matrix.cells[agent][action];
+  const rows = [["agent",agent],["action",action],["effect",c.effect]];
+  if(c.rule) rows.push(["governing rule",c.rule]);
+  if(c.reason) rows.push(["reason",c.reason]);
+  if(c.caveat) rows.push(["caveat",c.caveat+" ("+c.caveat_reason+")"]);
+  if(c.targets) rows.push(["targets",c.targets.join(", ")]);
+  let bounds = "";
+  if(c.bounds){
+    bounds = `<h4 style="margin-top:12px">Parameter bounds</h4><div class="kv">` +
+      Object.entries(c.bounds).map(([k,v])=>`<div>${esc(k)}</div><div>${esc(JSON.stringify(v))}</div>`).join("") +
+      `</div>`;
+  }
+  $("detail-body").innerHTML = `<h4>${esc(agent)} · ${esc(action)}</h4>
+    <div class="kv">${rows.map(([k,v])=>`<div>${esc(k)}</div><div>${esc(v)}</div>`).join("")}</div>${bounds}
+    <div class="note">From published generation ${esc(S.manifest.generation)}.</div>`;
+  $("detail").style.display = "block";
+}
+const closeDetail = () => $("detail").style.display="none";
+
+function activity(){
+  const badge = d => {
+    if(d.decision) return `<span class="b b-${{ALLOW:"allow",DENY:"deny",HOLD:"hold",REQUEST_CONTEXT:"ctx"}[d.decision]||"unk"}">${esc(d.decision)}</span>`;
+    if(d.band) return `<span class="b b-${{HIGH:"high",ELEVATED:"elev",NORMAL:"low",LOW:"low"}[d.band]||"unk"}">${esc(d.band)}</span>`;
+    return `<span class="b b-unk">${esc(d.event_type.replace(/_/g," "))}</span>`;
+  };
+  const rows = S.decisions.map(d=>`<tr>
+    <td class="mono">${esc(d.sequence)}</td>
+    <td class="mono">${esc((d.recorded_at||"").slice(11,23))}</td>
+    <td><span class="b ${d.mode==="OFFLINE"?"b-hold":"b-ctx"}">${esc(d.mode)}</span></td>
+    <td class="mono">${esc(d.event_type)}</td>
+    <td>${badge(d)}</td>
+    <td class="mono">${esc(d.agent_id||d.technician_id||"—")}
+      ${d.responsible_user?`<div class="note">for ${esc(d.responsible_user)}</div>`:""}</td>
+    <td class="mono">${esc(d.action||"—")}${d.target?`<div class="note">${esc(d.target)}</div>`:""}</td>
+    <td class="mono">${d.permissions_generation?esc(d.permissions_generation):"—"}
+      ${d.permissions_freshness?`<div class="note">${esc(d.permissions_freshness)}</div>`:""}</td>
+    <td>${d.prohibition_id?`<code style="color:var(--bad)">${esc(d.prohibition_id)}</code>`:
+         d.grant_id?`<code style="color:var(--ok)">${esc(d.grant_id)}</code>`:
+         d.reason_code?`<code>${esc(d.reason_code)}</code>`:"—"}
+      ${d.model_invoked===false?`<div class="note">model not invoked</div>`:""}
+      ${d.reason_codes&&d.reason_codes.length?`<div class="note">${d.reason_codes.map(esc).join(" · ")}</div>`:""}
+      ${d.note?`<div class="note">${esc(d.note)}</div>`:""}</td>
+  </tr>`).join("");
+  $("s-activity").innerHTML = `
+    <div class="banner"><span class="d-up">↑</span> Returned by the edge node on reconnection.
+      These decisions were made by <b>alice-pi-01 under its own authority while disconnected</b>;
+      the enterprise did not authorize them as they happened and is not replaying them now.
+      The <b>gen</b> column records which cached release each decision was taken under.
+      The chain is <b style="color:${S.chain_intact?"var(--ok)":"var(--bad)"}">${S.chain_intact?"intact":"BROKEN"}</b>
+      — recomputed here from the event bytes, not read from the record.</div>
+    <div class="scroll"><table><thead><tr>
+      <th>#</th><th>Time</th><th>Mode</th><th>Event</th><th>Outcome</th>
+      <th>Actor</th><th>Action</th><th>Gen</th><th>Governing rule / reasons</th>
+    </tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function models(){
+  if(!S.anomaly){ $("s-models").innerHTML = `<div class="banner warn">No experiment
+    report found. Run <code>.venv/bin/python -m lab.enterprise_sim.fit</code>.</div>`; return; }
+  const bandB = b => `<span class="b b-${{HIGH:"high",ELEVATED:"elev",LOW:"low",UNKNOWN:"unk"}[b]||"unk"}">${esc(b)}</span>`;
+  const phases = Object.entries(S.anomaly.phases).map(([tag,p])=>`
+    <div class="card" style="margin-bottom:14px">
+      <h3>${esc(p.phase)} — ${esc(p.profile_id)}</h3>
+      <div class="kv" style="margin-bottom:12px">
+        <div>model</div><div>${esc(p.model_id)} · ${esc(p.model_fingerprint)}</div>
+        <div>contexts fitted</div><div>${p.context_count}</div>
+        <div>scikit-learn</div><div>${esc(p.scikit_learn)}</div>
+        <div>persisted</div><div>${p.model_persisted?"yes":"no — in-memory experiment only"}</div>
+      </div>
+      <table><thead><tr><th>Context</th><th>Train</th><th>Calibration</th><th>Held-out normal bands</th></tr></thead><tbody>
+      ${p.contexts.map(c=>{
+        const label = Object.values(c.context).join("/");
+        const bands = p.held_out_normal_bands[label]||{};
+        return `<tr><td class="mono">${esc(label)}</td><td class="mono">${c.training_rows}</td>
+          <td class="mono">${c.calibration_rows}</td>
+          <td>${Object.entries(bands).map(([b,n])=>`${bandB(b)} ${n}`).join(" &nbsp; ")}</td></tr>`;
+      }).join("")}
+      </tbody></table>
+      <h3 style="margin-top:16px">Labelled challenges</h3>
+      <table><thead><tr><th>Scenario</th><th>Status</th><th>Band</th><th>Score</th>
+        <th>Outside training range</th></tr></thead><tbody>
+      ${p.challenges.map(c=>`<tr>
+        <td class="mono">${esc(c.scenario)}<div class="note">${esc(c.note)}</div></td>
+        <td class="mono">${esc(c.status)}</td>
+        <td>${bandB(c.band)}</td>
+        <td class="mono">${c.score===null?"null":c.score}</td>
+        <td class="mono" style="color:${c.outside_training_range.length?"var(--warn)":"var(--faint)"}">
+          ${c.outside_training_range.length?c.outside_training_range.map(esc).join(", "):"—"}</td>
+      </tr>`).join("")}
+      </tbody></table>
+    </div>`).join("");
+  $("s-models").innerHTML = `
+    <div class="banner"><span class="d-down">↓</span> Behavior models are curated and approved
+      here, then published to the fleet as frozen releases. Edge nodes score against them;
+      they never fit or adapt one, and a Wazuh alert never becomes a normal training label.</div>
+    <div class="banner warn"><b>Read this before trusting the band column.</b>
+      Three clearly abnormal PRE_ACTION requests scored <b>LOW</b>. An Isolation Forest over
+      seven or eight features dilutes a single extreme dimension, so the forest is not the
+      detector for out-of-range values — the deterministic range comparison in the last column
+      caught every one of them. A percentile is not a probability of compromise and not a
+      permission, and a low score never clears a novelty or range flag.</div>
+    ${phases}`;
+}
+
+function telemetry(){
+  const alerts = S.wazuh_alerts||[];
+  $("s-telemetry").innerHTML = `
+    <div class="grid g2">
+      <div class="card"><h3>Enrolled endpoints</h3>
+        <table><thead><tr><th>ID</th><th>Host</th><th>Address</th><th>Groups</th></tr></thead><tbody>
+        ${S.endpoints.map(e=>`<tr><td class="mono">${esc(e.id)}</td>
+          <td class="mono">${esc(e.name)}<div class="note">${esc(e.role)}</div></td>
+          <td class="mono">${esc(e.ip)}<div class="note">${esc(e.os)}</div></td>
+          <td class="mono">${esc(e.groups.join(", "))}</td></tr>`).join("")}
+        </tbody></table>
+        <div class="note">The relay bank and the two ESP feeder nodes forward syslog;
+        a microcontroller does not run a Wazuh agent.</div></div>
+      <div class="card"><h3>SIEM alerts (level ≥ 5)</h3>
+        ${alerts.length? `<table><thead><tr><th>Time</th><th>Lvl</th><th>Rule</th>
+          <th>Description</th></tr></thead><tbody>
+          ${alerts.map(a=>`<tr><td class="mono">${esc((a.timestamp||"").slice(11,19))}</td>
+            <td class="mono" style="color:${a.level>=12?"var(--bad)":a.level>=8?"var(--warn)":"var(--dim)"}">${esc(a.level)}</td>
+            <td class="mono">${esc(a.rule_id)}</td>
+            <td>${esc(a.description)}<div class="note">${esc(a.agent||"")}</div></td></tr>`).join("")}
+          </tbody></table>`
+        : `<div class="banner warn">No alerts read from <code>wazuh-alerts-*</code>.
+            Either the stack is not up, or nothing has been ingested through an enrolled
+            agent. The other tabs still work — they read the release set and the returned
+            record, which do not depend on live alerting.</div>`}
+      </div>
+    </div>`;
+}
+
+fetch("/api/state").then(r=>r.json()).then(d=>{
+  if(d.error){ $("banner").className="banner warn"; $("banner").textContent=d.error; return; }
+  S = d; tabs(); chips(); banner();
+  overview(); fleet(); identity(); permissions(); activity(); models(); telemetry();
+}).catch(e=>{ $("banner").className="banner warn"; $("banner").textContent = "Failed to load state: "+e; });
+</script>
+</body>
+</html>
