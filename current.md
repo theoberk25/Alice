@@ -1,48 +1,45 @@
 # Current
 
 Updated: 2026-09-05
-Product baseline: `2d0d32b` (GitHub main checked during this session).
-Delivery: repository organization approved for `main`; use Git history for its commit.
+Product baseline: `84a06db` (GitHub main pulled before this migration).
+Delivery: migration approved for main; see Git history for the publishing commit.
 
 ## Current objective
 
-Maintain the shared session rules and organized documentation; continue product
-integration from the tracker. Start each session with [AGENTS.md](AGENTS.md).
+Consolidate ML and enterprise development tools under scripts/lab while preserving
+public lab.* imports. Start each session with [AGENTS.md](AGENTS.md).
 
 ## Current state
 
-- Core model, ledger and Pi assessment components exist; end-to-end integration
-  remains unfinished. [Detailed tracker](docs/implementation-tracker.md).
-- Tracker reports 12 done components, 35 partial tasks and 71 planned tasks.
-- Workstation source is integrated; authenticated core transport and protected
-  execution remain outstanding. [Integration](docs/integration/technician-console.md).
-- Documents are grouped by purpose; completed ledger session records are in the
-  archive (read only when explicitly requested). Path-dependent tools retain their locations
-  and are listed in the central [script catalog](scripts/README.md).
+- Implemented lab tools moved to scripts/lab; lab/__init__.py preserves imports.
+- Pi anomaly/decision runtime stays in dcamr, as explicitly confirmed by Jared.
+- Shared checkout-root lookup replaces fixed parent counts. Runtime schemas use
+  package resources. A single launcher works from any working directory.
+- Artifacts, datasets, keys and environments remain in their original locations.
+- Product totals remain 12 done components, 35 partial and 71 planned tasks.
+  End-to-end integration remains unfinished. [Tracker](docs/implementation-tracker.md).
 
 ## Next steps
 
-1. Lab/workstation owners: plan any script relocation with path updates and tests.
-2. Compare Theo's workflow with existing components before adding implementations.
-3. Agree application/enforcement contracts for Pi assessment and final decisions.
-4. Connect trusted permissions, authority transfer, console transport and execution.
-5. Establish real sensor contracts/data and integrated hardware acceptance.
+1. Use the scripts/lab catalog and launcher for further developer tooling.
+2. Connect trusted permissions, technician transport and execution to assessments.
+3. Bind the assessment contract to the existing durable ledger adapter.
+4. Complete lightweight model export and real sensor/Pi acceptance.
 
 ## Blockers and decisions
 
-- Lab/workstation owners will handle future script relocation and path updates
-  separately; this cleanup introduces no dependency repair requirement. [Exceptions and move map](docs/handoffs/2026-09-05-repository-organization.md).
-- Application decision/enforcement contracts and real sensor limits need agreement.
-  [Workflow handoff](docs/handoffs/core-workflow-wip-handoff.md).
+- No migration blocker. Use scripts/lab/run.py from outside the repository;
+  python -m lab.* remains supported from the root.
+- Live authority, application decision/enforcement contracts and sensor limits
+  remain integration work. [Workflow](docs/handoffs/core-workflow-wip-handoff.md).
 
 ## Verification
 
-Review verification: `.venv/bin/python -m unittest discover -v` passed all 253
-tests with zero skips on 2026-09-05. Code/configuration paths and bytes are unchanged.
-The linked organization handoff records preservation, link checks and review limits.
+`python3 -m unittest discover`: 257 tests passed, zero skips. New tests use a
+copied checkout with spaces and an unrelated cwd, verify replay/training paths,
+console assets and byte-identical generation of 28 published enterprise payloads.
+No live deployment was performed. [Move map](docs/handoffs/2026-09-05-lab-script-relocation.md).
 
 ## Start here
 
-[Rules](AGENTS.md) · [Documentation map](docs/README.md) ·
-[PRD](docs/prds/ALICE-DCAMR-PRD.md) · [Architecture](docs/architecture.md) ·
-[Tracker](docs/implementation-tracker.md) · [Scripts](scripts/README.md)
+[Rules](AGENTS.md) · [Docs](docs/README.md) · [Scripts](scripts/README.md)

@@ -33,7 +33,7 @@ Possible later light/voltage features include requested output level, recent vol
 |---|---|
 | [`context_profile.py`](../../dcamr/anomaly_engine/context_profile.py) | Parse immutable profiles and observations; validate exact fields, units, phase, time, size and byte digests. |
 | [`contextual_model.py`](../../dcamr/anomaly_engine/contextual_model.py) | Read-only assessment against an exact fitted context, or an explicit unavailable result. |
-| [`contextual_training.py`](../../lab/contextual_training.py) | Fit independent forests and calibration references on a workstation from approved normal examples. |
+| [`contextual_training.py`](../../scripts/lab/contextual_training.py) | Fit independent forests and calibration references on a workstation from approved normal examples. |
 
 Scoring performs no network calls, protected actions, data retention, permission evaluation, fitting or adaptation. ONLINE enterprise execution and OFFLINE local governance remain as defined in the [architecture](../prds/ALICE-DCAMR-Architecture.md). A low anomaly score does not authorize an action; a high score is evidence for decision fusion, not an automatic policy denial.
 

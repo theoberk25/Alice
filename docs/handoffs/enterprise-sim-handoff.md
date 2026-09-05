@@ -41,8 +41,8 @@ increment is trying to protect.
 
 | Path | What it is | Commit? |
 |---|---|---|
-| `lab/enterprise_sim/` | Generator: scenario, permissions releases, baselines, datasets, Wazuh assets, activity | **yes** |
-| `lab/enterprise_sim/console/` | Enterprise SIEM console (local read-only server + UI) | **yes** |
+| `scripts/lab/enterprise_sim/` | Generator: scenario, permissions releases, baselines, datasets, Wazuh assets, activity | **yes** |
+| `scripts/lab/enterprise_sim/console/` | Enterprise SIEM console (local read-only server + UI) | **yes** |
 | `artifacts/enterprise-sim/usb/` | 60 KB, 11 files — the Pi's storage image | **yes** |
 | `artifacts/enterprise-sim/wazuh/` | 136 KB, 12 files — rules, decoders, templates, RBAC, agent.conf, inventory | **yes** |
 | `artifacts/enterprise-sim/logs/` | 56 KB, 2 files — returned audit + simulated IT activity | **yes** |

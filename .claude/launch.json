@@ -5,8 +5,8 @@
       "name": "enterprise-siem",
       "runtimeExecutable": ".venv/bin/python",
       "runtimeArgs": [
-        "-m",
-        "lab.enterprise_sim.console"
+        "scripts/lab/run.py",
+        "enterprise_sim.console"
       ],
       "port": 8787
     }

@@ -7,7 +7,7 @@ import hmac
 import ipaddress
 import json
 import math
-from pathlib import Path
+from importlib.resources import files
 import re
 from types import MappingProxyType
 
@@ -19,7 +19,7 @@ from .feature_types import FeatureError
 MAX_BASELINE_BYTES = 8 * 1024 * 1024
 MAX_FEATURE_INPUT_BYTES = 1024 * 1024
 MAX_REQUEST_BYTES = 16 * 1024
-SCHEMA_DIR = Path(__file__).resolve().parents[2] / "common/schemas"
+SCHEMA_DIR = files("common.schemas")
 
 
 def normalize_host(value: str, field: str) -> str:

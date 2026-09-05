@@ -15,13 +15,14 @@ from collections import Counter, defaultdict
 from hashlib import sha256
 import json
 from pathlib import Path
+from common.repository_paths import repository_root
 
 from dcamr.anomaly_engine.context_profile import load_context_profile
 from lab.contextual_training import NormalExample, fit_contextual_model
 
 from .contextual import json_bytes
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = repository_root()
 OUT = ROOT / "artifacts" / "enterprise-sim"
 
 

@@ -5,18 +5,17 @@ helpers belong in scripts/<area>/, with purpose, working directory, command,
 dependencies and output locations documented beside them. Runtime modules and
 tests remain in their owning packages.
 
-Existing location-dependent tools are linked here, not relocated: changing their
-location would change __file__/import.meta.dirname roots, imports or launch paths.
-Run them from the documented working directory. Do not execute them through a
-new symlink path or assume scripts/ is their working directory.
+ML and enterprise tools have been migrated into scripts/lab with a working-directory
+independent launcher and preserved lab.* imports. Other subsystem tools remain
+in their existing locations; follow each catalog for supported commands.
 
 | Area | Existing scripts / modules | Working directory and instructions |
 | --- | --- | --- |
 | Biometrics | [Catalog](biometrics/README.md) | workstation/ |
 | Desktop and Rust | [Catalog](workstation/README.md) | workstation/ |
-| Lab / simulation | [Catalog](lab/README.md) | Repository root |
+| Lab / simulation | [Catalog](lab/README.md) | Repository root for python -m; any directory through lab/run.py |
 | Package tooling | [Catalog](packages/README.md) | Empty placeholders; not runnable tools |
 
-Physical consolidation is deferred where it conflicts with the no-code-change
-requirement. The [organization handoff](../docs/handoffs/2026-09-05-repository-organization.md)
+The separately authorized lab migration includes path/import repairs and tests.
+Other physical consolidation remains deferred. The [organization handoff](../docs/handoffs/2026-09-05-repository-organization.md)
 records why. Do not duplicate existing scripts to populate this directory.

@@ -31,6 +31,7 @@ import base64
 import json
 import os
 from pathlib import Path
+from common.repository_paths import repository_root
 import ssl
 import urllib.error
 import urllib.request
@@ -38,7 +39,7 @@ import urllib.request
 from ..scenario import AGENTS, ELECTRICAL, LOADS, SITE, SYSTEMS, UNITS, USERS
 from ..wazuh import AGENT_GROUPS, ENDPOINTS
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = repository_root()
 ARTIFACTS = ROOT / "artifacts" / "enterprise-sim"
 HERE = Path(__file__).resolve().parent
 

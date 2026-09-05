@@ -17,6 +17,7 @@ import base64
 from hashlib import sha256
 import json
 from pathlib import Path
+from common.repository_paths import repository_root
 import sys
 
 from dcamr.anomaly_engine.baseline import load_baseline
@@ -27,7 +28,7 @@ from dcamr.anomaly_engine.context_profile import (
 from . import activity, contextual, cyber_baseline, permissions, wazuh
 from .permissions import canonical_bytes, digest_of
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = repository_root()
 OUT = ROOT / "artifacts" / "enterprise-sim"
 
 

@@ -3,6 +3,7 @@
 import argparse
 import json
 from pathlib import Path
+from common.repository_paths import repository_root
 from typing import Any
 
 from dcamr.anomaly_engine.contract import (
@@ -11,7 +12,7 @@ from dcamr.anomaly_engine.contract import (
 from dcamr.anomaly_engine.scoring import CalibrationReference
 
 
-FIXTURES = Path(__file__).resolve().parents[1] / "tests/fixtures/anomaly"
+FIXTURES = repository_root() / "tests/fixtures/anomaly"
 
 
 def replay() -> list[dict[str, Any]]:

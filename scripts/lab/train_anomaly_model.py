@@ -4,6 +4,7 @@ import argparse
 from hashlib import sha256
 import json
 from pathlib import Path
+from common.repository_paths import repository_root
 import sys
 
 from dcamr.anomaly_engine.baseline import load_baseline
@@ -12,14 +13,14 @@ from .anomaly_training import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = repository_root()
 BASELINE_PATH = ROOT / "tests/fixtures/features/baseline.json"
 SOURCE_FILES = (
     "dcamr/anomaly_engine/baseline.py", "dcamr/anomaly_engine/feature_types.py",
     "dcamr/anomaly_engine/feature_validation.py", "dcamr/anomaly_engine/features.py",
     "dcamr/anomaly_engine/sequence.py", "dcamr/anomaly_engine/scoring.py",
     "common/schemas/anomaly_baseline.json", "common/schemas/anomaly_feature_input.json",
-    "lab/anomaly_training.py", "lab/synthetic_anomaly_data.py", "lab/train_anomaly_model.py",
+    "scripts/lab/anomaly_training.py", "scripts/lab/synthetic_anomaly_data.py", "scripts/lab/train_anomaly_model.py",
     "requirements-anomaly.txt", "requirements-anomaly-training.txt",
 )
 

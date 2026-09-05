@@ -46,9 +46,10 @@ are necessary, explain why and request explicit permission before reading them.
 - Python runtime modules remain in their owning packages (dcamr/, agent/, common/,
   cloud/, protected_systems/, workstation/services/). Tests remain with tests.
   A .py extension alone does not make a file a standalone script.
-- Existing lab modules are importable packages with supported python -m lab.*
-  commands. Preserve that namespace. New standalone lab helpers use scripts/lab/;
-  reusable simulation/training logic belongs in lab/.
+- Implemented lab development tools and reusable simulation/training logic now
+  live in scripts/lab/ after the authorized path migration. Preserve the public
+  python -m lab.* namespace through lab/__init__.py; do not duplicate modules under
+  a second import name. Pi runtime modules remain in dcamr/.
 - PRDs: docs/prds/. Architecture: docs/architecture/. Contracts: docs/contracts/.
   Guides: docs/guides/. Integration: docs/integration/. Decisions: docs/decisions/.
   Plans: docs/plans/. Session records: docs/handoffs/. Evidence: docs/reports/.

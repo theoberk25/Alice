@@ -4,13 +4,14 @@ import argparse
 from hashlib import sha256
 import json
 from pathlib import Path
+from common.repository_paths import repository_root
 
 from dcamr.anomaly_engine.baseline import load_baseline
 from dcamr.anomaly_engine.features import build_features
 from dcamr.anomaly_engine.feature_types import FeatureError
 
 
-FIXTURES = Path(__file__).resolve().parents[1] / "tests/fixtures/features"
+FIXTURES = repository_root() / "tests/fixtures/features"
 
 
 def replay() -> list[dict]:

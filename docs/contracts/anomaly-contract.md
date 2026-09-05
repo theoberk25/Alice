@@ -39,7 +39,7 @@ Local development was checked with Python 3.12.6 and jsonschema 4.26.0. A Pi run
 | `dcamr/anomaly_engine/scoring.py` | Frozen normal-reference mapper with tie handling and threshold classification. |
 | `tests/fixtures/anomaly/manifest.json` | Eight complete result fixtures and expected values. |
 | `tests/fixtures/anomaly/score-cases.json` | Seven mock raw-score/reference cases. |
-| `lab/replay_anomaly_fixtures.py` | Offline fixture validation/replay; emits a summary without authorizing anything. |
+| `scripts/lab/replay_anomaly_fixtures.py` | Offline fixture validation/replay; emits a summary without authorizing anything. |
 | `tests/test_anomaly_contract.py`, `tests/test_anomaly_engine.py` | Malformed inputs, fail states, boundary math, fixture isolation and stale/substituted bindings. |
 
 The fixture README explains which parts of the PRD's broader 22 scenarios are covered. Most end-to-end scenarios require team-owned components that are still empty skeletons. A timeout fixture validates a timeout **record**; it does not implement cancellation. A policy-denial fixture validates a skipped **record**; it does not implement policy evaluation.

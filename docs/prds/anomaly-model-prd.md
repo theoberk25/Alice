@@ -516,15 +516,15 @@ Use the existing skeleton rather than the attachments' alternative `shared/`, `d
 | `tests/fixtures/anomaly/` | Implemented result/score fixtures and manifest; full request/state and end-to-end fixtures remain future work. |
 | `tests/test_anomaly_engine.py`, `tests/test_anomaly_contract.py` | Implemented score-mapping, result-validation and binding tests. |
 | `dcamr/anomaly_engine/contract.py`, `dcamr/anomaly_engine/scoring.py` | Implemented validation/binding and deterministic reference mapper; no model inference yet. |
-| `lab/replay_anomaly_fixtures.py` | Implemented local mock replay; no policy/fusion or execution. |
-| `lab/anomaly_training.py`, `lab/synthetic_anomaly_data.py`, `lab/train_anomaly_model.py` | Mac-only synthetic source generation, session splitting, candidate fitting and JSON evaluation reports. No deployable model export. |
-| `lab/compare_anomaly_calibration.py` | Mac-only paired comparison of global/conditional references using the same forest and fresh source/evaluation pools; no live calibration change. |
+| `scripts/lab/replay_anomaly_fixtures.py` | Implemented local mock replay; no policy/fusion or execution. |
+| `scripts/lab/anomaly_training.py`, `scripts/lab/synthetic_anomaly_data.py`, `scripts/lab/train_anomaly_model.py` | Mac-only synthetic source generation, session splitting, candidate fitting and JSON evaluation reports. No deployable model export. |
+| `scripts/lab/compare_anomaly_calibration.py` | Mac-only paired comparison of global/conditional references using the same forest and fresh source/evaluation pools; no live calibration change. |
 | `dcamr/anomaly_engine/anomaly_engine.py` | Future evaluator and result adapter boundary. |
 | `dcamr/anomaly_engine/baseline.py` | Implemented validated immutable baseline lookups and profile selection. |
 | `dcamr/anomaly_engine/sequence.py` | Implemented bounded history/sequence feature calculations; persistent history owner remains external. |
 | `dcamr/anomaly_engine/features.py`, `feature_types.py`, `feature_validation.py` | Implemented feature input validation and immutable feature batches. |
 | `common/schemas/anomaly_baseline.json`, `anomaly_feature_input.json` | Implemented baseline and internal feature-input schemas. |
-| `tests/fixtures/features/`, `tests/test_feature_builder.py`, `lab/replay_feature_fixtures.py` | Implemented feature fixtures, replay and positive/failure tests. |
+| `tests/fixtures/features/`, `tests/test_feature_builder.py`, `scripts/lab/replay_feature_fixtures.py` | Implemented feature fixtures, replay and positive/failure tests. |
 | `packages/ops_baseline/` | Coordinate summaries/model binding with package-loader owner; do not replace others' formats unilaterally. |
 | `dcamr/decision_model.py`, `common/schemas/decision_record.json` | DCAMR-owned fusion/shared record; review the anomaly embedding together. |
 | `workstation/` | Consumer coordination only; no dashboard implementation in this slice. |

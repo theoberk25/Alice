@@ -39,11 +39,11 @@ as part of this merge.
 | --- | --- | --- |
 | Cyber baseline and feature extraction | `dcamr/anomaly_engine/baseline.py`, `features.py` | Supplied bytes/digests and captured history; does not authenticate releases or inputs. |
 | PRE/POST observation validation | `dcamr/anomaly_engine/context_profile.py` | Explicit profile, phase, units, timestamps, context and source identities. |
-| Contextual training and assessment | `lab/contextual_training.py`, `dcamr/anomaly_engine/contextual_model.py` | In-memory models, exact-context routing, UNKNOWN on unavailable input/model; no permission decision. |
+| Contextual training and assessment | `scripts/lab/contextual_training.py`, `dcamr/anomaly_engine/contextual_model.py` | In-memory models, exact-context routing, UNKNOWN on unavailable input/model; no permission decision. |
 | Compact assessment recording | `dcamr/audit/event_contract.py:contextual_projection` | Capture dispatch before inference; retain exact assessment bytes externally, reference their digest. |
 | Durable history and delivery state | `dcamr/audit/audit_log.py:AuditLog` | Explicit initialize/open, append, seal, queue, attempts, ACK and reconciliation markers; no sender. |
-| Executable model-to-ledger example | `lab/replay_contextual_ledger.py` | Six synthetic cases, temporary evidence/test key, anchored restart and duplicate retry. |
-| Enterprise simulation | `lab/enterprise_sim/`, [Jared's handoff](enterprise-sim-handoff.md) | Demonstration permissions/releases, datasets, Wazuh configuration and authored activity; not a live Pi runtime. |
+| Executable model-to-ledger example | `scripts/lab/replay_contextual_ledger.py` | Six synthetic cases, temporary evidence/test key, anchored restart and duplicate retry. |
+| Enterprise simulation | `scripts/lab/enterprise_sim/`, [Jared's handoff](enterprise-sim-handoff.md) | Demonstration permissions/releases, datasets, Wazuh configuration and authored activity; not a live Pi runtime. |
 | Technician console | `workstation/`, [integration guide](../guides/workstation.md) | Local UI/native services; remote actions remain blocked until transport is implemented. |
 
 ## Compare before connecting

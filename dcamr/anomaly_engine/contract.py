@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
 import json
-from pathlib import Path
+from importlib.resources import files
 from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
@@ -14,7 +14,7 @@ from .scoring import finite_number, severity_band, validate_thresholds
 
 MAX_RESULT_BYTES = 16 * 1024
 MAX_JSON_DEPTH = 16
-SCHEMA_PATH = Path(__file__).resolve().parents[2] / "common/schemas/anomaly_result.json"
+SCHEMA_PATH = files("common.schemas").joinpath("anomaly_result.json")
 CORRELATION_FIELDS = (
     "evaluation_id", "previous_evaluation_id", "request_id", "request_sha256",
     "input_snapshot",

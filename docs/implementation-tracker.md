@@ -15,6 +15,12 @@ two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
 
+Developer-tool relocation: implementations now live in scripts/lab with preserved
+lab.* imports and a launcher independent of working directory. Pi runtime stays
+in dcamr. **257 tests passed, zero skips**, including copied-checkout generation
+and unchanged enterprise payloads. [Move map and evidence](handoffs/2026-09-05-lab-script-relocation.md).
+This is a path migration; the 118 product task statuses are unchanged.
+
 Combined assessment + ledger verification: **253 tests passed, zero skips**.
 
 Latest decision-boundary increment: [Pi assessment](contracts/decision-assessment.md)
@@ -458,7 +464,7 @@ Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 [scoring-tests]: ../tests/test_anomaly_engine.py
 [feature-tests]: ../tests/test_feature_builder.py
 [feature-fixtures]: ../tests/fixtures/features/README.md
-[anomaly-replay]: ../lab/replay_anomaly_fixtures.py
+[anomaly-replay]: ../scripts/lab/replay_anomaly_fixtures.py
 [package-verifier]: ../dcamr/packages/package_verifier.py
 [policy]: ../dcamr/policy_engine/policy_engine.py
 [fusion]: ../dcamr/decision_model.py
@@ -467,9 +473,9 @@ Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 [audit]: ../dcamr/audit/audit_log.py
 [enforcement]: ../dcamr/enforcement/enforcement_gateway.py
 [reconciliation]: ../dcamr/reconcile/reconciliation.py
-[training]: ../lab/anomaly_training.py
-[training-cli]: ../lab/train_anomaly_model.py
-[synthetic-data]: ../lab/synthetic_anomaly_data.py
+[training]: ../scripts/lab/anomaly_training.py
+[training-cli]: ../scripts/lab/train_anomaly_model.py
+[synthetic-data]: ../scripts/lab/synthetic_anomaly_data.py
 [training-tests]: ../tests/test_anomaly_training.py
 [synthetic-tests]: ../tests/test_synthetic_anomaly_data.py
 [training-report]: reports/anomaly-lab/candidate-002/training-report.json
@@ -483,4 +489,4 @@ Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 [audit-tests]: ../tests/test_audit_log.py
 [audit-outbox-tests]: ../tests/test_audit_outbox.py
 [audit-integrity-tests]: ../tests/test_audit_integrity.py
-[context-ledger-replay]: ../lab/replay_contextual_ledger.py
+[context-ledger-replay]: ../scripts/lab/replay_contextual_ledger.py

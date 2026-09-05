@@ -12,6 +12,7 @@ from collections import deque
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from pathlib import Path
+from common.repository_paths import repository_root
 import random
 from typing import Iterator
 
@@ -19,7 +20,7 @@ from dcamr.anomaly_engine.baseline import OperationalBaseline, load_baseline
 from lab.anomaly_training import MAX_EXAMPLES, TrainingExample, json_bytes
 
 
-BASELINE_PATH = Path(__file__).resolve().parents[1] / "tests/fixtures/features/baseline.json"
+BASELINE_PATH = repository_root() / "tests/fixtures/features/baseline.json"
 CHALLENGE_SCENARIOS = (
     "new_agent", "unseen_destination", "unseen_target", "unusual_sequence", "request_burst",
 )
