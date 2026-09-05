@@ -27,13 +27,21 @@ Model training, the explanatory LLM and facial verification belong on the Mac.
 - [Output contract and fixtures](docs/anomaly-contract.md)
 - [Web-01 feature builder](docs/anomaly-features.md)
 - [Mac synthetic training lab](docs/anomaly-training.md)
+- [General before/after behavior model](docs/contextual-behavior-model.md)
 
-The anomaly contract, cyber feature builder and Mac Isolation Forest training lab
-are implemented components. Permissions evaluation, decision fusion, package
+The anomaly contract, cyber feature builder, Mac training lab and general
+context-conditioned Isolation Forest interface are implemented components. The
+new interface supports separate before/after assessments; real ESP operating data
+and its sensor/action adapter remain to be supplied. Permissions evaluation, decision fusion, package
 verification, enterprise synchronization, authority transfer, durable mission audit,
 motor execution and Pi deployment remain integration work. The separate console
 handoff reports real face enrollment/login with mock edge transport; it is not yet
 connected to this core. See the tracker for evidence and scope.
+
+Wazuh is the planned integration for permissions-related context and some auditing.
+Its ALICE action-permission mapping and audit adapters are not implemented. The
+likely physical demo now uses an ESP with lights and a voltage sensor; actual
+measurements, units and operating ranges still need agreement.
 
 “Permissions” is the current product term. Existing `policy` paths and wire keys
 remain unchanged until a coordinated contract migration.

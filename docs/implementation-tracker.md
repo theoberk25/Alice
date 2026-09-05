@@ -10,7 +10,8 @@ The current [parent PRD][prd], [architecture][architecture] and
 [developer handoff][handoff] define the product boundary. The external console's
 reported progress is documented separately in the [console integration note][console-integration];
 it does not change core task status without a working cross-system connection.
-This documentation revision implements no runtime behavior.
+The current increment adds a general contextual model interface; previous
+two-mode requirements still need their own runtime integrations.
 
 ## Status and current checkpoint
 
@@ -22,12 +23,30 @@ This documentation revision implements no runtime behavior.
 - **Planned** — the requested behavior is not implemented in this checkout.
   A PRD proposal or empty skeleton is not completion evidence.
 
-Current totals: **12 Done component, 24 Partial,
-82 Planned**. These are task-status counts, not a percentage of product
+Current totals: **12 Done component, 25 Partial,
+81 Planned**. These are task-status counts, not a percentage of product
 readiness or an estimate of remaining effort.
 
-The current priority is **execution authority and trusted synchronization**, in
-parallel with the motor request/baseline/telemetry contract. The product has
+The current model increment is a [general contextual Isolation Forest][context-guide]
+for separately bound PRE_ACTION and POST_ACTION observations. Jared selected both
+phases and expects to create operating data later. Context profiles define named
+numeric inputs, units and timing; each supported context has a separate forest
+and held-out normal reference. Missing/stale readings, unseen context and an
+untrained model produce UNKNOWN/null scores. Input/source validation, in-memory
+fitting and repeatable scoring are implemented; actual ESP extraction and data
+collection, artifact loading, fusion and deployment are not.
+
+The current suite passes **148 tests**, including 45 new parser/model checks;
+both existing cyber fixture replays still pass. New test data is unitless,
+synthetic and temporary, not a light/voltage operating baseline. New assessments
+retain training-range evidence independently of ML score and use a separate
+internal contract, pending the canonical anomaly/decision adapter.
+
+The probable demo hardware is now an ESP with lights and a voltage sensor.
+Wazuh is selected for planned permissions-related context and some auditing;
+its ALICE permissions export/mapping and audit integration remain unimplemented.
+The next model dependency is the device/action/context data contract. **Execution
+authority and trusted synchronization** remain required integration work. The product has
 exactly two modes:
 
 | Mode | Execution authority | ALICE work to implement |
@@ -62,19 +81,18 @@ legitimate changes reached elevated/high in 32/68 cases with the shared referenc
 and 2/68 with separate references. Unseen-destination ML outcomes also fell to
 0/20 elevated/high, while independent novelty flags were preserved. Neither
 candidate is accepted for deployment. The [training guide][training-guide] records
-the paired results, limitations and runnable comparison. The last recorded core
+the paired results, limitations and runnable comparison. At the cyber-only checkpoint, the
 suite passed 103 tests; artifact digest links and 1,300 paired score mappings
 were checked. A cyber
 calibration experiment does not establish a motor reference.
 
-Pending questions are whether the initial demo is motor-first or includes both
-motor and cyber domains, and whether a `10°` command means an absolute target
-angle or a relative movement. The protected controller is also unresolved between
-a second Pi and an ESP; available position feedback, normal behavior, authorized
-permission bounds, USB removal/audit retention and enterprise cache-release
-contracts still need agreement. Direct Pi-to-enterprise synchronization is the
-selected data path; that does not settle issuer, validity or update protocols. Angles, limits and anomaly scores suggested by the referenced ChatGPT
-assistant have not been adopted as requirements or measurements.
+Pending device decisions are the actual ESP/light/voltage sensor, measurement
+units/conversion, sampling rate, requested parameters, operating contexts, feature
+windows and post-action settling time. Before/after scoring is selected; actual
+normal collections and hard permissions remain distinct. Earlier motor angles
+are deferred unless that demo returns. Direct Pi-to-enterprise synchronization
+remains selected; Wazuh does not itself settle authoritative permissions export,
+cache validity, audit retention or offline reconciliation.
 
 The supplied `ALICE_TechnicalReview` handoff reports a native console with
 fixture-driven review/UI, immutable reassessment history, local approval grants,
@@ -127,9 +145,9 @@ need agreement and implementation.
   and example counts are documented in the [feature guide][feature-guide]; counts
   are synthetic, not observed operating limits or policy permissions. Keep this
   profile as regression coverage while agreeing the separate motor contract;
-  motor-first versus both domains in the initial demo remains unanswered.
+  the latest likely demo uses ESP lights/voltage, with actual data still pending.
 - ONLINE enterprise control reaches protected endpoints directly. The intended
-  OFFLINE local path is Agent Mac → DCAMR Pi → protected motor controller,
+  OFFLINE local path is Agent Mac → DCAMR Pi → protected ESP/system controller,
   with the Technician Mac providing review and explanations. The router supplies
   the uplink. Fenced authority transfer, controller authentication, exact approval
   binding, replay prevention and independent position feedback remain requirements.
@@ -234,7 +252,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 032 | Build Agent-Novelty Features | Done component | [Builder][features] preserves `agent_known=0` and `AGENT_UNSEEN` for new authenticated agents using a valid cohort. |
 | 033 | Build Mission-Consistency Features | Partial | [Profile selection][baseline] and [history scoping][sequence] bind role, mission type and mission ID. Policy mission-scope enforcement remains. |
 | 034 | Build Action-Sequence Features | Done component | [Sequence extraction][sequence] and [tests][feature-tests] derive predecessor masks and transition frequency with explicit completeness/order rules. |
-| 035 | Build Physical Sensor Features | Planned | The motor/telemetry contract is now a priority; command meaning, controller and measured position feedback remain unresolved. No motor or sensor features are implemented, and cyber columns retain their existing meanings. |
+| 035 | Build Physical Sensor Features | Planned | [Generic named numeric inputs][context-guide] validate units, time and provenance. Raw ESP acquisition, voltage conversion and sensor/history feature extraction still need the actual device contract and data; cyber columns remain unchanged. |
 | 036 | Build Local Evidence Features | Planned | Evidence sufficiency remains with DCAMR fusion; the [evidence component][evidence] is a skeleton. |
 
 ## Model and sequence scoring (037–044)
@@ -244,9 +262,9 @@ workflows run with explicit no-unintended-execution assertions.
 | 037 | Train Isolation Forest | Done component | [Mac training pipeline][training] and [actual-fit tests][training-tests] fit a bounded Isolation Forest on synthetic normal sessions; [candidate-002][training-report] is an in-memory lab fit, not an accepted deployment model. |
 | 038 | Save Isolation Forest Model | Planned | A real model was fitted in memory, but no fitted artifact was persisted. [JSON run outputs][training-report] are not a deployable model; format and trusted loading remain pending. |
 | 039 | Load Isolation Forest Model on Boot | Planned | No trusted artifact loader, boot integration or model worker exists. |
-| 040 | Score Incoming Requests | Partial | [Lab pipeline][training] replays source requests through the runtime feature builder and actual Isolation Forest. No live DCAMR evaluator, model worker or anomaly-result adapter exists. |
+| 040 | Score Incoming Requests | Partial | [Contextual scorer][context-model] now assesses captured PRE/POST observations using exact-context forests and frozen references; [cyber lab][training] remains. Live request transport, supervised Pi worker and canonical result adapter remain. |
 | 041 | Calculate Anomaly Percentile | Done component | [Rank mapper][scoring] and [tests][training-tests] map cyber scores against 1,200 frozen normal calibration scores. The [completed separate-reference experiment][training-guide] used 1,000 distinct normal source requests per family; within-session correlation remains, and no reference is accepted for deployment. |
-| 042 | Calculate Individual Anomaly Factors | Partial | [Feature comparisons and source references][features] exist. A live anomaly evaluator has not yet combined these observations with actual model output; factors are not learned attribution. |
+| 042 | Calculate Individual Anomaly Factors | Partial | [Cyber comparisons][features] and [contextual training-range factors][context-model] retain source/timing and deviations, including changed constant features with LOW ML bands. These are observations, not learned attribution; final fusion remains. |
 | 043 | Build Action-Sequence Model | Partial | [Validated transition-count tables][baseline] and [synthetic rows][feature-fixtures] exist; no sequence-training pipeline or learned sequence artifact exists. |
 | 044 | Score Action Sequences | Done component | [History component][sequence] computes unsmoothed transition frequency for a complete row and masks no-predecessor cases. This is not an attack probability or authorization score. |
 
@@ -295,7 +313,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 073 | Record Action Execution Result | Planned | The builder consumes supplied execution history; core does not execute or persist results. A console receipt currently reports NOT_EXECUTED and is not controller confirmation. |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |
 | 075 | Compare Expected vs Actual Result | Planned | No expected-versus-observed execution-outcome comparison exists. |
-| 076 | Flag Post-Execution Anomalies | Planned | No post-execution anomaly detector exists. |
+| 076 | Flag Post-Execution Anomalies | Partial | [POST_ACTION scoring][context-model] requires a separately trained profile/context and at least one temporally valid resulting-state feature. [Tests][context-model-tests] cover post timing and scoring; real execution/sensor ingestion, outcome validation and response remain unimplemented. |
 
 ## DDIL and reconciliation (077–092)
 
@@ -382,6 +400,9 @@ after the corresponding real multi-component workflow runs; model-quality and
 Pi resource results should identify actual artifact/runtime/hardware versions.
 Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 
+[context-guide]: contextual-behavior-model.md
+[context-model]: ../dcamr/anomaly_engine/contextual_model.py
+[context-model-tests]: ../tests/test_contextual_model.py
 [prd]: prds/ALICE-DCAMR-PRD.md
 [architecture]: prds/ALICE-DCAMR-Architecture.md
 [handoff]: prds/ALICE-DCAMR-PRD-Handoff.md

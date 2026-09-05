@@ -240,14 +240,22 @@ Agree mappings for the four outcomes, permissions/legacy policy keys, score scal
 See [Technician console integration](../technician-console-integration.md) for the source-attributed handoff and unresolved protocol work.
 The console's mock/remote transport and biometric settings are implementation settings, not extra product modes.
 
-## 8. Demo scope and motor direction
+## 8. Demo scope and device direction
+
+The latest likely device is an ESP with lights and a voltage sensor. Jared
+selected before-action and after-action behavioral assessment and will supply
+normal operating data later. The [general contextual model](../contextual-behavior-model.md)
+now provides the bounded phase/profile interface. Actual sensor/action semantics,
+source adapters, collected baselines and integrated execution remain pending.
+Wazuh is the planned permissions-related context and auditing integration; its
+ALICE action-permission mapping is still to be defined.
 
 Demonstrate enterprise-controlled ONLINE activity and cache preparation, a fenced transition to OFFLINE governance, normal requests, a prohibition, context/reassessment, and technician review.
 Return ONLINE to demonstrate acknowledged upload of every offline event, priority findings, appended reconciliation, and verified cache refresh.
 Keep actions inside controlled synthetic/lab resources and label simulated enterprise feeds, decisions, proof, and execution separately.
 
 The existing cyber cases remain regressions: diagnostics, occasional known-endpoint changes, new agents/endpoints, sequences, and bursts.
-The motor demonstration needs a separate versioned profile and agreed commands, absolute/relative movement rules, physical limits, speed/duration, feedback, and safe-stop behavior.
+If a motor demonstration is retained, it needs a separate versioned profile and agreed commands, absolute/relative movement rules, physical limits, speed/duration, feedback, and safe-stop behavior.
 Do not pass motor commands through the cyber model or claim a learned motor model/hardware control exists before implementation and measurement.
 
 ## 9. Team and repository boundaries
@@ -269,12 +277,12 @@ The project is published on `main`; this PRD does not invent a `dev` integration
 
 | Area | Evidence available | What remains unimplemented or unverified |
 | --- | --- | --- |
-| This repository's anomaly slice | Strict result boundary, 11-feature cyber builder, fixtures, bounded Mac Isolation Forest training, and global/conditional calibration experiments; latest recorded local suite: 103 tests passed. | Pi model/runtime deployment, production detection quality, motor profile, permissions/fusion, and execution integration. |
+| This repository's anomaly slice | Strict result boundary, 11-feature cyber builder, fixtures, bounded Mac Isolation Forest training, and global/conditional calibration experiments; original cyber suite: 103 tests passed; current totals are in the [tracker](../implementation-tracker.md). | Pi model/runtime deployment, production detection quality, motor profile, permissions/fusion, and execution integration. |
 | Conditional calibration | Synthetic fresh evaluation reduced elevated/high normal-change results from 32/68 to 2/68; diagnostics increased from 23/1,132 to 38/1,132. Novelty flags stayed intact. | No adoption/deployment; some challenge score sensitivity decreased, so low bands cannot suppress novelty controls. |
 | ONLINE/OFFLINE integration | Requirements and component fixtures. | Enterprise execution/feed integration, ownership fencing, real handover, signed cache activation, durable uploads, and authoritative end-to-end audit. |
 | Separate technician console | Supplied `HANDOFF.md`, audited September 5, 2026, reports native macOS UI, live ArcFace enrollment/login, Ollama inference, immutable reassessment display, and mocked edge workflows. | Source/tests were not independently inspected/rerun here; live approval step-up/negative cases, authenticated transport/proof, durable outbox, and execution confirmation remain open per the handoff. |
 
-The console handoff reports 91 default tests plus separate real-service checks; these are attributed results, not additions to this repository's 103-test suite.
+The console handoff reports 91 default tests plus separate real-service checks; these are attributed results, not additions to the core repository's test count.
 It states that console audit is not tamper-evident and that the app bundle does not include every Python/model/Ollama dependency.
 Live enrollment/login does not demonstrate fresh approval, liveness, a connected Pi, or a complete distributed security boundary.
 
