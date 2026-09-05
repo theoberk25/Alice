@@ -9,9 +9,11 @@
 
 This revision follows Jared's latest two-mode product definition and explicit
 choice that **enterprise systems control execution directly online**. It replaces
-this document's earlier always-inline DCAMR design. The supplied Technician
-Console `HANDOFF.md` informs the workstation boundary; its reported implementation
-is in a separate repository and has not been independently audited here.
+this document's earlier always-inline DCAMR design. The technician console is now integrated under the shared application, package and
+service roots. The [root architecture](../../architecture.md) maps current source;
+the [combined review](../handoffs/2026-09-05-team-layout-review.md) records local
+verification and its hardware/native limits. Earlier handoff reports below remain
+attributed evidence where explicitly labelled.
 
 Read with the [product PRD](ALICE-DCAMR-PRD.md),
 [developer handoff](ALICE-DCAMR-PRD-Handoff.md),
@@ -335,7 +337,7 @@ late receipts remain attached to the historical action.
 
 ## 9. Technician console and facial verification
 
-The separate `ALICE_TechnicalReview` handoff reports a native Mac application:
+The imported technician console implements a native Mac application:
 React/TypeScript with Rust/Tauri 2 and SQLite, a local FastAPI/InsightFace/ArcFace
 service using `buffalo_l` ONNX assets on CPU, and local Ollama with `llama3.1:8b`.
 These workloads stay on the Technician Mac. They do not belong on the 2 GB Pi.
@@ -478,9 +480,9 @@ approval path. Cloning code does not provision model weights or local identities
 | Core anomaly contract/features | Implemented schemas, strict validation/binding, fixed cyber features, source provenance and replay fixtures. |
 | Mac model experiments | Historical cyber fitting/comparisons have published reports. General PRE/POST contextual fitting/scoring now works with supplied normal sources; test-only synthetic inputs establish code behavior, not an ESP baseline. |
 | Core validation | The original cyber publication passed 103 tests and both replays. Current contextual parser/model coverage and full-suite counts are recorded in the [tracker](../implementation-tracker.md). These are component results, not Pi acceptance. |
-| Core lifecycle/execution | ONLINE/OFFLINE control, synchronization/connectors, durable mission audit, permissions/fusion/context orchestration, controller execution and Pi deployment remain unimplemented. |
-| Technician console | Status above is reported by supplied `HANDOFF.md`, dated 2026-09-05, for a separate repository; not independently tested in this checkout. |
-| Cross-repository integration | Event adapter, source authentication, remote proof, durable delivery/receipts, execution results and mode/authority changes remain open. |
+| Core audit and lifecycle | The local durable ledger implements recording, signed checkpoints and delivery bookkeeping. Live producers/sender, ONLINE/OFFLINE control, trusted synchronization, permissions/context orchestration, controller execution and Pi deployment remain. |
+| Technician console | Source is integrated under apps/desktop, packages and services/biometrics. The combined review records local frontend/build/browser verification; historical native/identity evidence has separate scope. Live Pi transport and execution remain. |
+| Cross-component integration | Event adapter, source authentication, remote proof, durable delivery/receipts, execution results and mode/authority changes remain open. |
 
 Next integration milestones are the mode/authority contract, enterprise cache/feed
 adapter, permissions/input schema agreement, console/core event/proof compatibility,

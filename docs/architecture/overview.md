@@ -1,6 +1,6 @@
 # Console architecture
 
-ALICE is the whole system; `workstation/` is its technician console subsystem. The main [architecture](../prds/ALICE-DCAMR-Architecture.md) and [console integration requirements](../integration/technician-console.md) govern product behavior. The preserved dashboard payloads define existing legacy inbound examples, and the Europa image informs only visual craftsmanship.
+ALICE is the whole system; `apps/desktop/`, shared console packages and `services/biometrics/` implement its technician console subsystem. The main [architecture](../prds/ALICE-DCAMR-Architecture.md) and [console integration requirements](../integration/technician-console.md) govern product behavior. The preserved dashboard payloads define existing legacy inbound examples, and the Europa image informs only visual craftsmanship.
 
 The existing DDIL/CONNECTED/DEGRADED schema and fixture display are retained. Main product modes are ONLINE (enterprise execution) and OFFLINE (local ALICE execution after controlled transfer). A connection flag, mock/remote transport setting or face match does not establish the current control owner. The authenticated transfer protocol and direct Pi-to-enterprise synchronization remain future integration work; see the [migration assessment](../integration/main-repository-migration.md). The implementation uses its own shield identity, decision workspace, agent network, evidence ledger, and explicit action bar.
 
@@ -18,7 +18,7 @@ flowchart LR
   Commands --> Edge
 ```
 
-Mock transport is fully functional. `RemoteAliceTransport` is intentionally fail-closed pending the team's WebSocket/REST protocol, authentication, and receipts. The renderer cannot seed trusted remote decisions through the mock cache command. Real integration must validate and cache remote records at the native transport boundary before allowing an action command. It must not make a frontend POST into an authorization bypass.
+The edge arrows above describe the intended remote connection. Mock transport is fully functional. `RemoteAliceTransport` is intentionally fail-closed pending the team's WebSocket/REST protocol, authentication, and receipts. The renderer cannot seed trusted remote decisions through the mock cache command. Real integration must validate and cache remote records at the native transport boundary before allowing an action command. It must not make a frontend POST into an authorization bypass.
 
 The UI never calculates upstream policy results, anomaly scores, confidence, or evidence verification. Its risk dial visualizes the supplied 0–100 score; counts reflect supplied events. `alice.service_status` and `alice.agent_status` remain separate. Runtime language status comes from the native health check, and context status comes from the deterministic application workflow.
 

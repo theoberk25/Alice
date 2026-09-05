@@ -1,5 +1,8 @@
 # Architecture guide
 
+Start with the root [high-level architecture](../architecture.md) for the current
+component map, runtime boundaries and implemented-versus-planned distinction.
+
 The canonical design is [ALICE — architecture and integration
 boundaries](prds/ALICE-DCAMR-Architecture.md), revised September 5, 2026. It
 supersedes the earlier design in which every online and offline request passed
@@ -33,9 +36,10 @@ execution ownership are separate status facts.
 | Trust boundaries and verification scenarios | [Threat model](architecture/threat-model.md), [demo runbook](guides/demo-runbook.md) |
 | Implementation status and next work | [Tracker](implementation-tracker.md) |
 
-The core currently implements anomaly components and synthetic Mac experiments.
-Two-mode orchestration, permissions enforcement, mission audit, enterprise
-connectors, controller execution and live console integration are planned. A
+The core implements anomaly components, Pi assessment packets and a local durable
+ledger, with synthetic Mac experiments and a mock-driven technician console.
+Two-mode orchestration, permissions enforcement, live mission-audit producers,
+enterprise connectors, controller execution and live console integration remain planned. A
 diagram or contract requirement is not evidence those services are running.
 
 The protected endpoint must enforce one current execution authority. A network

@@ -58,7 +58,7 @@ The transfer of authority is a required future integration capability, not funct
 
 Use ALICE and permissions in product explanations and new user-facing copy.
 Existing `policy` machine fields, `dcamr.*` events, and repository paths remain until their owners coordinate versioned adapters and tests.
-The external console handoff reports legacy event normalization to `alice.*`; this does not establish compatibility with every schema in this repository.
+The integrated console adapter provides legacy event normalization to `alice.*`; this does not establish compatibility with every schema in this repository.
 Do not rename executable keys or reinterpret their meaning through documentation alone.
 
 ## 3. Two operating modes
@@ -253,7 +253,7 @@ Coordinate versioned contracts for mode/authority status, requests, permissions,
 Bind exact parameters and responsible-user assignment to the request; changing an action must not reuse old authorization.
 Keep current operating status separate from status captured with a historical decision.
 
-The external console reports `alice.decision`, status, agent/response, reconciliation, and technician-action schemas, with a linear reassessment chain and latest-decision guards.
+The integrated console defines `alice.decision`, status, agent/response, reconciliation, and technician-action schemas, with a linear reassessment chain and latest-decision guards.
 Its current receipt declares `NOT_EXECUTED`; an `ACCEPTED` submission does not establish that a protected action ran.
 Agree mappings for the four outcomes, permissions/legacy policy keys, score scales, challenges, lineage, remote proof, and execution results.
 
@@ -289,8 +289,8 @@ Do not pass motor commands through the cyber model or claim a learned motor mode
 | Xavier | Raspberry Pi and hardware. | Owns setup, storage/readers, physical constraints, and runbook. |
 | Entire team | Integrated demonstration. | Shared acceptance and authority/contract agreements. |
 
-Use actual `common/schemas/`, `dcamr/anomaly_engine/`, `dcamr/`, `lab/`, `packages/`, `tests/`, `docs/`, and `workstation/` boundaries.
-The separately reported console is in `ALICE_TechnicalReview`; its URL was not supplied, and it is not the empty workstation scaffold here.
+Use the [current repository map](../../architecture.md#repository-map): core code in `dcamr/` and `common/`, development tools in `scripts/lab/` through the `lab.*` namespace, and the integrated console in `apps/desktop/`, shared `packages/` and `services/biometrics/`.
+The old `workstation/` source layout is superseded; preserved empty scaffolds do not replace the active console.
 The project is published on `main`; this PRD does not invent a `dev` integration branch or prescribe an unapproved branching change.
 
 ## 10. Implementation evidence and limitations
@@ -300,7 +300,7 @@ The project is published on `main`; this PRD does not invent a `dev` integration
 | This repository's anomaly slice | Strict result boundary, 11-feature cyber builder, fixtures, bounded Mac Isolation Forest training, and global/conditional calibration experiments; original cyber suite: 103 tests passed; current totals are in the [tracker](../implementation-tracker.md). | Pi model/runtime deployment, production detection quality, motor profile, permissions/fusion, and execution integration. |
 | Conditional calibration | Synthetic fresh evaluation reduced elevated/high normal-change results from 32/68 to 2/68; diagnostics increased from 23/1,132 to 38/1,132. Novelty flags stayed intact. | No adoption/deployment; some challenge score sensitivity decreased, so low bands cannot suppress novelty controls. |
 | ONLINE/OFFLINE integration | Requirements and component fixtures. | Enterprise execution/feed integration, ownership fencing, real handover, signed cache activation, durable uploads, and authoritative end-to-end audit. |
-| Separate technician console | Supplied `HANDOFF.md`, audited September 5, 2026, reports native macOS UI, live ArcFace enrollment/login, Ollama inference, immutable reassessment display, and mocked edge workflows. | Source/tests were not independently inspected/rerun here; live approval step-up/negative cases, authenticated transport/proof, durable outbox, and execution confirmation remain open per the handoff. |
+| Integrated technician console | React/Tauri source, ArcFace service, Ollama gateway, immutable reassessment display and mocked edge workflows are in the shared layout. [Combined verification](../handoffs/2026-09-05-team-layout-review.md) records local checks; native/identity reports retain their historical scope. | Live operator acceptance, authenticated Pi transport/proof, durable outbox and authoritative execution confirmation remain. |
 
 The console handoff reports 91 default tests plus separate real-service checks; these are attributed results, not additions to the core repository's test count.
 It states that console audit is not tamper-evident and that the app bundle does not include every Python/model/Ollama dependency.

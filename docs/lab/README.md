@@ -1,6 +1,6 @@
 # ML, assessment and enterprise development tools
 
-The implemented lab tools now live here. The reusable Pi anomaly and assessment
+The implemented lab tools live in `scripts/lab/` at the repository root. The reusable Pi anomaly and assessment
 runtime stays in `dcamr/`; the ledger stays in `dcamr/audit/`. No implementation
 is duplicated. `lab/__init__.py` provides the existing import/command namespace.
 
@@ -31,14 +31,14 @@ Paths to default fixtures/artifacts come from a shared checkout-root resolver,
 not the process working directory or hard-coded parent counts. Relative explicit
 output paths still mean relative to the caller's working directory.
 
-- [Training](train_anomaly_model.py), [calibration comparison](compare_anomaly_calibration.py)
-- [Contextual fitting](contextual_training.py), [ledger replay](replay_contextual_ledger.py)
-- [Enterprise generator](enterprise_sim/__main__.py), [fit](enterprise_sim/fit.py), [console](enterprise_sim/console/server.py)
-- [Assessment API](../../dcamr/decision_model.py) and [contract](../../docs/contracts/decision-assessment.md)
+- [Training](../../scripts/lab/train_anomaly_model.py), [calibration comparison](../../scripts/lab/compare_anomaly_calibration.py)
+- [Contextual fitting](../../scripts/lab/contextual_training.py), [ledger replay](../../scripts/lab/replay_contextual_ledger.py)
+- [Enterprise generator](../../scripts/lab/enterprise_sim/__main__.py), [fit](../../scripts/lab/enterprise_sim/fit.py), [console](../../scripts/lab/enterprise_sim/console/server.py)
+- [Assessment API](../../dcamr/decision_model.py) and [contract](../contracts/decision-assessment.md)
 
 Use Python 3.12 and `requirements-anomaly-training.txt` plus `cryptography` for
 enterprise generation/fitting; ledger replay also needs `requirements-audit.txt`.
-See [training](../../docs/guides/anomaly-training.md) and
-[enterprise setup](../../docs/handoffs/enterprise-sim-handoff.md). Generated
+See [training](../guides/anomaly-training.md) and
+[enterprise setup](../handoffs/enterprise-sim-handoff.md). Generated
 artifacts, datasets, keys and existing environments remain in their original
 locations. This migration does not regenerate or activate them.

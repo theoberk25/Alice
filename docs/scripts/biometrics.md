@@ -7,14 +7,14 @@ the checkout package manifest, not the current directory or a fixed parent count
 
 | Tool | Purpose |
 | --- | --- |
-| [biometrics.mjs](biometrics.mjs) | `npm run biometrics` from root; loads .env and starts the local service |
-| [setup_model.py](setup_model.py) | Explicit InsightFace model provisioning; never runs implicitly during login |
-| [smoke_arcface.py](smoke_arcface.py) | Public-image inference check using a temporary encrypted store |
-| [smoke_native_identity.py](smoke_native_identity.py) | Isolated public-image Rust/service identity integration |
+| [biometrics.mjs](../../scripts/biometrics/biometrics.mjs) | `npm run biometrics` from root; loads .env and starts the local service |
+| [setup_model.py](../../scripts/biometrics/setup_model.py) | Explicit InsightFace model provisioning; never runs implicitly during login |
+| [smoke_arcface.py](../../scripts/biometrics/smoke_arcface.py) | Public-image inference check using a temporary encrypted store |
+| [smoke_native_identity.py](../../scripts/biometrics/smoke_native_identity.py) | Isolated public-image Rust/service identity integration |
 
 The launcher keeps models under services/biometrics/models and private enrollment
 data under services/biometrics/data by default. ALICE_INSIGHTFACE_ROOT and
 ALICE_BIOMETRIC_DATA_DIR overrides are retained. Reusable service code stays in
 services/biometrics/app. These checks do not establish live camera acceptance.
-See the [quick start](../../docs/guides/console/facial-verification-quickstart.md)
-and [console guide](../../docs/guides/technician-console.md).
+See the [quick start](../guides/console/facial-verification-quickstart.md)
+and [console guide](../guides/technician-console.md).

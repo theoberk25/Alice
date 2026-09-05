@@ -7,13 +7,28 @@ This preserves all 118 user-supplied task labels in their original order. IDs
 renaming tasks. These statuses describe the implementation and evidence included
 in this repository; they do not imply a deployed system.
 The current [parent PRD][prd], [architecture][architecture] and
-[developer handoff][handoff] define the product boundary. The external console's
-reported progress is documented separately in the [console integration note][console-integration];
+[developer handoff][handoff] define the product boundary. The integrated console's
+progress and remaining cross-system agreements are documented separately in the [console integration note][console-integration];
 it does not change core task status without a working cross-system connection.
 The current increment adds the [local Decision Evidence Ledger][audit-guide];
 two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
+
+Architecture/layout follow-up: expanded the root map with deployment, operating
+lifecycle, source-backed components, contract boundaries, storage/model lifecycle
+and retained scaffolds. Corrected stale active console/ledger descriptions and
+setup paths. All 374 baseline files survive at original or mapped paths; no further
+relocation was required. Six focused Python path tests and four launcher tests
+passed. Product task IDs, statuses and totals are unchanged. Detailed documentation
+checks are in the [combined review](handoffs/2026-09-05-team-layout-review.md).
+
+Combined layout review of GitHub main at 3330a07: corrected biometric model
+provisioning's missing Path import with two isolated regressions, completed docs
+centralization, and refreshed the root project/architecture entry points. Fresh
+core suite: **259 passed, zero skips**. Console type-check, lint, 64 frontend tests,
+four launcher tests and production build passed. Product task statuses remain
+unchanged. [Review and limits](handoffs/2026-09-05-team-layout-review.md).
 
 Technician console layout migration: workstation/ is removed; source is organized
 under apps, packages, services, fixtures, tests/console and the shared docs tree.
@@ -22,7 +37,8 @@ Launchers are in scripts/console and scripts/biometrics; npm commands run at roo
 plus real public-image ArcFace/native identity checks, app bundling and 257 core
 tests (with documented Python dependency setup). All 369 original tracked files
 survive; no console contracts or core product statuses changed. The user authorized
-committing this migration to local main; remote publication is not requested.
+committing this migration to local main; that historical publication limit was
+superseded by its merge into GitHub main at 3330a07.
 [Complete move map and verification](handoffs/2026-09-05-console-layout.md).
 
 Earlier lab developer-tool relocation: implementations now live in scripts/lab with preserved
@@ -145,8 +161,9 @@ real ArcFace enrollment and successful live facial login. Its real camera
 approval step-up still needs operator acceptance; remote native transport,
 verifiable approval proof, durable outbox/receipts and core execution integration
 remain pending. This is local ArcFace facial verification, not Apple Face ID
-or implemented liveness. The console's reported work is separate from this
-repository's `workstation/` placeholders and the 118 core statuses below.
+or implemented liveness. That handoff predates the console's shared-root migration;
+current local verification is recorded above. The 118 core statuses remain scoped
+to their named components and integrations.
 
 The [output-contract slice][contract-guide] and [feature-builder slice][feature-guide]
 are implemented. Existing [contract tests][contract-tests], [rank tests][scoring-tests],
@@ -249,8 +266,8 @@ workflows run with explicit no-unintended-execution assertions.
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
 | 001 | Define Agent Action Request Schema | Partial | [Internal feature-request shape][feature-schema] is validated; the public [action-request schema][action-schema] is still an empty skeleton. |
-| 002 | Define Context Push-Back Schema | Planned | The core [challenge skeleton][challenge-schema] is empty. The external console reports `alice.context_request`; cross-system schema agreement and real producer/routing remain. |
-| 003 | Define Agent Context Response Schema | Planned | No accepted core agent context-response contract exists. The [external console][console-integration] reports a local `alice.agent_response` schema; exchange and adapter validation remain. |
+| 002 | Define Context Push-Back Schema | Planned | The core [challenge skeleton][challenge-schema] is empty. The integrated console defines `alice.context_request`; cross-system schema agreement and real producer/routing remain. |
+| 003 | Define Agent Context Response Schema | Planned | No accepted core agent context-response contract exists. The [integrated console][console-integration] defines a local `alice.agent_response` schema; exchange and adapter validation remain. |
 | 004 | Define Policy Package Schema | Planned | The [package manifest skeleton][package-schema] is empty. This original policy task now covers the signed authorized-permissions package; existing code keys have not been renamed. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 005 | Define Normal Operations Package Schema | Partial | [Baseline payload schema][baseline-schema] exists. The signed normal-operations package envelope, manifest and lifecycle are not defined by that payload schema. |
 | 006 | Define User Permissions Schema | Planned | No permissions-package or user-permissions schema is implemented. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
@@ -348,7 +365,7 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 066 | Export Raw Decision Data to Dashboard | Partial | [Serializable anomaly contract][contract] and [mock replay][anomaly-replay] exist. The external console renders supplied fixtures, but no complete live core decision/event transport is connected. |
+| 066 | Export Raw Decision Data to Dashboard | Partial | [Serializable anomaly contract][contract] and [mock replay][anomaly-replay] exist. The integrated console renders supplied fixtures, but no complete live core decision/event transport is connected. |
 | 067 | Export Live Pi Status to Dashboard | Planned | No actual Pi status endpoint or authenticated telemetry transport is connected to the console; reported console status views currently consume fixtures. |
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | No real core technician-action receiver exists. The console reports local action construction/persistence; authenticated delivery and receipts remain. |
@@ -369,7 +386,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 079 | Continue Local Policy Enforcement | Planned | OFFLINE authorized-permission enforcement remains unimplemented. ONLINE enterprise direct control is intentionally not replaced by a Pi policy gate. |
 | 080 | Continue Local Anomaly Scoring | Partial | [Local lab scoring][training] runs real Isolation Forest offline, alongside [feature checks][feature-tests]. Live Pi inference for OFFLINE governance and authority-mode orchestration remain unimplemented. |
 | 081 | Continue Local Context Push-Back | Planned | No real OFFLINE core context exchange runs. Console fixture automation does not establish agent routing, bounded retries or a single authoritative challenge loop. |
-| 082 | Continue Local Dashboard Output | Planned | No real core/console event transport exists in either product mode. The external console reports local UI and DDIL fixture behavior separately. |
+| 082 | Continue Local Dashboard Output | Planned | No real core/console event transport exists in either product mode. The integrated console implements local UI and DDIL fixture behavior; this does not supply a live core event producer. |
 | 083 | Cache Unverified External Evidence Requests | Planned | No bounded persistent external-evidence request cache exists. |
 | 084 | Detect Cloud Reconnection | Planned | No direct Pi/enterprise reconnection detector or authenticated readiness check exists. |
 | 085 | Exit DDIL Mode | Planned | No fenced return to ONLINE enterprise execution exists; outstanding local commands/approvals must not remain valid after transfer. |
@@ -473,7 +490,7 @@ Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 [contract-tests]: ../tests/test_anomaly_contract.py
 [scoring-tests]: ../tests/test_anomaly_engine.py
 [feature-tests]: ../tests/test_feature_builder.py
-[feature-fixtures]: ../tests/fixtures/features/README.md
+[feature-fixtures]: tests/fixtures/features.md
 [anomaly-replay]: ../scripts/lab/replay_anomaly_fixtures.py
 [package-verifier]: ../dcamr/packages/package_verifier.py
 [policy]: ../dcamr/policy_engine/policy_engine.py

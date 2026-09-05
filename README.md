@@ -1,112 +1,144 @@
-# ALICE / DCAMR
+# ALICE
 
-Start every working session with [AGENTS.md](AGENTS.md) and [current.md](current.md).
-Use the [documentation map](docs/README.md) and [script catalog](scripts/README.md).
+**Authenticated Local Identity & Cyber Enforcement** is a prototype for accountable
+agent operations when enterprise connectivity is unavailable. ALICE combines trusted
+permissions, behavioral assessment, technician review and durable evidence so a
+local action can be understood, reviewed and eventually reconciled upstream.
 
-ALICE synchronizes trusted enterprise context while connected, governs local
-agent actions during DDIL outages, and reports disconnected activity when
-enterprise services return.
+**Current delivery:** working components and simulations, with a native technician
+console. The complete agent-to-device execution loop is still being integrated.
+Moving code into the shared layout does not make the live system complete.
 
-| Mode | Who controls execution | What ALICE does |
+Start with [architecture.md](architecture.md) for the whole-system picture,
+[current.md](current.md) for the current checkpoint, and
+[AGENTS.md](AGENTS.md) for every contributor's working rules.
+The [documentation map](docs/README.md) and [script catalog](docs/scripts/README.md)
+lead to detailed setup and component guides. Archived content is excluded from
+normal sessions unless the user explicitly requests it.
+
+## How ALICE is intended to work
+
+| Mode | Execution owner | ALICE responsibility |
 | --- | --- | --- |
-| **ONLINE** | Enterprise systems directly | Refresh bounded permissions, normal-behavior and relevant evidence caches; consume authenticated activity feeds; send audit and findings upstream. |
-| **OFFLINE / DDIL** | ALICE, after a controlled transfer | Evaluate local requests using trusted caches, anomaly models and technician review; preserve an audit trail for every action. |
+| ONLINE | Enterprise control systems | Synchronize trusted context, observe authenticated activity, and upload audit/findings. ALICE is not a mandatory online action gateway. |
+| OFFLINE / DDIL | Local ALICE system after controlled authority transfer | Assess supported requests from accepted caches and observations, require review where needed, and preserve request/decision/execution evidence. |
 
-Reconnection is a workflow between these two modes. The Pi communicates directly
-with enterprise interfaces for synchronization and reporting. Transferring
-execution authority safely is required integration work, not implemented failover.
+Reconnection is a workflow, not a third mode. A lost network connection, a face
+match, an LLM explanation or an uploaded record does not grant execution authority.
+The protected endpoint must enforce one current controller; that integration remains
+unfinished. The target edge device is a Raspberry Pi 4 Model B with 2 GB RAM and
+OS Lite. Training, facial identity and the local LLM run on the development or
+technician Mac. ESP lights/voltage sensing are the proposed physical demo; actual
+sensor contracts, operating limits and hardware acceptance remain open.
 
-Development targets a **Raspberry Pi 4 Model B with 2 GB RAM and OS Lite**.
-Model training, the explanatory LLM and facial verification belong on the Mac.
+## What exists today
 
-- [Architecture and authority boundaries](docs/prds/ALICE-DCAMR-Architecture.md)
-- [Product PRD](docs/prds/ALICE-DCAMR-PRD.md)
-- [Teammate handoff and integration responsibilities](docs/prds/ALICE-DCAMR-PRD-Handoff.md)
-- [Technician console and face-verification integration](docs/integration/technician-console.md)
+| Area | Implemented here | Remaining boundary |
+| --- | --- | --- |
+| Behavioral analysis | Schema validation, cyber features, contextual PRE/POST scoring, synthetic training and calibration experiments | Trusted live observations, persistent model export/load and Pi resource acceptance |
+| Pi assessment | `assess_for_technician` combines supplied permission findings and anomaly evidence into `alice-decision-assessment-v1` | Permission resolution, authenticated transport, app response binding and execution |
+| Decision Evidence Ledger | SQLite recorder, canonical event contracts, hash chains, Ed25519 checkpoints and durable outbox state | Live producers/sender, production trust provisioning and admission/enforcement wiring |
+| Technician console | React/Vite UI, Tauri/Rust boundary, local storage, immutable reassessment lineage and approval guards | Real core transport and execution confirmation; remote mode fails closed |
+| Facial identity | FastAPI/ArcFace service, enrollment storage and native verification boundary | Live operator acceptance on each installation; liveness/deepfake detection is not implemented |
+| Enterprise simulation | Synthetic activity, permission releases, Wazuh configuration, baseline/training data and local console | Authenticated enterprise sync, production feeds, trusted cache activation and real hardware |
 
-- [Implementation tracker — all 118 to-dos](docs/implementation-tracker.md)
-- [Accepted data direction and remaining decisions](docs/decisions/2026-09-05-data-direction.md)
-- [Anomaly output PRD](docs/prds/anomaly-model-prd.md)
-- [Output contract and fixtures](docs/contracts/anomaly-contract.md)
-- [Web-01 feature builder](docs/contracts/anomaly-features.md)
-- [Mac synthetic training lab](docs/guides/anomaly-training.md)
-- [General before/after behavior model](docs/architecture/contextual-behavior-model.md)
-- [Pi assessment for the technician application](docs/contracts/decision-assessment.md)
-- [Local Decision Evidence Ledger](docs/architecture/decision-evidence-ledger.md)
-- [Enterprise SIEM simulation and Wazuh setup](docs/handoffs/enterprise-sim-handoff.md)
-- [WIP integration handoff for workflow development](docs/handoffs/core-workflow-wip-handoff.md)
+The Pi assessment keeps `decision` and `explanation` null and
+`execution_authorized` false. The intended technician application interprets its
+evidence; unusual PRE_ACTION observations require human approval. Hard prohibitions
+and missing prerequisites must be enforced outside the LLM. The existing console's
+`alice.decision` event is a different contract, so a validated adapter is still
+required. See the [assessment contract](docs/contracts/decision-assessment.md).
 
-**WIP integration checkpoint:** analysis, ledger, workstation and enterprise
-simulation components are available for team integration. This is not a complete
-live request-to-execution system. See the workflow handoff for existing entry points,
-contract differences and remaining work before adding parallel implementations.
+The [implementation tracker](docs/implementation-tracker.md) retains the 118 stable
+product task IDs. Its component statuses are not a product-readiness percentage.
 
-The anomaly contract, cyber feature builder, Mac training lab and general
-context-conditioned Isolation Forest interface and durable local ledger are
-implemented components. The
-new interface supports separate before/after assessments; real ESP operating data
-and its sensor/action adapter remain to be supplied. Permissions evaluation, decision fusion, package
-verification, enterprise synchronization, authority transfer, live mission-audit coverage,
-motor execution and Pi deployment remain integration work. The separate console
-handoff reports real face enrollment/login with mock edge transport; it is not yet
-connected to this core. See the tracker for evidence and scope.
+## Repository layout
 
-The enterprise simulation supplies Wazuh configuration, demonstration permissions
-releases and synthetic behavioral data. Pi permission resolution, trusted cache
-synchronization and durable audit adapters remain unimplemented. The
-likely physical demo now uses an ESP with lights and a voltage sensor; actual
-measurements, units and operating ranges still need agreement.
+| Path | Owns |
+| --- | --- |
+| `dcamr/` | Core anomaly/assessment and audit packages; other runtime boundaries include empty scaffolds |
+| `common/` | Shared JSON schemas and checkout-resource lookup |
+| `apps/desktop/` | Active technician UI and native Tauri application |
+| `packages/contracts/`, `packages/domain/`, `packages/ui/` | Console contracts, state/approval rules and shared UI |
+| `services/biometrics/` | Local facial identity service |
+| `scripts/lab/` | Implemented ML, calibration, replay and enterprise simulation tools |
+| `scripts/console/`, `scripts/biometrics/` | Console launch/build helpers and model/identity tooling |
+| `lab/` | Compatibility namespace for `lab.*` imports, plus preserved empty placeholders |
+| `tests/`, `tests/console/`, `services/biometrics/tests/` | Core, console and biometric tests |
+| `fixtures/`, `tests/fixtures/` | Console scenarios and core contract/feature fixtures |
+| `artifacts/` | Selected published synthetic evidence; generated/private outputs follow `.gitignore` |
+| `docs/` | All substantive guides, contracts, plans, handoffs and reference documentation |
+| `agent/`, `cloud/`, `protected_systems/`, `apps/dashboard/`, `services/backend/`, `services/face_verification/` | Preserved integration or legacy scaffolding; existence is not implementation evidence |
 
-“Permissions” is the current product term. Existing `policy` paths and wire keys
-remain unchanged until a coordinated contract migration.
+Npm workspaces are declared explicitly so console packages do not absorb the
+unrelated permission/baseline packages. `workstation/` is no longer a tracked
+source root. Any ignored files left there on an older local checkout are private
+local state; preserve and migrate them deliberately rather than deleting them.
 
-For contract and feature work, start from the repository root with Python 3.11+
-(latest core suite tested with Python 3.13):
+## Run the console
+
+From the repository root, with Node.js 22+:
 
 ```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements-audit.txt
-.venv/bin/python -m lab.replay_anomaly_fixtures
-.venv/bin/python -m lab.replay_feature_fixtures
-.venv/bin/python -m unittest discover -v
+npm ci
+npm run dev
 ```
 
-The audit requirements include the contract/feature requirements and Ed25519
-dependency. For contract/feature work alone, `requirements-anomaly.txt` remains
-sufficient; running the full suite also requires the audit dependencies.
+Open the reported local URL (normally `http://127.0.0.1:1420`). This browser preview
+uses mock edge events, simulated identity and structured language fallback.
+For native Tauri operation on macOS, install Rust stable and Xcode Command Line
+Tools, then use `npm run demo`. Follow the
+[technician console guide](docs/guides/technician-console.md) for native setup,
+private `.env` configuration, packaging and Ollama.
 
-For the Mac training lab and its real-estimator tests, also install
-`.venv/bin/python -m pip install -r requirements-anomaly-training.txt`.
-Those tests skip when training dependencies are absent. See the training guide
-for experiment commands and the [published experiment evidence](docs/reports/anomaly-lab/README.md).
+For real facial identity, use the separate Python 3.11 environment and provisioning
+steps in the [facial verification guide](docs/guides/console/facial-verification-quickstart.md).
+Do not assume a Git pull installed models, copied credentials or migrated enrollment
+storage. Model provisioning is explicit; no model download happens at app login.
 
-With both audit and training dependencies installed, run
-`.venv/bin/python -m lab.replay_contextual_ledger` to verify synthetic PRE/POST and
-failure assessments through ledger sealing, restart and duplicate retry.
+## Run the Python components and lab
 
-See the [demo runbook](docs/guides/demo-runbook.md) for the distinction between runnable
-component checks and planned end-to-end acceptance, and the
-[threat model](docs/architecture/threat-model.md) for trust boundaries that integration must enforce.
-
-## Technician Console
-
-The macOS [ALICE Technician Console](docs/guides/technician-console.md) uses
-`apps/desktop`, `packages`, `services/biometrics` and `scripts/console`.
-Run `npm ci` then `npm run dev` from the repository root for the mock dashboard.
-See the console guide for native Tauri operation, biometric setup, Ollama, tests and
-`ALICE.app` packaging, and the [repository integration guide](docs/guides/workstation.md)
-for scope and shared-contract boundaries. Remote core transport remains fail-closed.
-
-## Enterprise Simulation
-
-For the enterprise simulation, use **Python 3.12 on the development Mac** and
-regenerate the ignored datasets once after cloning, before running its fit command:
+Use Python 3.12 for a fresh environment matching the pinned numerical dependencies.
+Preserve any existing environment instead of recreating it blindly. From root:
 
 ```sh
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -r requirements-anomaly-training.txt cryptography
-.venv/bin/python -m lab.enterprise_sim
+.venv/bin/python -m pip install -r requirements-audit.txt -r requirements-anomaly-training.txt
+.venv/bin/python -m lab.replay_anomaly_fixtures
+.venv/bin/python -m lab.replay_feature_fixtures
+.venv/bin/python -m lab.replay_contextual_ledger
+.venv/bin/python -m unittest discover -v
 ```
 
-See the [enterprise handoff](docs/handoffs/enterprise-sim-handoff.md) for fitting, console
-startup and trust boundaries. Generated signing material is demonstration-only.
+Core contract/ledger work uses `requirements-audit.txt`; training dependencies are
+separate, and estimator tests skip when they are absent. The public `lab.*` commands
+still work even though their implementations moved to `scripts/lab/`. From another
+working directory, use the absolute path to `scripts/lab/run.py COMMAND`.
+See the [lab guide](docs/lab/README.md), [training guide](docs/guides/anomaly-training.md)
+and [enterprise simulation handoff](docs/handoffs/enterprise-sim-handoff.md) before
+generating data. Synthetic fixtures do not establish physical safety limits.
+
+## Verify changes
+
+| Command from root | Scope |
+| --- | --- |
+| `.venv/bin/python -m unittest discover -v` | Core, lab relocation and isolated model-provisioning entry-point tests |
+| `npm run check` | TypeScript, ESLint, console tests, launcher tests and frontend build |
+| `npm run test:python` | Biometric service tests; requires its separate environment |
+| `npm run test:rust` | Native Rust tests; requires the native toolchain |
+| `npm run test:e2e` | Browser scenarios; requires Playwright Chromium |
+| `npm run contracts:generate` | Explicitly regenerates selected schemas/fixtures; review resulting bytes |
+
+Fresh results and environment limitations belong in [current.md](current.md) and
+its linked verification record. Camera, native identity, enterprise services and
+Pi hardware acceptance require their own checks; passing mocked scenarios does
+not establish those integrations.
+
+## Contribute
+
+Read [AGENTS.md](AGENTS.md), [current.md](current.md), the relevant
+[PRD](docs/prds/ALICE-DCAMR-PRD.md), and the component guide before creating files.
+Put new developer utilities in `scripts/<area>/`, application code in its owning
+package, and substantive documentation under `docs/`. Keep `current.md` below
+80 lines and 800 words. Preserve teammates' changes, archived evidence, published
+fixtures and private state; coordinate contract changes before promotion.

@@ -6,7 +6,7 @@ the next integration increments; it does not claim that the full system runs.
 - [Parent PRD](ALICE-DCAMR-PRD.md): current product scope and authority.
 - [Architecture](ALICE-DCAMR-Architecture.md): components, trust and data flow.
 - [Technician console integration](../integration/technician-console.md): the
-  external console's reported contracts, implemented behavior and upstream gaps.
+  integrated console's contracts, historical evidence and upstream gaps.
 - [Implementation tracker](../implementation-tracker.md): all 118 original tasks.
 
 The latest user-confirmed authority model takes precedence over older examples
@@ -119,9 +119,10 @@ using unchanged raw scores and independent source lineage. No model is saved
 for Pi loading, and neither candidate is accepted for deployment.
 
 Policy/permissions evaluation, full decision fusion, package verification,
-authority transfer, live transports, protected execution, persistent audit and
-cloud reconciliation remain integration work. The `workstation/` files in this
-repository are placeholders, not the external console's implemented application.
+authority transfer, live transports, protected execution, live audit producers/delivery
+and cloud reconciliation remain integration work. The local durable audit recorder
+and integrated console now exist; see the [current architecture](../../architecture.md)
+and [combined verification](../handoffs/2026-09-05-team-layout-review.md).
 
 The new [contextual behavior model](../architecture/contextual-behavior-model.md) adds separate
 PRE_ACTION/POST_ACTION profile validation, per-context forests and frozen normal
@@ -160,7 +161,7 @@ settings, not additional product modes.
 There is no accepted complete wire payload in this handoff. The old illustrative
 raw decision mixed incompatible score and band semantics and is removed. Use the
 actual component schema for anomaly validation, then agree an explicit adapter
-with the external console's executable schemas before publishing full examples.
+with the integrated console's executable schemas before publishing full examples.
 
 | Boundary | Verified here or reported by the console | Integration still required |
 | --- | --- | --- |
@@ -251,11 +252,11 @@ Use paths that actually exist in this repository:
 | --- | --- |
 | `common/schemas/` | Shared schemas; distinguish the implemented anomaly schemas from empty generic placeholders. |
 | `dcamr/anomaly_engine/` | Implemented feature, baseline, history, result-validation and rank components; live evaluator remains pending. |
-| `dcamr/` other components | Core permissions, fusion, APIs, packages, audit, state, reconciliation and enforcement integration. |
-| `packages/` | Existing mission-policy/ops-baseline package skeletons and tooling; coordinate future permissions naming. |
-| `lab/`, `tests/fixtures/`, `tests/` | Synthetic generation, replay/training/comparison and component acceptance. |
+| `dcamr/` other components | Implemented assessment wrapper and durable audit recorder; permissions, APIs, package activation, state, reconciliation and enforcement still need integration. |
+| `packages/` | Active console contracts/domain/UI plus preserved mission-policy/ops-baseline and tooling skeletons; coordinate future permissions naming. |
+| `scripts/lab/`, `lab/`, `tests/fixtures/`, `tests/` | Implemented lab tools under scripts, public lab.* compatibility namespace, fixtures and component acceptance. |
 | `agent/`, `protected_systems/`, `cloud/` | Existing integration skeletons for request sources, controlled systems and external evidence. |
-| `workstation/` | Placeholders here; do not claim the separate console was imported or implemented in these files. |
+| `apps/desktop/`, `services/biometrics/`, `tests/console/` | Integrated console UI/native app, local biometric service and console tests. The workstation source root is superseded. |
 | `docs/` | Current PRDs, architecture, tracker, integration agreements and published lab evidence. |
 
 Coordinate against an existing integration base; do not require a nonexistent

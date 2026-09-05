@@ -1,4 +1,5 @@
 """Explicitly provision the InsightFace research model; never downloads at app login."""
+from pathlib import Path
 from console_paths import CONSOLE_ROOT
 import os
 from insightface.app import FaceAnalysis
