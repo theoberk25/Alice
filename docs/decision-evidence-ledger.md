@@ -235,6 +235,27 @@ local source history or depends on site storage to commit.
 
 ## Verification scope
 
+Run the existing contextual model through the ledger locally with:
+
+```sh
+.venv/bin/python -m pip install -r requirements-audit.txt -r requirements-anomaly-training.txt
+.venv/bin/python -m lab.replay_contextual_ledger
+```
+
+This replay fits small PRE_ACTION and POST_ACTION models from the existing
+unitless synthetic test fixtures. It records six real assessment outcomes: scored
+PRE/POST, untrained model, unseen context, missing telemetry and invalid input.
+Independent dispatch bindings survive failed input parsing. Exact assessment bytes
+retain numeric scores/factors; the compact ledger records their evidence digest.
+
+The replay explicitly seals and queues the six records, reopens with the signed
+checkpoint as an anchor, retries the same event IDs, and checks original events,
+coverage, evidence digests and pending delivery. It uses a disposable test key and
+temporary directory that is removed on exit. Its evidence files are test artifacts,
+not a production evidence store. No upload, permissions decision or physical action
+runs, and the models are not ESP operating baselines. The integration test is
+`tests/test_contextual_ledger.py`; core model and ledger implementations are unchanged.
+
 Focused tests use real temporary SQLite databases, known Ed25519 vectors, controlled
 write failures and subprocess exits. They cover canonicalization, event families,
 context projection, durable retry/restart, competing connections, sealing/trust,

@@ -45,8 +45,12 @@ internal contract, pending the canonical anomaly/decision adapter.
 
 The [durable ledger slice][audit-guide] adds local SQLite recording, strict compact
 contracts, trusted Ed25519 checkpoints, bounded delivery bookkeeping and linked
-findings. Final verification: **235 Python tests passed, zero skips**, plus both
-cyber replays (8 anomaly fixtures, 7 rank cases, 5 feature vectors). Independent
+findings. Latest verification: **236 Python tests passed, zero skips**, plus both
+cyber replays (8 anomaly fixtures, 7 rank cases, 5 feature vectors) and the
+[model-to-ledger replay][context-ledger-replay] (6 synthetic assessment cases).
+That replay verifies real PRE/POST scoring and explicit failure outcomes through
+compact projection, exact retained evidence, sealing, anchored restart and duplicate
+retry; it does not establish live producer integration. Independent
 whole-branch review found a runtime metadata-validation gap; a two-line check and
 regression test now reject changed stored metadata before further writes. Rereview
 has no open material findings. No live producer, sender, admission gate, execution fence,
@@ -465,3 +469,4 @@ Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 [audit-tests]: ../tests/test_audit_log.py
 [audit-outbox-tests]: ../tests/test_audit_outbox.py
 [audit-integrity-tests]: ../tests/test_audit_integrity.py
+[context-ledger-replay]: ../lab/replay_contextual_ledger.py

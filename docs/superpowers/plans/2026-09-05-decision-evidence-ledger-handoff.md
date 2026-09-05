@@ -7,6 +7,19 @@ findings. Final verification passed 235 tests with zero skips and both replays
 (8 anomaly fixtures, 7 score cases, 5 feature vectors). Changes are local only;
 live integration and Pi acceptance remain pending.
 
+**Subsequent core verification:** the user selected verifying the existing
+model-to-ledger flow before model save/load work. Added
+`lab/replay_contextual_ledger.py` and `tests/test_contextual_ledger.py`, reusing
+existing synthetic model fixtures and production APIs without changing core model
+or ledger implementations. All six cases passed (scored PRE/POST, untrained,
+unseen context, missing telemetry, invalid input), including exact retained
+evidence, sealing, queued delivery, anchored reopen and duplicate retries.
+Independent review has no material findings. Latest full suite: 236 tests, zero
+failures/errors/skips (8.069s); both cyber replays also passed. The root README now
+includes the audit dependency required for full test discovery. Tracker statuses
+remain unchanged. Production evidence retention, live adapters and model save/load
+remain absent.
+
 The checkpoint details and resume checklist below preserve the earlier handoff
 history; the final review above and plan Task 5 supersede their deferred status.
 Do not restart design approval or represent this as completed live integration.
@@ -30,6 +43,23 @@ no functions or abstractions without a concrete purpose.** Keep meaningful trust
 contract and transaction boundaries; avoid speculative frameworks or unrelated ML
 and console refactoring. The schema was deduplicated rather than creating a
 runtime schema-generation framework.
+
+## Team ownership after final review
+
+- Alex owns workstation code, including the downstream dashboard and its local
+  identity/approval flows. The pending-login/sign-out race identified during the
+  later repository review is feedback for Alex; no workstation fix was made here.
+- Jared owns online cloud/SIEM, mock enterprise cyber services and agent
+  permissions. Recording supplied permission metadata does not implement that
+  permissions service.
+- This work continues on core anomaly features/training/scoring and the local
+  durable decision-evidence ledger. Do not infer ownership of decision fusion,
+  authority transfer, device execution or sensor ingestion from their placeholders.
+- Theo is developing potentially overlapping functionality; his exact scope and
+  scripts have not been supplied. The user accepts possible redundancy for now.
+  Compare actual behavior, input/output contracts, dependencies and tests once
+  those scripts are available before consolidating or removing implementations.
+- No teammate messages, pushes, merges or deployments have been authorized.
 
 ## Implemented files and responsibilities
 
