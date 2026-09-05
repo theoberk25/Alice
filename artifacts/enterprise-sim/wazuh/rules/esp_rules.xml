@@ -1,0 +1,23 @@
+<!--
+  Append to local_rules.xml, or keep as a separate file listed in ossec.conf.
+  These describe the device's own report, which is not independent measurement
+  of whether the physical bus actually moved.
+-->
+<group name="esp,sentinel,">
+  <rule id="100190" level="0">
+    <decoded_as>esp-feeder</decoded_as>
+    <description>ESP feeder controller telemetry</description>
+  </rule>
+
+  <rule id="100191" level="3">
+    <if_sid>100190</if_sid>
+    <field name="esp.operating_mode">grid_tied</field>
+    <description>Feeder setpoint report (grid tied): commanded $(esp.commanded_v) V</description>
+  </rule>
+
+  <rule id="100192" level="6">
+    <if_sid>100190</if_sid>
+    <field name="esp.operating_mode">islanded</field>
+    <description>Feeder setpoint report while islanded: commanded $(esp.commanded_v) V</description>
+  </rule>
+</group>

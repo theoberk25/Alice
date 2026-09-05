@@ -165,6 +165,16 @@ The demo must identify simulated transfer behavior until this boundary is tested
 
 ## 5. Trusted cache synchronization
 
+The [enterprise simulation handoff](../enterprise-sim-handoff.md) now supplies
+concrete demonstration permissions releases 42–44, a generation-42 USB image,
+Wazuh index/rule configuration and synthetic normal-behavior inputs. These are
+enterprise-side fixtures, not a working Pi cache loader. The deterministic demo
+signer is publicly reproducible and must never become a production trust root.
+Pi integration still needs an authenticated source, signature/digest and validity
+checks, anti-rollback state, compatible model/profile bindings and recoverable
+atomic activation. The proposed `resolve()` interface remains separate from
+permissions/anomaly fusion.
+
 "Sync everything" means cover the required context categories with bounded,
 mission-relevant data on this 2 GB node. It does not require an unbounded mirror
 of enterprise logs or raw training history.
@@ -378,6 +388,15 @@ measured position. Record telemetry's actual source and unavailable physical
 feedback rather than fabricating a sensor reading.
 
 ## 11. Reconnection, upstream reporting and cache refresh
+
+The enterprise simulation includes 48 authored audit events and a console that
+compares cached permissions with enterprise releases. This demonstrates the
+intended reconciliation inputs; it does not prove live Pi delivery or authority
+transfer. Its proposed internal-storage audit authority with a USB copy still
+needs agreement. Wazuh's agent buffer is not the durable DDIL outbox; the supplied
+indexer role also does not enforce append-only storage. See the
+[handoff boundaries](../enterprise-sim-handoff.md) before implementing delivery,
+per-event acknowledgements, conflict checking and retention.
 
 The Pi communicates directly with configured enterprise interfaces. The sequence
 may overlap where safe, but must preserve these independently visible results:

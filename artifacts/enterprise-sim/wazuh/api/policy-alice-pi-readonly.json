@@ -1,0 +1,16 @@
+{
+  "name": "alice_pi_readonly",
+  "policy": {
+    "actions": [
+      "agent:read",
+      "group:read",
+      "cluster:read"
+    ],
+    "resources": [
+      "agent:id:001",
+      "agent:group:alice-pi",
+      "*:*:*"
+    ],
+    "effect": "allow"
+  }
+}

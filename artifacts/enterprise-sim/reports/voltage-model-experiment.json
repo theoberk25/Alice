@@ -1,0 +1,357 @@
+{
+  "note": "Mac-only in-memory experiment. No model is saved, none boots on the Pi, and no Pi acceptance has run.",
+  "phases": {
+    "pre": {
+      "phase": "PRE_ACTION",
+      "profile_id": "sen-feeder-voltage-pre",
+      "model_id": "sen-voltage-pre-001",
+      "model_fingerprint": "c8802da2b5b58a3a...",
+      "scikit_learn": "1.5.2",
+      "context_count": 3,
+      "contexts": [
+        {
+          "context": {
+            "feeder_id": "feeder-a",
+            "operating_mode": "grid_tied"
+          },
+          "training_rows": 320,
+          "calibration_rows": 1200,
+          "training_sessions": 8,
+          "calibration_sessions": 30,
+          "tree_nodes": 7994
+        },
+        {
+          "context": {
+            "feeder_id": "feeder-a",
+            "operating_mode": "islanded"
+          },
+          "training_rows": 320,
+          "calibration_rows": 1200,
+          "training_sessions": 8,
+          "calibration_sessions": 30,
+          "tree_nodes": 8496
+        },
+        {
+          "context": {
+            "feeder_id": "feeder-b",
+            "operating_mode": "grid_tied"
+          },
+          "training_rows": 320,
+          "calibration_rows": 1200,
+          "training_sessions": 8,
+          "calibration_sessions": 30,
+          "tree_nodes": 8264
+        }
+      ],
+      "held_out_normal_bands": {
+        "feeder-a/grid_tied": {
+          "ELEVATED": 10,
+          "LOW": 225,
+          "HIGH": 5
+        },
+        "feeder-a/islanded": {
+          "LOW": 227,
+          "HIGH": 7,
+          "ELEVATED": 6
+        },
+        "feeder-b/grid_tied": {
+          "LOW": 223,
+          "ELEVATED": 16,
+          "HIGH": 1
+        }
+      },
+      "challenges": [
+        {
+          "scenario": "out_of_band_setpoint",
+          "expected": "SCORED",
+          "context": "feeder-a/grid_tied",
+          "status": "OK",
+          "band": "ELEVATED",
+          "score": 0.9717,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "requested_setpoint_v",
+            "requested_delta_v"
+          ],
+          "note": "Requests 512 V, above the hard service band. Permissions must DENY this deterministically; the model never gets to weigh in."
+        },
+        {
+          "scenario": "rapid_cycling",
+          "expected": "SCORED",
+          "context": "feeder-a/grid_tied",
+          "status": "OK",
+          "band": "LOW",
+          "score": 0.8792,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "seconds_since_last_change",
+            "changes_last_hour"
+          ],
+          "note": "Thirty-seven setpoint changes in the last hour, twelve seconds apart."
+        },
+        {
+          "scenario": "large_delta_islanded",
+          "expected": "SCORED",
+          "context": "feeder-a/islanded",
+          "status": "OK",
+          "band": "LOW",
+          "score": 0.9158,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "requested_setpoint_v",
+            "requested_delta_v"
+          ],
+          "note": "An 18 V swing while islanded: inside the hard band, far outside normal."
+        },
+        {
+          "scenario": "quiet_feeder_burst",
+          "expected": "SCORED",
+          "context": "feeder-b/grid_tied",
+          "status": "OK",
+          "band": "ELEVATED",
+          "score": 0.9542,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "seconds_since_last_change",
+            "changes_last_hour"
+          ],
+          "note": "Feeder B normally changes less than once an hour; this asks for the fourteenth change of the hour."
+        },
+        {
+          "scenario": "unstable_bus",
+          "expected": "SCORED",
+          "context": "feeder-b/grid_tied",
+          "status": "OK",
+          "band": "LOW",
+          "score": 0.8708,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "bus_voltage_stddev_5m_v"
+          ],
+          "note": "Five-minute bus standard deviation of 7.4 V on a normally quiet feeder."
+        },
+        {
+          "scenario": "unseen_feeder",
+          "expected": "UNKNOWN_CONTEXT",
+          "context": "feeder-c/grid_tied",
+          "status": "UNAVAILABLE",
+          "band": "UNKNOWN",
+          "score": null,
+          "reason_codes": [
+            "CONTEXT_UNSEEN"
+          ],
+          "outside_training_range": [],
+          "note": "Feeder C has no fitted forest. The model must answer UNKNOWN with a null score rather than reusing feeder A's normal."
+        },
+        {
+          "scenario": "unseen_mode",
+          "expected": "UNKNOWN_CONTEXT",
+          "context": "feeder-a/maintenance_bypass",
+          "status": "UNAVAILABLE",
+          "band": "UNKNOWN",
+          "score": null,
+          "reason_codes": [
+            "CONTEXT_UNSEEN"
+          ],
+          "outside_training_range": [],
+          "note": "A mode the release never covered. Routing is exact; there is no fallback."
+        }
+      ],
+      "model_persisted": false,
+      "deployment_ready": false
+    },
+    "post": {
+      "phase": "POST_ACTION",
+      "profile_id": "sen-feeder-voltage-post",
+      "model_id": "sen-voltage-post-001",
+      "model_fingerprint": "61aa2d3b8e3e697b...",
+      "scikit_learn": "1.5.2",
+      "context_count": 3,
+      "contexts": [
+        {
+          "context": {
+            "feeder_id": "feeder-a",
+            "operating_mode": "grid_tied"
+          },
+          "training_rows": 320,
+          "calibration_rows": 1200,
+          "training_sessions": 8,
+          "calibration_sessions": 30,
+          "tree_nodes": 7540
+        },
+        {
+          "context": {
+            "feeder_id": "feeder-a",
+            "operating_mode": "islanded"
+          },
+          "training_rows": 320,
+          "calibration_rows": 1200,
+          "training_sessions": 8,
+          "calibration_sessions": 30,
+          "tree_nodes": 8978
+        },
+        {
+          "context": {
+            "feeder_id": "feeder-b",
+            "operating_mode": "grid_tied"
+          },
+          "training_rows": 320,
+          "calibration_rows": 1200,
+          "training_sessions": 8,
+          "calibration_sessions": 30,
+          "tree_nodes": 8302
+        }
+      ],
+      "held_out_normal_bands": {
+        "feeder-a/grid_tied": {
+          "LOW": 223,
+          "ELEVATED": 11,
+          "HIGH": 6
+        },
+        "feeder-a/islanded": {
+          "LOW": 228,
+          "ELEVATED": 4,
+          "HIGH": 8
+        },
+        "feeder-b/grid_tied": {
+          "LOW": 227,
+          "HIGH": 4,
+          "ELEVATED": 9
+        }
+      },
+      "challenges": [
+        {
+          "scenario": "out_of_band_setpoint",
+          "expected": "SCORED",
+          "context": "feeder-a/grid_tied",
+          "status": "OK",
+          "band": "LOW",
+          "score": 0.9458,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "requested_setpoint_v",
+            "requested_delta_v"
+          ],
+          "note": "Requests 512 V, above the hard service band. Permissions must DENY this deterministically; the model never gets to weigh in."
+        },
+        {
+          "scenario": "large_delta_islanded",
+          "expected": "SCORED",
+          "context": "feeder-a/islanded",
+          "status": "OK",
+          "band": "LOW",
+          "score": 0.7542,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "requested_setpoint_v",
+            "requested_delta_v"
+          ],
+          "note": "An 18 V swing while islanded: inside the hard band, far outside normal."
+        },
+        {
+          "scenario": "actuator_no_response",
+          "expected": "SCORED",
+          "context": "feeder-a/grid_tied",
+          "status": "OK",
+          "band": "HIGH",
+          "score": 0.9925,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "setpoint_error_v"
+          ],
+          "note": "Commanded a 4 V rise; the bus never moved. POST_ACTION evidence that the controller's success receipt is not an independent measurement."
+        },
+        {
+          "scenario": "overshoot",
+          "expected": "SCORED",
+          "context": "feeder-a/islanded",
+          "status": "OK",
+          "band": "ELEVATED",
+          "score": 0.9758,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "settled_bus_voltage_v",
+            "setpoint_error_v"
+          ],
+          "note": "Settled 6.8 V above the commanded setpoint."
+        },
+        {
+          "scenario": "slow_settle",
+          "expected": "SCORED",
+          "context": "feeder-a/islanded",
+          "status": "OK",
+          "band": "ELEVATED",
+          "score": 0.9692,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "settle_duration_ms"
+          ],
+          "note": "Took 9.1 seconds to settle against a normal of roughly 1.9."
+        },
+        {
+          "scenario": "load_collapse",
+          "expected": "SCORED",
+          "context": "feeder-a/grid_tied",
+          "status": "OK",
+          "band": "ELEVATED",
+          "score": 0.9675,
+          "reason_codes": [
+            "OUTSIDE_TRAINING_RANGE"
+          ],
+          "outside_training_range": [
+            "settled_load_current_a"
+          ],
+          "note": "Load current fell from 214 A to 22 A across the action."
+        },
+        {
+          "scenario": "unseen_feeder",
+          "expected": "UNKNOWN_CONTEXT",
+          "context": "feeder-c/grid_tied",
+          "status": "UNAVAILABLE",
+          "band": "UNKNOWN",
+          "score": null,
+          "reason_codes": [
+            "CONTEXT_UNSEEN"
+          ],
+          "outside_training_range": [],
+          "note": "Feeder C has no fitted forest. The model must answer UNKNOWN with a null score rather than reusing feeder A's normal."
+        },
+        {
+          "scenario": "unseen_mode",
+          "expected": "UNKNOWN_CONTEXT",
+          "context": "feeder-a/maintenance_bypass",
+          "status": "UNAVAILABLE",
+          "band": "UNKNOWN",
+          "score": null,
+          "reason_codes": [
+            "CONTEXT_UNSEEN"
+          ],
+          "outside_training_range": [],
+          "note": "A mode the release never covered. Routing is exact; there is no fallback."
+        }
+      ],
+      "model_persisted": false,
+      "deployment_ready": false
+    }
+  }
+}

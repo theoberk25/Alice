@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "enterprise-siem",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": [
+        "-m",
+        "lab.enterprise_sim.console"
+      ],
+      "port": 8787
+    }
+  ]
+}

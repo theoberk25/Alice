@@ -1,0 +1,6 @@
+{
+  "users": [
+    "alice_pi"
+  ],
+  "description": "The ALICE Pi. Reads permissions releases, appends audit, and can do nothing else."
+}

@@ -1,0 +1,381 @@
+{
+  "site": {
+    "site_id": "SEN",
+    "name": "Sentinel Air Force Base",
+    "note": "Fictional installation used for the ALICE / DCAMR demonstration.",
+    "networks": {
+      "10.42.10.0/24": "ALICE and management enclave",
+      "10.42.20.0/24": "OT / SCADA enclave (microgrid, feeders, metering)",
+      "10.42.30.0/24": "IT services enclave (TRIRIGA, BUILDER, work orders)"
+    }
+  },
+  "note": "Simulated enrollment inventory. `wazuh-agent` runs on the hosts marked agent_installed; the relay and ESP nodes forward syslog instead, because a microcontroller does not run a Wazuh agent.",
+  "groups": {
+    "alice-pi": "The ALICE decision node. Reads its permissions release and ships audit.",
+    "esp-controllers": "ESP feeder nodes. Telemetry only; never a permissions source.",
+    "ot-controllers": "Microgrid, storage and metering controllers.",
+    "ot-workstations": "HMI and operator workstations bridging IT and OT.",
+    "it-servers": "TRIRIGA, BUILDER and work-order services.",
+    "workstations": "Agent and technician Macs."
+  },
+  "endpoints": [
+    {
+      "id": "001",
+      "name": "alice-pi-01",
+      "ip": "10.42.10.11",
+      "os": "Debian GNU/Linux 12 (aarch64)",
+      "groups": [
+        "default",
+        "alice-pi"
+      ],
+      "role": "ALICE decision node (Raspberry Pi 4, 2 GB)",
+      "agent_installed": true
+    },
+    {
+      "id": "002",
+      "name": "agent-mac-01",
+      "ip": "10.42.10.21",
+      "os": "macOS 15.4",
+      "groups": [
+        "default",
+        "workstations"
+      ],
+      "role": "Agent Mac: proposes requests",
+      "agent_installed": true
+    },
+    {
+      "id": "003",
+      "name": "tech-mac-01",
+      "ip": "10.42.10.22",
+      "os": "macOS 15.4",
+      "groups": [
+        "default",
+        "workstations"
+      ],
+      "role": "Technician Mac: console, face verification, local LLM",
+      "agent_installed": true
+    },
+    {
+      "id": "004",
+      "name": "spiders-mgc-01",
+      "ip": "10.42.20.10",
+      "os": "Ubuntu 22.04.5 LTS",
+      "groups": [
+        "default",
+        "ot-controllers"
+      ],
+      "role": "SPIDERS microgrid controller",
+      "agent_installed": true
+    },
+    {
+      "id": "005",
+      "name": "spiders-relay-03",
+      "ip": "10.42.20.11",
+      "os": "embedded (syslog only)",
+      "groups": [
+        "default",
+        "ot-controllers"
+      ],
+      "role": "Protective relay bank; syslog forwarded, no agent installed",
+      "agent_installed": false
+    },
+    {
+      "id": "006",
+      "name": "bess-ctrl-02",
+      "ip": "10.42.20.12",
+      "os": "Ubuntu 22.04.5 LTS",
+      "groups": [
+        "default",
+        "ot-controllers"
+      ],
+      "role": "Battery energy storage controller",
+      "agent_installed": true
+    },
+    {
+      "id": "007",
+      "name": "scada-hmi-02",
+      "ip": "10.42.20.32",
+      "os": "Windows 10 IoT Enterprise",
+      "groups": [
+        "default",
+        "ot-workstations"
+      ],
+      "role": "SCADA HMI, IT/OT bridge",
+      "agent_installed": true
+    },
+    {
+      "id": "008",
+      "name": "feeder-a-rtu",
+      "ip": "10.42.20.41",
+      "os": "ESP32 firmware 1.4.2",
+      "groups": [
+        "default",
+        "esp-controllers"
+      ],
+      "role": "Feeder A RTU / ESP demo node",
+      "agent_installed": false
+    },
+    {
+      "id": "009",
+      "name": "feeder-b-rtu",
+      "ip": "10.42.20.42",
+      "os": "ESP32 firmware 1.4.2",
+      "groups": [
+        "default",
+        "esp-controllers"
+      ],
+      "role": "Feeder B RTU / ESP demo node",
+      "agent_installed": false
+    },
+    {
+      "id": "010",
+      "name": "meter-gw-01",
+      "ip": "10.42.20.44",
+      "os": "OpenWrt 23.05",
+      "groups": [
+        "default",
+        "ot-controllers"
+      ],
+      "role": "Metering and demand-response gateway",
+      "agent_installed": true
+    },
+    {
+      "id": "011",
+      "name": "tririga-app-01",
+      "ip": "10.42.30.15",
+      "os": "Red Hat Enterprise Linux 9.4",
+      "groups": [
+        "default",
+        "it-servers"
+      ],
+      "role": "TRIRIGA system of record",
+      "agent_installed": true
+    },
+    {
+      "id": "012",
+      "name": "builder-svc-01",
+      "ip": "10.42.30.16",
+      "os": "Windows Server 2022",
+      "groups": [
+        "default",
+        "it-servers"
+      ],
+      "role": "BUILDER / Piton condition assessment",
+      "agent_installed": true
+    },
+    {
+      "id": "013",
+      "name": "wo-api-01",
+      "ip": "10.42.30.17",
+      "os": "Ubuntu 22.04.5 LTS",
+      "groups": [
+        "default",
+        "it-servers"
+      ],
+      "role": "Work order and parts requisition API",
+      "agent_installed": true
+    }
+  ],
+  "protected_systems": {
+    "SPIDERS-MGC-01": {
+      "name": "SPIDERS microgrid controller",
+      "plane": "ot",
+      "criticality": "mission_critical",
+      "enclave": "10.42.20.0/24",
+      "host": "10.42.20.10",
+      "workflow": "microgrid_control"
+    },
+    "SPIDERS-RELAY-03": {
+      "name": "Protective relay bank, substation 3",
+      "plane": "ot",
+      "criticality": "safety_critical",
+      "enclave": "10.42.20.0/24",
+      "host": "10.42.20.11",
+      "workflow": "microgrid_control"
+    },
+    "BESS-CTRL-02": {
+      "name": "Battery energy storage controller",
+      "plane": "ot",
+      "criticality": "mission_critical",
+      "enclave": "10.42.20.0/24",
+      "host": "10.42.20.12",
+      "workflow": "microgrid_control"
+    },
+    "FEEDER-A-RTU": {
+      "name": "Feeder A RTU (ESP demo node)",
+      "plane": "ot",
+      "criticality": "mission_critical",
+      "enclave": "10.42.20.0/24",
+      "host": "10.42.20.41",
+      "workflow": "power_distribution"
+    },
+    "FEEDER-B-RTU": {
+      "name": "Feeder B RTU (ESP demo node)",
+      "plane": "ot",
+      "criticality": "routine",
+      "enclave": "10.42.20.0/24",
+      "host": "10.42.20.42",
+      "workflow": "power_distribution"
+    },
+    "METER-GW-01": {
+      "name": "Utility metering / demand-response gateway",
+      "plane": "ot",
+      "criticality": "routine",
+      "enclave": "10.42.20.0/24",
+      "host": "10.42.20.44",
+      "workflow": "demand_response"
+    },
+    "SCADA-HMI-02": {
+      "name": "SCADA HMI workstation (IT/OT bridge)",
+      "plane": "bridge",
+      "criticality": "mission_critical",
+      "enclave": "10.42.20.0/24",
+      "host": "10.42.20.32",
+      "workflow": "microgrid_control"
+    },
+    "TRIRIGA-APP-01": {
+      "name": "TRIRIGA system of record",
+      "plane": "it",
+      "criticality": "authoritative_record",
+      "enclave": "10.42.30.0/24",
+      "host": "10.42.30.15",
+      "workflow": "system_of_record"
+    },
+    "BUILDER-SVC-01": {
+      "name": "BUILDER / Piton condition assessment service",
+      "plane": "it",
+      "criticality": "routine",
+      "enclave": "10.42.30.0/24",
+      "host": "10.42.30.16",
+      "workflow": "facility_maintenance"
+    },
+    "WO-API-01": {
+      "name": "Work order and parts requisition API",
+      "plane": "it",
+      "criticality": "routine",
+      "enclave": "10.42.30.0/24",
+      "host": "10.42.30.17",
+      "workflow": "facility_maintenance"
+    }
+  },
+  "human_users": {
+    "a1c.r.delgado": {
+      "display_name": "A1C R. Delgado",
+      "unit": "899-CES/POWER-PRO",
+      "role": "apprentice_electrician"
+    },
+    "capt.j.whitfield": {
+      "display_name": "Capt J. Whitfield",
+      "unit": "899-CES/ENERGY",
+      "role": "base_energy_manager"
+    },
+    "col.s.hargrove": {
+      "display_name": "Col S. Hargrove",
+      "unit": "899-MSG",
+      "role": "squadron_commander"
+    },
+    "ctr.p.osei": {
+      "display_name": "P. Osei (contractor)",
+      "unit": "CTR-MGS",
+      "role": "vendor_support"
+    },
+    "gs12.k.tran": {
+      "display_name": "K. Tran, GS-12",
+      "unit": "899-CES/OPS-ENG",
+      "role": "facility_manager"
+    },
+    "msgt.d.reyes": {
+      "display_name": "MSgt D. Reyes",
+      "unit": "899-CES/POWER-PRO",
+      "role": "power_production_supervisor"
+    },
+    "ssgt.a.okafor": {
+      "display_name": "SSgt A. Okafor",
+      "unit": "899-CES/POWER-PRO",
+      "role": "electrician"
+    },
+    "svc.alice-sync": {
+      "display_name": "ALICE Pi synchronization principal",
+      "unit": "899-CS",
+      "role": "service_sync"
+    },
+    "tsgt.m.lindqvist": {
+      "display_name": "TSgt M. Lindqvist",
+      "unit": "899-CS",
+      "role": "cyber_defense_operator"
+    }
+  },
+  "ai_agents": {
+    "appr-agent-01": {
+      "type": "apprentice_readonly",
+      "responsible_user": "a1c.r.delgado",
+      "targets": [
+        "FEEDER-A-RTU"
+      ]
+    },
+    "cyber-agent-04": {
+      "type": "cyber_defense",
+      "responsible_user": "tsgt.m.lindqvist",
+      "targets": [
+        "SCADA-HMI-02",
+        "TRIRIGA-APP-01"
+      ]
+    },
+    "dr-agent-01": {
+      "type": "demand_response",
+      "responsible_user": "capt.j.whitfield",
+      "targets": [
+        "METER-GW-01"
+      ]
+    },
+    "elec-agent-01": {
+      "type": "electrician",
+      "responsible_user": "ssgt.a.okafor",
+      "targets": [
+        "FEEDER-A-RTU",
+        "FEEDER-B-RTU",
+        "METER-GW-01"
+      ]
+    },
+    "elec-agent-02": {
+      "type": "electrician",
+      "responsible_user": "msgt.d.reyes",
+      "targets": [
+        "FEEDER-A-RTU",
+        "FEEDER-B-RTU",
+        "BESS-CTRL-02"
+      ]
+    },
+    "elec-agent-07": {
+      "type": "electrician",
+      "responsible_user": "ssgt.a.okafor",
+      "targets": [
+        "FEEDER-B-RTU"
+      ]
+    },
+    "maint-agent-01": {
+      "type": "facility_maintenance",
+      "responsible_user": "gs12.k.tran",
+      "targets": [
+        "BUILDER-SVC-01",
+        "WO-API-01",
+        "TRIRIGA-APP-01"
+      ]
+    },
+    "microgrid-agent-01": {
+      "type": "microgrid_dispatch",
+      "responsible_user": "msgt.d.reyes",
+      "targets": [
+        "SPIDERS-MGC-01",
+        "BESS-CTRL-02"
+      ]
+    },
+    "vendor-agent-01": {
+      "type": "vendor_support",
+      "responsible_user": "ctr.p.osei",
+      "targets": [
+        "SCADA-HMI-02"
+      ]
+    }
+  }
+}
