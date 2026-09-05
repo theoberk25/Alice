@@ -10,6 +10,8 @@
 
 Define the anomaly result that the Raspberry Pi produces for DCAMR, its provenance, and reproducible fixtures that the integration team can consume before a trained model exists. Keep the runtime small enough to share a Raspberry Pi 4 Model B with the rest of DCAMR.
 
+The [canonical architecture](../architecture.md) now distinguishes **ONLINE**, when enterprise controls execute directly and the Pi synchronizes bounded trusted caches/authenticated activity feeds and sends audit upstream, from **OFFLINE**, when the Pi governs local actions after controlled single-authority handover. This PRD's proposed decision/fusion path describes that OFFLINE responsibility. The Pi is not a mandatory gateway for ONLINE enterprise execution; an anomaly score is advisory in either context.
+
 The initial increment delivered this PRD. Jared subsequently authorized implementation: the nested result schema, Python validation/binding, deterministic score mapper, eight result fixtures and local replay are implemented. The [feature-builder increment](../anomaly-features.md) implements 11 fixed features, trusted snapshot/baseline validation, cohort selection and five feature fixtures. A separate [Mac training lab](../anomaly-training.md) now fits and evaluates a synthetic Web-01 candidate in memory and emits JSON reports; it does not save or deploy a model. See [the output-contract guide](../anomaly-contract.md) for that boundary. The live evaluator, model persistence/loading, outer decision schema, fusion and device integration remain future increments.
 
 The [2026-09-05 data update](../data-direction-2026-09-05.md) records the newer single-USB layout and motor-control demo direction. Motor requests require a separately agreed/versioned profile; this cyber implementation does not score them. Jared selected a separate diagnostic/state-change calibration experiment; its completed Mac comparison and measured limitations are in the training guide. The [implementation tracker](../implementation-tracker.md) preserves all 118 requested tasks and their current evidence.
@@ -23,11 +25,17 @@ The user's current request defines this increment. The supplied documents and pr
 - **ALICE-DCAMR Architecture.md:** external policy/baseline packages, structured context, offline operation, provenance, workstation LLM.
 - **Zero Trust Hackathon Ideas**, especially the latest substantive model discussion: hybrid policy plus behavioral modeling, possible Isolation Forest, baseline-derived features, dashboard examples. Conversation ID: `6a960ff3-5770-83ea-8b0d-e77cb11e37da`.
 
-These sources are supplied separately, not checked into this repository. This document does not pretend that a local parent-PRD file exists. The repository inspected at `95d73b2` contains empty skeleton files, including its shared schemas and anomaly modules. No existing working API or model compatibility is implied.
+The original source documents describe earlier design context; imported copies are retained alongside this PRD. The current canonical architecture and the user's two-mode decision take precedence over earlier always-on Pi-gateway assumptions. The repository initially inspected at `95d73b2` contained empty skeleton files, including shared schemas and anomaly modules; that is historical context, not the current implementation inventory. No working cross-team API or model compatibility follows from importing those documents.
+
+The separate [technician-console integration handoff](../technician-console-integration.md) distinguishes reported Mac console capabilities from verified core work and unimplemented live integration. Its facial identity and explanation services do not run on the Pi or establish a deployed core authorization path.
 
 ## 2. Scope and authority
 
-The anomaly component answers: **How unusual is this proposed action and its observed context relative to the active operational baseline?** It produces observations and a bounded score. DCAMR owns authorization.
+The anomaly component answers: **How unusual is this proposed action and its observed context relative to the active operational baseline?** It produces observations and a bounded score, never execution authority. ONLINE enterprise controls own authorization and execute directly; ALICE's role is bounded authenticated synchronization and audit. OFFLINE the Pi owns local authorization only after a controlled handover establishes it as the single ready authority.
+
+Use **permissions** in product explanations. Existing `policy` keys, denial codes and policy-engine terminology below remain unchanged contract identifiers until a versioned adapter is agreed. Behavioral normality is separate from permission. Reconnection audit delivery, alerts and cache updates go directly between the Pi and enterprise systems, not through the Technician Mac.
+
+The following diagram is the proposed **OFFLINE** local path after readiness and authority transfer; it is not the ONLINE enterprise execution path:
 
 ```text
 Authenticated, normalized request + trusted local snapshot
@@ -57,7 +65,7 @@ Contract requirements carried forward from the product design:
 2. A low anomaly does not independently grant permission. Policy approval requirements and evidence requirements still apply.
 3. A high anomaly alone is not a deterministic prohibition. Fusion can request context or hold the action.
 4. The operational agent cannot alter the baseline, model, trusted history, or verification results. Technician feedback is not automatically training data.
-5. Scoring and provenance remain local under DDIL. The LLM runs on the workstation and has no decision authority.
+5. OFFLINE scoring and provenance remain local after authority handover. Loss of cloud connectivity alone does not establish permissions, valid caches or control ownership. The LLM runs on the workstation and has no decision authority.
 
 ## 3. Proposed first runtime slice
 
@@ -80,6 +88,8 @@ evaluate(normalized_request, trusted_snapshot, active_artifacts) -> AnomalyResul
 ```
 
 An adapter in DCAMR binds identity, validates limits, supplies immutable inputs, supervises evaluation, and rejects results that do not match those inputs. The agent-facing API must not expose a way to submit a trusted feature vector or an already-approved anomaly result.
+
+This is a future OFFLINE evaluator boundary. ONLINE synchronization must authenticate and bound external activity/cache inputs before they can support trusted local state; incomplete feeds cannot be labeled complete history. No live enterprise feed adapter, controlled handover or mode-based dispatch gate is implemented by the current schema/fixture slice.
 
 | Consumed input | Required meaning and owner |
 | --- | --- |
@@ -124,11 +134,13 @@ The implemented increment uses unsmoothed transition frequencies from complete p
 - An expired package, unknown validity because trusted time is unavailable, unsupported coverage, or incompatible model/reference produces an explicit unavailable reason. The team can later define a signed offline validity policy; silently extending validity is not part of this proposal.
 - Do not dereference agent-provided URLs or filesystem paths to load evidence or model files. Source references in results are opaque provenance labels, not commands or fetch instructions.
 
+Authority transfer is a separate integration boundary from artifact replacement. The same request and artifact digests do not prove that an old approval remains usable after changing control owners. Mode/authority-generation binding, remote proof and treatment of in-flight actions require an agreed trusted adapter/outer-record protocol. They are not fields in the current anomaly schema and must not be added to agent-supplied results without versioned contract work.
+
 ## 5. Anomaly result contract
 
 ### 5.1 Envelope and field definitions
 
-DCAMR embeds this object under `raw_decision.anomaly`. It owns the outer record, including `decision.outcome`, evidence, context, packages, and audit metadata. The anomaly object never contains an execution permission, fused risk, or authorization confidence.
+For OFFLINE local decisions, the intended DCAMR integration embeds this object under `raw_decision.anomaly` and owns the outer record, including `decision.outcome`, evidence, context, packages, and audit metadata. ONLINE enterprise records must retain their actual authority and execution provenance; do not fabricate a Pi authorization around a synchronized event. The anomaly object never contains an execution permission, fused risk, or authorization confidence. These mode distinctions change system framing, not the nested fields below.
 
 All listed fields are required; fields marked nullable must be present with null when unavailable. JSON numbers must be finite; strings are UTF-8. Object producers reject duplicate keys, unknown input fields, and invalid enum values. Array ordering is deterministic. Suggested bounds are defined in Section 9.
 
@@ -218,7 +230,7 @@ Keep the score unrounded for band assignment; any rounding is display-only. The 
 
 ## 7. DCAMR consumption, failure and re-evaluation
 
-The following is a **proposed integration test profile**, not an implementation of the team's fusion engine. Every blocked outcome prevents execution. Anomaly unavailability cannot create an automatic allow path.
+The following is a **proposed OFFLINE integration test profile**, after local authority/readiness is established, not an implementation of the team's fusion engine. Every blocked local outcome prevents execution. Anomaly unavailability cannot create an automatic allow path. This table does not impose an additional Pi gate on ONLINE enterprise execution.
 
 | Conditions | Required/proposed DCAMR behavior |
 | --- | --- |
@@ -238,9 +250,13 @@ On re-evaluation, preserve the original decision and anomaly result. Issue a new
 
 Agent prose alone cannot lower the score. Independently verified evidence can change fusion's evidence sufficiency while the behavioral score stays unchanged. Evidence being locally present does not mean it is authentic, relevant, fresh, or verified. A context response cannot change observed destinations, execution history, or model/baseline content. Later cloud reconciliation appends findings and does not retroactively rewrite a decision.
 
+On reconnection, the Pi synchronizes audit, retrieves available authenticated enterprise alerts and refreshes trusted caches directly. The Technician Mac is not a synchronization relay. Pending approvals and actions must follow the agreed control-transfer rule rather than silently resuming under a new authority; that rule is not implemented by current evaluation-ID/artifact binding alone.
+
 The adapter must enforce deadlines and capacity limits. Measuring elapsed time after an unrestricted Python call is not a timeout mechanism. Before selecting the process layout, decide how to cancel/replace a stuck scorer and reject late results. Do not grow an unbounded queue or spawn one process per request.
 
 ## 8. Test fixtures consumed by DCAMR
+
+The existing fixture inputs, numbers and expected assertions are unchanged. Their proposed execution outcomes assume the OFFLINE authority boundary above. In particular, A17's disconnected cloud flag tests local score independence; it does not test or implement the handover that makes local execution authority valid.
 
 ### 8.1 Fixture boundary and deterministic score reference
 
@@ -418,6 +434,8 @@ Jared confirmed **2 GB RAM** and Raspberry Pi OS Lite. The mentioned 64 GB may r
 
 All numbers below are **proposed acceptance budgets**, not measurements or performance promises. They apply to the anomaly slice and must be checked alongside policy, audit and API work on the Pi.
 
+ONLINE synchronization must also bound trusted cache/feed work within the same 2 GB device allocation. Resource and readiness acceptance must cover both modes and handover; a passing local score benchmark does not validate enterprise connectors, cache completeness or single-authority control.
+
 | Resource | Starting budget/proposal |
 | --- | --- |
 | Work placement | Train/calibrate on the Mac; one preloaded frozen model on Pi; no on-device fitting, online adaptation or LLM. |
@@ -507,6 +525,7 @@ Do not combine all five into one implementation pass. Each checkpoint should lea
 
 ### Next decisions, before the affected code is written
 
+- **Authority transfer:** agree the trusted mode owner, single-authority readiness/handover protocol, cache validity, remote approval proof and handling of pending or dispatched actions across control generations. ONLINE enterprise direct execution is selected; the integration protocol remains unimplemented and is not part of the existing anomaly result fields.
 - **Shared output:** accept canonical `score` 0–1, `status` separate from `result`, null failure scores, and independently versioned anomaly object? Dashboard/outer schema remain team-owned.
 - **Fusion:** does high anomaly go directly to `HOLD` or receive a context round first? Does `REVIEW` always require a person, and how is context-remediable policy represented? Agree on the context-attempt limit and evidence requirements.
 - **Feature/data design:** the implemented cyber profile documents cohort fallback, unsmoothed transitions, masks and history rules. Next agree on motor request/telemetry semantics and the normal/forbidden operating ranges; do not infer them from example angles.

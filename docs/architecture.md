@@ -1,0 +1,43 @@
+# Architecture guide
+
+The canonical design is [ALICE — architecture and integration
+boundaries](prds/ALICE-DCAMR-Architecture.md), revised September 5, 2026. It
+supersedes the earlier design in which every online and offline request passed
+through DCAMR.
+
+ALICE has two product modes:
+
+- **ONLINE:** enterprise systems control execution directly. The Pi synchronizes
+  bounded, trusted permissions, normal-behavior and relevant enterprise context;
+  consumes authenticated activity feeds; and uploads local audit/findings.
+- **OFFLINE / DDIL:** after a controlled transfer of execution authority, the Pi
+  governs local-agent actions using accepted caches, behavioral scoring, local
+  evidence and technician review. It records every request and outcome.
+
+The Pi handles enterprise synchronization directly. Reconnection includes audit
+delivery, evidence reconciliation, cache validation and transfer back to enterprise
+control; it is not a third product mode. Upload backlog, cache freshness and
+execution ownership are separate status facts.
+
+## Read by integration boundary
+
+| Work area | Primary document |
+| --- | --- |
+| Product behavior and acceptance | [Product PRD](prds/ALICE-DCAMR-PRD.md) |
+| Components, authority transfer, cache/audit lifecycle and Pi limits | [Architecture](prds/ALICE-DCAMR-Architecture.md) |
+| Team ownership and contract handoffs | [Developer handoff](prds/ALICE-DCAMR-PRD-Handoff.md) |
+| Native Mac console, facial verification, reassessment and remote proof | [Console integration](technician-console-integration.md) |
+| Normal data, removable storage, motor decisions and compatibility | [Data direction](data-direction-2026-09-05.md) |
+| Tested anomaly output and cyber features | [Output contract](anomaly-contract.md), [feature builder](anomaly-features.md) |
+| Current model and calibration evidence | [Mac training lab](anomaly-training.md) |
+| Trust boundaries and verification scenarios | [Threat model](threat-model.md), [demo runbook](demo-runbook.md) |
+| Implementation status and next work | [Tracker](implementation-tracker.md) |
+
+The core currently implements anomaly components and synthetic Mac experiments.
+Two-mode orchestration, permissions enforcement, mission audit, enterprise
+connectors, controller execution and live console integration are planned. A
+diagram or contract requirement is not evidence those services are running.
+
+The protected endpoint must enforce one current execution authority. A network
+outage or face match alone cannot confer that authority. Exact transfer messages,
+remote approval proofs and execution-result contracts remain team agreements.

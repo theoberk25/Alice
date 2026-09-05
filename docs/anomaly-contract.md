@@ -6,6 +6,14 @@ The subsequent [feature-builder slice](anomaly-features.md) implements model inp
 
 The selected direction is Mac training and Pi inference, starting with Web-01 cyber requests. The target Pi has **2 GB RAM** and runs Raspberry Pi OS Lite; OS bitness still needs confirmation (`getconf LONG_BIT` on the Pi). The mentioned 64 GB may describe storage. There is no reason to change the OS for this slice.
 
+## System authority and this contract
+
+Under the [canonical architecture](architecture.md), **ONLINE** enterprise controls execute directly. The Pi synchronizes bounded trusted caches and authenticated activity feeds and sends audit upstream; it is not a mandatory enterprise execution gateway. **OFFLINE**, the Pi governs local actions only after controlled handover establishes one ready authority. An anomaly score is advisory, with permissions evaluated separately. Reconnection synchronization is direct Pi-to-enterprise, not a Technician Mac relay.
+
+The consumption example below describes the future OFFLINE decision path. The current nested result and binding helper do not implement mode selection, control transfer, authority-generation binding, remote approval proof or in-flight action handling. Matching request/artifact digests alone cannot carry an old approval across owners. Agree those protections in the trusted adapter/outer protocol without inventing fields in `1.0.0-draft.1`.
+
+Use **permissions** in operator-facing explanations; existing `policy` keys and codes below retain their schema meanings pending a versioned adapter. The [separate console handoff](technician-console-integration.md) reports Mac identity/review/explanation capabilities, not a connected or deployed core decision system. Its local grants and legacy risk display are not substitutes for this contract or remote authorization proof.
+
 ## Run locally
 
 From the Alice repository root, using Python 3.11 or newer:
@@ -38,6 +46,8 @@ The fixture README explains which parts of the PRD's broader 22 scenarios are co
 
 ## Consume a result in DCAMR
 
+This proposed call sequence applies when the Pi is the ready OFFLINE authority. ONLINE synchronization does not turn enterprise-executed activity into a request awaiting Pi approval. No live handover or authenticated transport is implied by this example.
+
 ```python
 from dcamr.anomaly_engine.contract import EvaluationBinding, parse_result
 
@@ -66,7 +76,7 @@ binding.check(anomaly, active_artifacts={
 # returns None; it never returns ALLOW or an execution token.
 ```
 
-`ContractError` means the payload must not be used as a successful result. DCAMR must record an appropriate rejection and remain blocked, preserving any deterministic denial. Schema validation alone is insufficient: binding, package trust, evidence verification, freshness, current policy and enforcement remain necessary. Handle late results and active artifact changes through bounded re-evaluation or a blocked outcome in the future adapter.
+`ContractError` means the payload must not be used as a successful result. In the OFFLINE authorization path, DCAMR must record an appropriate rejection and remain blocked, preserving any deterministic denial. Schema validation alone is insufficient: binding, package trust, evidence verification, freshness, current policy and enforcement remain necessary. Handle late results and active artifact changes through bounded re-evaluation or a blocked outcome in the future adapter. Authority changes also require an agreed invalidate/revalidate rule; this helper does not supply it.
 
 For a policy-denial short circuit, build a separate skipped context before model dispatch, with `model=None`; do not compare a skipped envelope against a binding that promised a model evaluation. A clock failure may add `CLOCK_UNTRUSTED` alongside `POLICY_DENY_SHORT_CIRCUIT`, preserving denial with nullable timestamps. This helper does not generate either envelope automatically.
 

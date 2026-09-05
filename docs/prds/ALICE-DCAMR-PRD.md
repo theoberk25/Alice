@@ -1,207 +1,310 @@
-# ALICE / DCAMR — Product Requirements Document
+# ALICE — Product Requirements Document
 
-**Status:** Hackathon MVP planning baseline
-**Audience:** Project team, judges, and technical reviewers
-**Scope:** A safe, isolated demonstration of a disconnected-capable authorization boundary for autonomous cyber-agent actions.
+**Status:** Updated product direction; implementation and integration remain incremental
 
-## 1. Product Summary
+**Updated:** September 5, 2026
 
-ALICE (Authenticated Local Identity & Cyber Enforcement) is the technician-facing companion to DCAMR (Disconnected Cyber Agent Mission Router), a local security harness that evaluates consequential actions proposed by an autonomous cyber agent before those actions reach a protected system.
+**Audience:** Product, Pi/runtime, anomaly, hardware, and technician-console contributors
+**Scope:** Controlled demonstration of accountable agent operations across connected and disconnected conditions
 
-The central product claim is simple: an agent may be authenticated, authorized to investigate, and still manipulated or mistaken. DCAMR independently evaluates the proposed action against signed policy, behavioral expectations, available evidence, and bounded agent-supplied context. It continues enforcing under disconnected, disrupted, intermittent, or limited (DDIL) conditions.
+## 1. Product purpose
 
-For the hackathon, the product is a controlled lab demonstration—not a production security platform. All attack-like events, target systems, telemetry, and agent actions are simulated and harmless.
+ALICE — Authenticated Local Identity & Cyber Enforcement — is the complete product.
+It keeps trusted information available for local agent governance when enterprise connectivity is lost, records agent activity, and gives an IT technician an accountable review path.
 
-## 2. Problem Statement
+The product has exactly two operating modes: **ONLINE** and **OFFLINE/DDIL**.
+Enterprise systems directly control execution ONLINE; ALICE synchronizes trusted information and observes authenticated activity feeds.
+After a controlled handover, the Pi governs local execution OFFLINE/DDIL using the last trusted caches, local observations, a small anomaly model, and technician review.
 
-Autonomous cyber agents can consume manipulated content, make incorrect inferences, or request actions outside their mission intent. Conventional authentication alone does not prevent an authenticated agent from proposing a harmful action.
+The latest user decision explicitly selects direct enterprise execution ONLINE.
+ALICE is not a mandatory online action gateway or an additional independent online preventive gate.
+This supersedes earlier descriptions that placed the Pi inline for every action regardless of connectivity.
 
-DCAMR creates a separate authorization boundary between the agent and protected tools. It must make authoritative machine decisions locally, even when cloud data is unavailable. The workstation may explain those decisions to a technician, but an explanatory LLM must never determine whether an action executes.
+Returning online includes synchronization and reconciliation work; it does not introduce a third operating mode.
+Distinguish the selected mode from whether execution authority, synchronization, or a particular service is ready.
+The transfer of authority is a required future integration capability, not functionality already delivered by this document.
 
-## 3. Goals and Success Criteria
+## 2. Terminology and compatibility
 
-### Goals
+| Term | Meaning in this product |
+| --- | --- |
+| ALICE | The whole product: edge runtime, trusted caches, audit, and technician experience. |
+| Permissions | User-facing name for mission/action authorization rules, previously called policy. |
+| Normal behavior | Externally governed operational baseline against which local behavior is compared. |
+| Enterprise | Authoritative online permissions, identity, security context, execution control, and central activity records. SIEM/EDR supply relevant context within that boundary. |
+| OFFLINE/DDIL | One mode covering disconnected, disrupted, intermittent, or limited connectivity where local governance is required. |
+| DCAMR | Legacy runtime/component name retained in existing paths, identifiers, and contracts where needed. |
+| Facial verification | Local ArcFace identity matching; the user's informal “FaceID” does not mean Apple Face ID or an implemented liveness check. |
 
-- Demonstrate a local, independent enforcement decision for each consequential agent action.
-- Demonstrate deterministic denial of a prohibited action.
-- Demonstrate behavioral/anomaly-informed escalation for an unusual but not prohibited action.
-- Demonstrate the structured `REQUEST_CONTEXT` loop and a re-evaluation outcome.
-- Demonstrate signed policy or baseline package validation, including rejection of a tampered package.
-- Demonstrate continued decision-making during a simulated DDIL condition.
-- Give a technician a clear dashboard view of the raw decision, its provenance, and available review actions.
+Use ALICE and permissions in product explanations and new user-facing copy.
+Existing `policy` machine fields, `dcamr.*` events, and repository paths remain until their owners coordinate versioned adapters and tests.
+The external console handoff reports legacy event normalization to `alice.*`; this does not establish compatibility with every schema in this repository.
+Do not rename executable keys or reinterpret their meaning through documentation alone.
 
-### Hackathon success criteria
+## 3. Two operating modes
 
-The end-to-end demo succeeds when a reviewer can observe the following sequence:
-
-1. Normal diagnostic actions receive `ALLOW`.
-2. A prohibited request such as `disable_edr(Web-01)` receives `DENY` from deterministic policy.
-3. A novel outbound request receives `REQUEST_CONTEXT`; a bounded structured response is accepted and re-scored.
-4. Insufficient or unverified evidence plus a high anomaly result produces `HOLD`.
-5. A tampered signed package is rejected.
-6. The dashboard and local decision flow remain available after simulated cloud disconnection.
-7. A technician can inspect the raw decision record and its sources before taking a demo review action.
-
-## 4. Users and Trust Boundaries
-
-| Actor or component | Role | Trust boundary |
+| Responsibility | ONLINE | OFFLINE/DDIL |
 | --- | --- | --- |
-| Autonomous cyber agent | Requests actions and submits bounded context/evidence | Untrusted for authorization; cannot bypass or change DCAMR policy/baselines |
-| DCAMR on Raspberry Pi | Makes and records the authoritative decision | Local enforcement authority |
-| Signed policy and baseline packages | Define mission rules and normal operating behavior | Externally governed, read-only authority |
-| Technician workstation | Explains and displays the decision; provides review controls | May not override a deterministic denial or alter raw records |
-| Local LLM | Produces a human-readable explanation | Never authorizes, denies, or rewrites a decision |
-| Cloud SIEM/EDR | Provides enrichment and later evidence verification | Optional; never a requirement for local enforcement |
+| Execution authority | Enterprise controls execution directly. | ALICE's Pi controls local execution after a verified handover. |
+| Primary security context | Enterprise permissions, identity, and security services. | Last trusted, locally valid caches plus trusted local history and telemetry. |
+| ALICE activity | Synchronize bounded caches, ingest authenticated activity, upload local records, show status. | Evaluate requests, challenge for context, route review, enforce and record outcomes. |
+| Technician | Inspect status, decisions, exceptions, and reconciliation. | Review eligible held requests and provide scoped approval or rejection. |
+| Connectivity recovery | Continue synchronization, reconciliation and acknowledged uploads after safe handback. | Reauthenticate recovered services, prepare handback and retain local records until acknowledged upload is possible. |
 
-## 5. MVP Functional Requirements
+### 3.1 ONLINE behavior
 
-### FR-1: Action-request normalization
+Enterprise remains the source of truth and primary online security authority.
+ALICE downloads permissions, normal-behavior summaries, identity/accountability mappings, and relevant enterprise/SIEM/EDR context needed for local operation.
+Only bounded, selected context belongs on the Pi; ALICE is not a mirror of the enterprise's full event history.
 
-DCAMR must accept a structured agent action request containing, at minimum, agent identity, mission identifier, action/tool, target, parameters, and referenced evidence. It normalizes this request into a stable internal record for evaluation and logging.
+ALICE receives authenticated enterprise/controller activity events and uploads its own activity records.
+Because online execution bypasses ALICE, complete online visibility depends on the agreed enterprise feed, its coverage, delivery guarantees, and replay support.
+Missing events, unknown coverage, stale feeds, and cursor gaps must remain visible; connectivity alone does not prove a complete audit.
 
-### FR-2: Deterministic policy evaluation
+### 3.2 OFFLINE/DDIL behavior
 
-DCAMR must evaluate the normalized request against the active signed Mission Policy Package. It must support allowed, approval-required, and prohibited operations. A prohibited operation must return `DENY` without entering a context or technician-approval path.
+The Pi evaluates each local request using trusted permissions, the accepted behavioral baseline/model, cached evidence, and trusted local observations.
+Permissions remain deterministic; anomaly scores describe unusualness and do not themselves grant execution authority.
+The technician can review eligible holds without an external model API or enterprise service being available.
 
-### FR-3: Anomaly evaluation
+The local boundary must record every admitted request, decision, context exchange, technician action, and execution attempt/outcome.
+Requests rejected before admission also need bounded audit/error records where the intake recorder is available; invalid input must not disappear as a successful operation.
+Every request must be traceable to the authenticated agent and its responsible user or recorded assignment authority.
 
-DCAMR must evaluate otherwise-permitted actions against a supplied operational baseline. For the demo, this includes enough features to identify unusual targets, outbound destinations, action sequences, or evidence conditions. The anomaly contribution must be surfaced in the raw decision record.
+### 3.3 Transfer of execution authority
 
-### FR-4: Decision fusion and machine outcomes
+Exactly one authority may control a protected endpoint at a time.
+The endpoint/controller contract must fence stale enterprise commands before offline local execution and stale local commands before enterprise execution resumes.
+Agreement on transfer acknowledgements, ownership generations/epochs or equivalent fencing, deadlines, and recovery is still required.
 
-DCAMR must combine policy, anomaly, evidence, and available context into exactly four machine outcomes:
+A lost connection is not proof that enterprise commands have stopped executing.
+A restored connection is not permission to replay queued local actions.
+If ownership cannot be established, affected execution remains blocked while status and recoverable audit information remain available.
 
-- `ALLOW`
-- `REQUEST_CONTEXT`
-- `HOLD`
-- `DENY`
+Held requests, in-flight requests, and unused approvals must be invalidated or explicitly revalidated against the new owner, current permissions, latest decision, and exact parameters.
+Transition/readiness details are operational status within the two modes, not additional product-mode values.
 
-Hard policy always takes precedence over anomaly, evidence, or agent context.
+## 4. Users and trust boundaries
 
-### FR-5: Structured context-request loop
-
-For novel or insufficiently justified actions that are not prohibited, DCAMR must request bounded, schema-defined context. It must accept only the defined fields, record each attempt, re-evaluate after a response, and stop after a small fixed number of attempts by returning `HOLD`.
-
-### FR-6: Evidence status
-
-DCAMR must record the status of evidence references as locally verified, unavailable under DDIL, missing, or otherwise not verified. The demo must make it clear that evidence status affects risk and review, but cannot override a deterministic prohibition.
-
-### FR-7: Signed-package verification
-
-DCAMR must load the Mission Policy Package and Operational Baseline Package as distinct signed inputs. It must display package identity/version/status and reject a package that fails integrity or signature verification.
-
-### FR-8: Tamper-evident decision records
-
-Every decision and context exchange must generate a raw record containing outcome, policy result, anomaly result, evidence status, context attempts, timestamps, and provenance/source references. A later reconciliation must append to the record rather than alter the original decision.
-
-### FR-9: Technician dashboard and raw-decision view
-
-The dashboard must display the decision state, key rationale, provenance, package status, evidence status, and recent activity. It must provide a raw-decision view distinct from the LLM explanation. The dashboard may expose technician actions such as `APPROVE ONCE`, `REJECT`, `INVESTIGATE`, and `HOLD` only for actions already held for review.
-
-### FR-10: Technician identity check for demo approval
-
-For the demo’s consequential approval path, ALICE facial verification must gate `APPROVE ONCE`. Passing verification authorizes only the exact held request once; failing verification blocks approval.
-
-### FR-11: DDIL and reconciliation demonstration
-
-When cloud connectivity is simulated as unavailable, local policy, baseline, decisioning, dashboard, and audit logging must continue to operate. When connectivity returns, externally verifiable evidence may be reconciled and appended to the original record without revising its original outcome.
-
-## 6. Demo Flow
-
-1. Show healthy-environment diagnostic requests and `ALLOW` outcomes.
-2. Introduce safe, simulated suspicious telemetry in the isolated lab.
-3. Show an agent request influenced by manipulated content: `disable_edr(Web-01)`.
-4. Show deterministic `DENY` and the corresponding policy provenance.
-5. Show an unusual `allow_outbound` request, `REQUEST_CONTEXT`, structured agent response, and re-score to `HOLD`.
-6. Show the technician dashboard, raw-decision record, and local explanation side by side.
-7. Insert or select a tampered package and show validation failure/rejection.
-8. Simulate DDIL; show that decisions and dashboard updates continue.
-9. Restore connectivity and show appended evidence reconciliation.
-
-## 7. Repository and Branching Plan
-
-The repository should make the security boundary and team workstreams legible without prematurely locking implementation choices.
-
-```text
-docs/                 PRD, architecture, demo script, research
-dcamr/                Pi-side decision runtime and local API
-  policy/             policy-package loading and evaluation
-  anomaly/            feature preparation and anomaly-model interface
-  decision/           normalization, fusion, context loop, audit records
-  packages/           package verification and package readers
-workstation/          dashboard, raw-decision view, local explanation, approval flow
-hardware/             Raspberry Pi, readers, camera, setup and runbook materials
-ml/                   anomaly model assets, interface contract, evaluation notes
-demo/                 synthetic scenarios, fixtures, orchestration, presentation assets
-shared/               versioned request/response schemas and test fixtures
-tests/                end-to-end and component-level test coverage
-```
-
-Use short-lived branches from `dev` with the `codex/` prefix unless the team agrees otherwise. Each branch should cover one coherent, reviewable change; integration work occurs through pull requests into `dev`. Suggested patterns are `codex/dashboard-*`, `codex/ml-*`, `codex/hardware-*`, `codex/dcamr-*`, and `codex/demo-*`. The PRD does not require a branch-per-person or prescribe a rigid commit workflow.
-
-## 8. Team Work Boundaries
-
-Assignments below reflect only responsibilities the team has already named. They are intended as coordination boundaries, not exhaustive task lists.
-
-| Team member | Primary responsibility | Collaboration boundary |
+| Actor/component | Responsibility | Authority boundary |
 | --- | --- | --- |
-| Alex | Technician dashboard and end-of-stream work | Consumes shared raw-decision schemas; coordinates dashboard/demo presentation needs |
-| Theo | Overall architecture, design, and project work | Co-owns cross-component decisions and the demo with Merek |
-| Merek | Overall architecture, design, and project work | Co-owns cross-component decisions and the demo with Theo |
-| Jared | ML/anomaly-model portion integrated into the anomaly path | Exposes a stable anomaly-result interface for DCAMR fusion and dashboard provenance |
-| Xavier | Raspberry Pi and hardware portions | Owns physical setup/integration constraints, readers, camera, and hardware runbook |
-| Entire team | Demo | Merek and Theo provide particular emphasis on the narrative and integration flow |
+| Autonomous agent | Propose actions and supply bounded context/evidence references. | Cannot grant itself permissions, edit trusted caches, rewrite history, or impersonate the responsible user. |
+| Responsible user | Own or be accountable for an agent's assigned activity. | Mapping comes from authenticated assignment records, not an agent's claim. |
+| Enterprise/controller | Control online execution and supply trusted data and activity. | Direct online authority; participates in the single-owner handover contract. |
+| ALICE Pi runtime | Govern offline requests and produce authoritative local records. | Offline authority after handover; no permission increase caused by an outage. |
+| IT technician | Inspect evidence and take an eligible review action. | Scoped approval; no hard-denial override or permanent privilege increase. |
+| Technician console | Display immutable supplied facts, collect review actions, verify local identity. | Does not own permissions, anomaly training, fusion, or protected execution. |
+| Workstation LLM | Explain facts and informational intent. | Cannot fabricate evidence, change decisions, approve, or execute tools. |
 
-## 9. Cross-Component Interface Expectations
+The user responsible for an agent and the technician reviewing a request are separate accountability fields, even if the same person fills both roles.
+Unknown or stale ownership must be labelled and handled through the agreed identity/permissions rule rather than filled in from prose.
 
-To keep parallel work compatible, the team should agree on a versioned shared request and raw-decision schema before component work becomes deeply coupled. At minimum, the shared decision record should contain:
+## 5. Functional requirements
 
-- request identifier, timestamp, agent, mission, action, target, and parameters;
-- policy result and policy-source reference;
-- anomaly score/result and baseline-source reference;
-- evidence items and verification status;
-- context-request status and attempt count;
-- final machine outcome and risk/reason codes;
-- package versions/status; and
-- technician action and verification result when applicable.
+All requirements below describe target behavior unless Section 10 identifies a narrower implemented component.
 
-The Pi’s raw decision is authoritative. The dashboard and local LLM consume that record; they do not redefine it.
+### FR-1 — Mode and authority status
 
-## 10. Non-Functional Requirements
+Expose exactly ONLINE and OFFLINE/DDIL, plus current execution owner, handover readiness, cache freshness, synchronization progress, and audit-feed health.
+Do not display an unknown/unreceived service state as confirmed offline or imply execution readiness from a selected mode.
 
-- **Safety:** All demo actions must remain inside isolated, synthetic, harmless lab resources.
-- **Explainability:** A judge or technician must be able to identify why a decision occurred and what source produced each key factor.
-- **Offline resilience:** No cloud dependency may be required for the core local decision path.
-- **Integrity:** Policy and baseline inputs must be distinguishable, versioned, and integrity-checked for the demo.
-- **Auditability:** Original decisions must be preserved; reconciliation only appends later findings.
-- **Demo reliability:** The scripted demo should have deterministic fixtures or fallbacks so it does not depend on live enterprise services.
+### FR-2 — Online synchronization
 
-## 11. Acknowledged Limitations and Explicitly Out of Scope
+Authenticate the enterprise source and synchronize selected permissions, normal behavior, agent/user assignments, and relevant SIEM/EDR context into bounded caches.
+Record source, scope, version, integrity identity, received time, and applicable validity/freshness rules.
+Synchronization must not trigger automatic training, adaptive normalization, or silent model replacement.
 
-These are intentionally excluded from the hackathon MVP but should be acknowledged in the demo and repository documentation.
+### FR-3 — Online activity coverage
 
-| Item | MVP boundary | Intended future direction |
+Agree an authenticated enterprise/controller feed for requests, authorization outcomes, execution events, and agent/user accountability.
+Persist feed identity, coverage, stable event identifiers, cursors, acknowledgements, and detected delivery gaps.
+ALICE must not claim it observed every online operation until feed completeness and recovery have been demonstrated.
+
+### FR-4 — Controlled handover
+
+Implement endpoint fencing so an ownership change cannot leave enterprise and ALICE both able to execute commands.
+Reject stale-owner commands and handle partial transfers, lost acknowledgements, restart, and already executing actions.
+Existing holds, approvals, and queued actions must not cross ownership changes automatically.
+
+### FR-5 — Offline request normalization and accountability
+
+Bind each request to authenticated agent identity, responsible-user assignment, mission, action, target, exact bounded parameters, and evidence references.
+Allocate stable request identifiers and preserve the trusted assignment/source known at decision time.
+Separate claimed identity, rejected input, and missing accountability from verified facts.
+
+### FR-6 — Offline permissions
+
+Evaluate accepted permissions deterministically for allowed, review-required, and prohibited actions.
+A hard prohibition produces `DENY` without a context or technician-approval bypass.
+Missing, invalid, expired, or unsupported authority must not create an automatic allow path; offline validity/grace policy requires explicit agreement.
+
+### FR-7 — Local anomaly contribution
+
+Use a frozen, compatible local model and baseline with bounded local history and selected telemetry for otherwise eligible requests.
+Keep score direction, failure/null semantics, versions, and observation provenance explicit.
+Preserve independent novelty flags even when the learned score is low; a model failure never produces a benign zero score.
+
+### FR-8 — Offline fusion outcomes
+
+Produce `ALLOW`, `REQUEST_CONTEXT`, `HOLD`, or `DENY` in the authoritative offline decision record.
+Only a current authorization accepted by the active execution owner can permit execution; all other outcomes remain blocked.
+Machine outcomes differ from technician actions and enterprise submission/execution receipts.
+
+### FR-9 — Context and reassessment
+
+Request schema-defined context within a bounded attempt/time budget and verify references independently.
+Evaluate the final permitted response before holding an unresolved request; persuasive prose cannot override permissions or rewrite observations.
+Reassessment creates a new immutable upstream decision linked to the prior/root decision for the same exact request; original decisions remain available.
+The console waits for that new decision and must not generate its own risk, anomaly result, or fused outcome.
+
+### FR-10 — Local audit coverage
+
+Durably record request intake/admission or rejection, decisions, reasons, context, review, execution attempts, confirmed results, and ownership changes.
+Include stable event/request/decision identifiers, agent-to-user accountability, reviewer identity, timestamps or explicit clock uncertainty, and source/cache/model identities.
+Distinguish not executed, requested/submitted, confirmed executed, failed, and unknown results; a missing completion event is not proof of success.
+
+### FR-11 — Audit integrity and capacity
+
+Preserve original records and append later findings, acknowledgements, and reconciliation events.
+Design tamper-evident records and a durable bounded outbox; neither exists merely because JSON fixtures or local console logs exist.
+Reserve storage and stop admitting/executing consequential work before required audit durability is lost; surface disk-full, corruption, and retention failures.
+Anomaly history may be bounded independently, but pruning must not silently delete required mission audit or unacknowledged uploads.
+
+### FR-12 — Technician review and facial verification
+
+This local authorization path applies to eligible OFFLINE held requests while ALICE owns execution.
+During ONLINE, the console may display historical reviews but cannot independently authorize enterprise-controlled actions through this path.
+Show permissions, anomaly/evidence facts, provenance, original/latest decisions, and eligible actions from authoritative supplied state.
+Where biometric approval is required, obtain fresh local ArcFace verification for the exact latest decision/request and active technician; the current console grant lifetime is 60 seconds.
+Prior facial login is not that approval check; a superseded decision must invalidate its old review/verification path.
+ArcFace matching must not be represented as Apple Face ID, liveness, anti-spoofing, or proof that the camera saw a live scene.
+
+### FR-13 — Approval delivery and execution confirmation
+
+For an eligible OFFLINE hold, submit `APPROVE_ONCE` using authenticated, request-bound, expiring, one-use proof checked independently by the Pi while it remains the execution authority.
+Keep submission acknowledgement, accepted approval, and actual execution confirmation separate.
+A local verification UUID or renderer boolean is not remote proof; real proof transport, redemption, and execution receipts remain integration work.
+
+### FR-14 — Returning ONLINE
+
+Restore authenticated communication and complete the fenced ownership handback before assuming direct enterprise execution is safe.
+The Pi synchronizes directly with enterprise; the technician reviews exceptions and is not required to relay the data through the console.
+Resume uploads, request missing feed ranges, reconcile evidence, and refresh caches without changing original offline decisions.
+
+### FR-15 — Durable uploads and priority alerts
+
+Upload all DDIL audit with stable idempotency identifiers, durable retry state, bounded backoff, and acknowledged progress across restarts.
+Prioritize risk, unresolved holds, discrepancies, and delivery failures while ensuring ordinary activity is also eventually uploaded.
+Repeated delivery must not duplicate central activity or execute an old request; acknowledgement does not authorize log deletion outside the agreed retention policy.
+
+### FR-16 — Cache activation and removable storage
+
+Verify source authenticity, integrity, scope, compatibility, and validity before atomically activating coherent permissions/normal-behavior/model data.
+Reject a bad candidate while retaining a still-valid active set; never combine incompatible versions or silently substitute stale authority.
+Support the proposed single-USB layout without giving the agent write access to authoritative inputs or audit history.
+
+### FR-17 — Workstation explanation
+
+Keep local language-model interpretation on the Mac, separate from authoritative records and control paths.
+Label original decisions, later responses, and reconciliation distinctly; unavailable interpretation must not prevent raw review.
+
+## 6. Data placement and resource constraints
+
+The target is a Raspberry Pi 4 Model B with **2 GB RAM**, running Raspberry Pi OS Lite.
+The reported **64 GB is treated as storage**; OS bitness still needs confirmation.
+Train and evaluate candidates on the Mac; the Pi is intended to run bounded frozen inference, permissions, state, audit, and integration services.
+
+The proposed USB folders are `permissions/`, `normal_behavior/`, and `audit_logs/` on one device.
+They have different write/trust rules: enterprise-governed inputs stay protected; ALICE appends audit through a controlled writer.
+Legacy policy/ops-baseline names and earlier two-card/SD references need documented aliases or adapters, not an assumption that two physical media are still required.
+Existing source folders `packages/mission_policy/` and `packages/ops_baseline/` are not renamed by this PRD.
+
+Cache authenticated inputs locally so media removal or a lost link has an explicit outcome under their validity rules.
+Sharing one device is not isolation by itself; ownership, filesystem access, full-storage behavior, and recovery need tests.
+Keep large SIEM/EDR history, training corpora, model downloads, and unrestricted queues from overrunning the Pi.
+
+The anomaly slice proposes 256 MiB steady worker RSS and 384 MiB load peak, one scoring worker, and bounded histories/payloads.
+These are unmeasured budgets for one component, not proof that combined services fit or meet a deadline.
+Measure total memory, latency, storage growth, temperature/throttling, and recovery with all intended services running.
+
+## 7. Shared records and console integration
+
+Coordinate versioned contracts for mode/authority status, requests, permissions, anomaly results, immutable decisions, context, technician actions/proofs, audit, uploads, and execution receipts.
+Bind exact parameters and responsible-user assignment to the request; changing an action must not reuse old authorization.
+Keep current operating status separate from status captured with a historical decision.
+
+The external console reports `alice.decision`, status, agent/response, reconciliation, and technician-action schemas, with a linear reassessment chain and latest-decision guards.
+Its current receipt declares `NOT_EXECUTED`; an `ACCEPTED` submission does not establish that a protected action ran.
+Agree mappings for the four outcomes, permissions/legacy policy keys, score scales, challenges, lineage, remote proof, and execution results.
+
+See [Technician console integration](../technician-console-integration.md) for the source-attributed handoff and unresolved protocol work.
+The console's mock/remote transport and biometric settings are implementation settings, not extra product modes.
+
+## 8. Demo scope and motor direction
+
+Demonstrate enterprise-controlled ONLINE activity and cache preparation, a fenced transition to OFFLINE governance, normal requests, a prohibition, context/reassessment, and technician review.
+Return ONLINE to demonstrate acknowledged upload of every offline event, priority findings, appended reconciliation, and verified cache refresh.
+Keep actions inside controlled synthetic/lab resources and label simulated enterprise feeds, decisions, proof, and execution separately.
+
+The existing cyber cases remain regressions: diagnostics, occasional known-endpoint changes, new agents/endpoints, sequences, and bursts.
+The motor demonstration needs a separate versioned profile and agreed commands, absolute/relative movement rules, physical limits, speed/duration, feedback, and safe-stop behavior.
+Do not pass motor commands through the cyber model or claim a learned motor model/hardware control exists before implementation and measurement.
+
+## 9. Team and repository boundaries
+
+| Team member | Primary responsibility | Coordination boundary |
 | --- | --- | --- |
-| Enterprise SIEM/EDR integrations | Use simulated/local cached evidence rather than live enterprise connectors | Production connectors, credential management, sync, and reconciliation workflows |
-| Production policy lifecycle | Demonstrate fixed signed packages and tamper rejection | Issuance, key rotation, revocation, approval workflow, and enterprise policy governance |
-| Full anomaly-model training lifecycle | Integrate a bounded anomaly result for demo behavior | Data pipelines, calibration, retraining governance, drift monitoring, and evaluation datasets |
-| Production enforcement integrations | Protect demo systems and simulated agent tools only | Integrations with real EDR, firewall, server, and application control planes |
-| Cryptographic and hardware hardening | Demonstrate integrity properties at hackathon depth | Secure boot, hardware-backed keys, hardened storage, supply-chain controls, and penetration testing |
-| LLM safety and evaluation | Use the workstation LLM only as a non-authoritative explainer | Prompt-injection evaluation, observability, model governance, and formal explanation-quality testing |
-| Facial verification robustness | Demonstrate a local approval gate | Enrollment lifecycle, anti-spoofing/liveness detection, privacy controls, and biometric compliance |
-| High availability and scale | Single-node demo setup | Redundancy, fleet management, load testing, monitoring, and operational support |
-| Full user/role administration | Use demo identities and roles | Enterprise identity, RBAC, delegated administration, and audit controls |
+| Alex | Technician dashboard and end-of-stream experience. | Consumes authoritative records; coordinates review and demo presentation. |
+| Theo | Overall architecture, design, and product work. | Co-owns cross-component decisions and demo with Merek. |
+| Merek | Overall architecture, design, and product work. | Co-owns cross-component decisions and demo with Theo. |
+| Jared | Anomaly features, candidate evaluation, and result contract. | Supplies bounded contributions/provenance; does not redefine execution authority independently. |
+| Xavier | Raspberry Pi and hardware. | Owns setup, storage/readers, physical constraints, and runbook. |
+| Entire team | Integrated demonstration. | Shared acceptance and authority/contract agreements. |
 
-## 12. Acceptance Checklist
+Use actual `common/schemas/`, `dcamr/anomaly_engine/`, `dcamr/`, `lab/`, `packages/`, `tests/`, `docs/`, and `workstation/` boundaries.
+The separately reported console is in `ALICE_TechnicalReview`; its URL was not supplied, and it is not the empty workstation scaffold here.
+The project is published on `main`; this PRD does not invent a `dev` integration branch or prescribe an unapproved branching change.
 
-Before the demo, verify that the team can show each of these without relying on an unplanned live dependency:
+## 10. Implementation evidence and limitations
 
-- [ ] Normal allowed action produces an auditable `ALLOW`.
-- [ ] Prohibited action produces an auditable `DENY` without a context path.
-- [ ] Novel permitted action produces `REQUEST_CONTEXT` and supports one structured re-evaluation.
-- [ ] High-risk/insufficient-evidence action produces `HOLD`.
-- [ ] Dashboard shows decision provenance and raw record.
-- [ ] Tampered package is rejected.
-- [ ] DDIL simulation preserves local decisioning and dashboard visibility.
-- [ ] Reconnection appends a reconciliation result without rewriting history.
-- [ ] `APPROVE ONCE` is scoped to one held action and gated by the demo identity check.
+| Area | Evidence available | What remains unimplemented or unverified |
+| --- | --- | --- |
+| This repository's anomaly slice | Strict result boundary, 11-feature cyber builder, fixtures, bounded Mac Isolation Forest training, and global/conditional calibration experiments; latest recorded local suite: 103 tests passed. | Pi model/runtime deployment, production detection quality, motor profile, permissions/fusion, and execution integration. |
+| Conditional calibration | Synthetic fresh evaluation reduced elevated/high normal-change results from 32/68 to 2/68; diagnostics increased from 23/1,132 to 38/1,132. Novelty flags stayed intact. | No adoption/deployment; some challenge score sensitivity decreased, so low bands cannot suppress novelty controls. |
+| ONLINE/OFFLINE integration | Requirements and component fixtures. | Enterprise execution/feed integration, ownership fencing, real handover, signed cache activation, durable uploads, and authoritative end-to-end audit. |
+| Separate technician console | Supplied `HANDOFF.md`, audited September 5, 2026, reports native macOS UI, live ArcFace enrollment/login, Ollama inference, immutable reassessment display, and mocked edge workflows. | Source/tests were not independently inspected/rerun here; live approval step-up/negative cases, authenticated transport/proof, durable outbox, and execution confirmation remain open per the handoff. |
+
+The console handoff reports 91 default tests plus separate real-service checks; these are attributed results, not additions to this repository's 103-test suite.
+It states that console audit is not tamper-evident and that the app bundle does not include every Python/model/Ollama dependency.
+Live enrollment/login does not demonstrate fresh approval, liveness, a connected Pi, or a complete distributed security boundary.
+
+Details belong in [Anomaly training](../anomaly-training.md), [Feature contract](../anomaly-features.md), and the [Anomaly PRD](anomaly-model-prd.md).
+This is a hackathon/lab product. Production identity/key governance, liveness, hardened capture, fleet availability, distribution, and enterprise connector robustness remain future work.
+
+## 11. Product acceptance checklist
+
+These checks are planned; component or mock tests do not automatically complete them.
+
+- [ ] **AC-1:** Exactly two product modes are shown, with separate ownership, readiness, freshness, and feed-gap status.
+- [ ] **AC-2:** ONLINE enterprise executes directly; its authenticated activity feed provides accountability and recoverable cursor coverage.
+- [ ] **AC-3:** Permissions, normal behavior, identity mappings, and selected context are cached within bounds without online retraining.
+- [ ] **AC-4:** Connectivity changes cannot produce two owners, accept stale-owner commands, or automatically replay queued actions.
+- [ ] **AC-5:** Offline normal work, hard prohibition, context reassessment, and human-review hold produce the intended audited outcomes.
+- [ ] **AC-6:** Every local request/decision/execution is accounted for with agent-to-user attribution; missing identity, recorder failure, and unknown results are explicit.
+- [ ] **AC-7:** Unavailable caches/model or low scores cannot bypass permissions, ownership, novelty handling, or mandatory review.
+- [ ] **AC-8:** Fresh facial approval binds the latest exact decision/request; expired, replayed, superseded, and cross-request proof is rejected.
+- [ ] **AC-9:** The real owner validates approval proof and reports execution separately from submission acknowledgement.
+- [ ] **AC-10:** Reconnection uploads all DDIL audit durably/idempotently, prioritizes unresolved risk, and resumes after upload interruption/restart.
+- [ ] **AC-11:** Reconciliation appends findings; cache replacement is authenticated/atomic; failed candidates preserve valid authority and original history.
+- [ ] **AC-12:** USB removal/tamper/full-storage, combined Pi limits, and workstation outages have observable bounded outcomes.
+- [ ] **AC-13:** Motor use waits for its agreed profile/command/physical-limit tests; cyber regressions continue to pass.
+
+## 12. Next decisions and delivery checkpoints
+
+Direct enterprise execution ONLINE is settled; ownership-transfer/fencing and enterprise feed coverage/recovery are next integration decisions.
+Agree cache validity/grace, responsible-user assignment sources, retention/acknowledgements, and single-USB writer/recovery boundaries before connecting their code.
+Agree console adapters, fresh remote proof, context/reassessment ownership, and execution receipts with the console team.
+Confirm Pi bitness and combined budgets; settle motor semantics and physical limits before introducing its feature profile.
+
+Deliver one reviewable contract or runnable component at a time, test its failure paths, and record measured evidence.
+Do not describe these two-mode requirements, imported console progress, or synthetic experiments as a completed integrated deployment.

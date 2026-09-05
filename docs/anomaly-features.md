@@ -4,6 +4,8 @@ This increment turns an authenticated, normalized cyber-action request and a tru
 
 Jared selected normal diagnostics plus occasional changes to known destinations. Jared also selected a matching role/mission cohort for authenticated agents without a personal baseline, while preserving a new-agent flag. The target is a 2 GB Raspberry Pi 4 running Raspberry Pi OS Lite; hardware measurement and OS bitness confirmation remain separate deployment work.
 
+The [canonical architecture](architecture.md) distinguishes **ONLINE** enterprise-controlled direct execution from **OFFLINE** Pi-governed local actions after a controlled single-authority handover. ONLINE Pi work synchronizes bounded trusted caches/authenticated activity feeds and sends audit upstream; these features do not create a mandatory Pi gateway. OFFLINE feature/model observations advise a separate permissions decision. Direct Pi-to-enterprise reconnection, authority transfer and source adapters are future integration work, not behavior implemented by this pure builder.
+
 ## Run the fixtures and tests
 
 From the Alice repository root, using the environment provisioned with `requirements-anomaly.txt`:
@@ -26,7 +28,7 @@ The fixture baseline has the following synthetic counts, for both an individual 
 | `modify_firewall` | 3 | Destination, port and protocol |
 | `allow_outbound` | 2 | Destination, port and protocol |
 
-These counts are illustrative lookup data, not collected observations, model training data, production operating limits, or policy permissions. The normal destination relationships in the fixture are `10.0.0.10:443/tcp` and `10.0.0.20:443/tcp` for Web-01. The action catalog defines parameter and execution-counting semantics only; DCAMR's policy engine separately decides what is permitted.
+These counts are illustrative lookup data, not collected observations, model training data, production operating limits, or policy permissions. The normal destination relationships in the fixture are `10.0.0.10:443/tcp` and `10.0.0.20:443/tcp` for Web-01. The action catalog defines parameter and execution-counting semantics only. The active authority separately decides what is permitted: enterprise controls ONLINE, or DCAMR after OFFLINE handover. Use permissions in product language while retaining legacy `policy` identifiers until a versioned adapter is agreed.
 
 ## Fixed feature profile
 
@@ -72,7 +74,7 @@ A registered agent selects its named profile. A mismatch between its registered 
 
 Every profile has an explicit count for every supported action, including zeros; missing counts are incomplete data. The total must be positive. Transition rows must reference supported actions and have positive totals. An absent transition cell in an existing complete row means zero observations; an absent previous-action row means unavailable. These are unsmoothed empirical frequencies, not predictive probabilities of an attack. Rows and action counts must not contradict whether an action was ever observed. Individual counts and totals stay within the portable JSON integer range `0..2^53-1`.
 
-The first cyber action catalog is deliberately limited to the five listed actions. Its state-changing/destination semantics cannot be redefined by a baseline package. Unknown actions or another role/mission domain are unsupported. Policy-denied actions such as `disable_edr` should short-circuit before this builder in the future pipeline; the builder itself does not implement denial.
+The first cyber action catalog is deliberately limited to the five listed actions. Its state-changing/destination semantics cannot be redefined by a baseline package. Unknown actions or another role/mission domain are unsupported. Policy-denied actions such as `disable_edr` should short-circuit before this builder in the future OFFLINE pipeline; the builder itself does not implement denial or gate ONLINE enterprise execution.
 
 Diagnostics take empty parameters in this internal profile. Outbound changes require exactly destination, port and protocol. IP addresses are normalized locally; DNS names are compared case-insensitively after removing a trailing dot. There is no DNS resolution. URLs, paths, malformed numeric addresses and invalid hostnames are rejected. Port/protocol changes can make the relationship unseen even when the host is familiar; the `DESTINATION_UNSEEN` flag therefore means an unseen endpoint relationship, not necessarily a new host name.
 
@@ -81,6 +83,8 @@ Within an otherwise supported mission, a target absent from the complete target 
 ## History rules
 
 The builder is a pure reader of a trusted snapshot; it does not maintain a history store. DCAMR must provide the admission and execution records, authoritative ordering, and completeness markers. Agent-supplied logs cannot establish these facts.
+
+ONLINE activity feeds may support trusted cached state only after authenticated, bounded import with explicit coverage/freshness. A partial enterprise execution feed does not establish complete proposal history or reveal denied proposals. Missing coverage must remain incomplete under the rules below. Import, cache maintenance and control-transfer continuity are not implemented by the feature-input schema.
 
 - The window is **`[observed_at - 300 seconds, observed_at)`**, anchored to the immutable snapshot. The builder never calls the current wall clock to derive features. UTC strings use `Z` or `+00:00`, no leap-second notation, and at most six fractional digits.
 - `complete_since` must be at or before the window start. A missing/restarted/truncated history is unavailable. An empty but complete window produces inactive sequence masks; it does not prove that the entire agent lifetime has no prior actions.
@@ -119,6 +123,8 @@ The expected digests must be captured from trusted sources. Computing a digest f
 
 The feature-input byte digest binds the entire supplied bundle. Inner request/snapshot digests are correlation labels supplied by the trusted caller; this slice does not define their cross-team canonical serialization or independently recompute them. A later consumer must compare the batch to the previously captured feature-input/baseline digests, in addition to its outer request/snapshot binding. Exact input bytes can differ while producing the same semantic vector, such as reordered duplicate deliveries; that still changes the byte digest as intended.
 
+Mode/authority-generation and remote approval-proof binding remain outside the current batch/input fields. The future trusted adapter must establish the active owner and handle stale decisions across handover; unchanged feature bytes are not proof of continuing execution permission. This system requirement does not alter the tested cyber columns or digest semantics.
+
 Feature flags currently include `AGENT_UNSEEN`, `ACTION_UNSEEN`, `TARGET_UNSEEN`, `PROFILE_TARGET_UNSEEN`, `DESTINATION_UNSEEN`, and `SEQUENCE_UNUSUAL`. These belong to **FeatureBatch**, not the older AnomalyResult reason enum. In particular, do not copy new flags wholesale into the existing anomaly schema. The later evaluator must agree on/version the mapping and combine them with a real model result. A feature batch does not contain `status=OK`, a risk score, or an authorization outcome.
 
 Factors distinguish an expected comparison, an unusual comparison, and an inapplicable comparison. Count/frequency features have source references rather than invented normal ranges. Factors are observations, not learned feature attribution. Source references use content digests and JSON-pointer-style paths as opaque labels; no code dereferences them.
@@ -146,3 +152,5 @@ Tests cover exact vectors, new-agent cohort scope, endpoint novelty, complete ve
 ## Next checkpoint
 
 The separate [Mac training lab](anomaly-training.md) now uses these exact features with independent normal sessions and synthetic challenge scenarios. It fits in memory and exports JSON reports; model artifact format and Pi deployment remain separate decisions. The [latest motor/USB data direction](data-direction-2026-09-05.md) requires a new motor profile rather than silently changing these cyber columns. Package verification, queue supervision, outer decision fusion and real Pi measurements remain outside this builder.
+
+The [technician-console integration document](technician-console-integration.md) describes a separate team's reported Mac implementation and its unconnected boundaries. Console displays, local facial grants and explanation output do not supply trusted history, new feature semantics or authority to this builder.

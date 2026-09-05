@@ -1,19 +1,42 @@
 # ALICE / DCAMR
 
-Local decision and enforcement platform for agent action requests. Development
-targets a Raspberry Pi 4 with 2 GB RAM; model training and the explanatory LLM
-belong on the workstation.
+ALICE synchronizes trusted enterprise context while connected, governs local
+agent actions during DDIL outages, and reports disconnected activity when
+enterprise services return.
+
+| Mode | Who controls execution | What ALICE does |
+| --- | --- | --- |
+| **ONLINE** | Enterprise systems directly | Refresh bounded permissions, normal-behavior and relevant evidence caches; consume authenticated activity feeds; send audit and findings upstream. |
+| **OFFLINE / DDIL** | ALICE, after a controlled transfer | Evaluate local requests using trusted caches, anomaly models and technician review; preserve an audit trail for every action. |
+
+Reconnection is a workflow between these two modes. The Pi communicates directly
+with enterprise interfaces for synchronization and reporting. Transferring
+execution authority safely is required integration work, not implemented failover.
+
+Development targets a **Raspberry Pi 4 Model B with 2 GB RAM and OS Lite**.
+Model training, the explanatory LLM and facial verification belong on the Mac.
+
+- [Architecture and authority boundaries](docs/prds/ALICE-DCAMR-Architecture.md)
+- [Product PRD](docs/prds/ALICE-DCAMR-PRD.md)
+- [Teammate handoff and integration responsibilities](docs/prds/ALICE-DCAMR-PRD-Handoff.md)
+- [Technician console and face-verification integration](docs/technician-console-integration.md)
 
 - [Implementation tracker — all 118 to-dos](docs/implementation-tracker.md)
-- [Latest motor/USB data direction](docs/data-direction-2026-09-05.md)
+- [Accepted data direction and remaining decisions](docs/data-direction-2026-09-05.md)
 - [Anomaly output PRD](docs/prds/anomaly-model-prd.md)
 - [Output contract and fixtures](docs/anomaly-contract.md)
 - [Web-01 feature builder](docs/anomaly-features.md)
 - [Mac synthetic training lab](docs/anomaly-training.md)
 
-The anomaly contract, feature builder and Mac training lab are implemented
-components. Policy, fusion, package verification, enforcement, motor support and
-Pi deployment remain integration work. See the tracker for evidence and scope.
+The anomaly contract, cyber feature builder and Mac Isolation Forest training lab
+are implemented components. Permissions evaluation, decision fusion, package
+verification, enterprise synchronization, authority transfer, durable mission audit,
+motor execution and Pi deployment remain integration work. The separate console
+handoff reports real face enrollment/login with mock edge transport; it is not yet
+connected to this core. See the tracker for evidence and scope.
+
+“Permissions” is the current product term. Existing `policy` paths and wire keys
+remain unchanged until a coordinated contract migration.
 
 For contract and feature work, start from the repository root with Python 3.11+
 (tested with Python 3.12.6):
@@ -30,3 +53,7 @@ For the Mac training lab and its real-estimator tests, also install
 `.venv/bin/python -m pip install -r requirements-anomaly-training.txt`.
 Those tests skip when training dependencies are absent. See the training guide
 for experiment commands and the [published experiment evidence](docs/reports/anomaly-lab/README.md).
+
+See the [demo runbook](docs/demo-runbook.md) for the distinction between runnable
+component checks and planned end-to-end acceptance, and the
+[threat model](docs/threat-model.md) for trust boundaries that integration must enforce.

@@ -6,6 +6,29 @@ plain JSON reports. It does not save a deployable model or change the Pi runtime
 See the [implementation tracker](implementation-tracker.md) for system work and
 [updated data direction](data-direction-2026-09-05.md) for the motor/USB changes.
 
+## System role and authority
+
+The [canonical architecture](architecture.md) assigns direct execution to enterprise
+controls in **ONLINE** mode. The Pi synchronizes bounded trusted caches and
+authenticated activity feeds and sends audit upstream; the lab model does not
+make it a mandatory enterprise gateway. **OFFLINE**, the Pi governs local actions
+only after controlled handover establishes a single ready authority. Behavioral
+scores remain advisory to a separate permissions decision.
+
+These experiments prepare an eventual OFFLINE behavioral component; their results
+do not implement control transfer, authorize actions or establish cache/feed trust.
+On reconnection the Pi synchronizes directly with enterprise systems, without
+using the Technician Mac as a relay. Mode/authority-generation binding, remote
+approval proof and in-flight action rules remain future integration requirements,
+not fields added to the existing anomaly result or training artifacts. Existing
+`policy` machine identifiers remain unchanged while product language uses permissions.
+
+The [console integration handoff](technician-console-integration.md) describes a
+separate, reported Mac review/identity/explanation implementation. It is not a
+deployed core integration, and its UI outcomes or facial login do not validate
+these candidates. The experiments, numerical results and published historical
+reports below retain their original cyber feature/calibration semantics.
+
 ## Run
 
 From the repository root, create a Mac Python environment with
