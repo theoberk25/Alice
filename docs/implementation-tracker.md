@@ -15,6 +15,17 @@ two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
 
+First-light integration slice (branch `first-light-test`, 2026-09-05): one
+OFFLINE terminal request (`set_light_state -> ESP-LIGHT-01`) now runs end to end
+against a mock ESP: signed-envelope authentication, verified release load,
+exact-match permission, explicitly labelled fixture assessment, auto ALLOW,
+durable AuditLog trail (EXECUTION_ATTEMPT committed before execution), separate
+receipt/result/observed-state, idempotent retry (one ESP command total) and a
+verified, acknowledged USB export. **263 tests passed (30 pre-existing skips)**,
+including the 6 new [first-light tests][first-light-tests] and a multi-process
+local dry run. The assessment is a wiring fixture, not detection; the real ESP
+firmware contract and physical run remain. [Evidence][first-light-handoff].
+
 Technician console layout migration: workstation/ is removed; source is organized
 under apps, packages, services, fixtures, tests/console and the shared docs tree.
 Launchers are in scripts/console and scripts/biometrics; npm commands run at root.
@@ -248,7 +259,7 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 001 | Define Agent Action Request Schema | Partial | [Internal feature-request shape][feature-schema] is validated; the public [action-request schema][action-schema] is still an empty skeleton. |
+| 001 | Define Agent Action Request Schema | Partial | [Internal feature-request shape][feature-schema] is validated; the public [action-request schema][action-schema] now holds the strict first-light contract (one action/target enum, signed envelope verified in [tests][first-light-tests]). Widening to the general request catalog remains a coordinated contract change. |
 | 002 | Define Context Push-Back Schema | Planned | The core [challenge skeleton][challenge-schema] is empty. The external console reports `alice.context_request`; cross-system schema agreement and real producer/routing remain. |
 | 003 | Define Agent Context Response Schema | Planned | No accepted core agent context-response contract exists. The [external console][console-integration] reports a local `alice.agent_response` schema; exchange and adapter validation remain. |
 | 004 | Define Policy Package Schema | Planned | The [package manifest skeleton][package-schema] is empty. This original policy task now covers the signed authorized-permissions package; existing code keys have not been renamed. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
@@ -265,7 +276,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 010 | Load Policy Data from SD Card | Planned | Desired medium/path: USB `permissions/`. No discovery, authorized-permissions package load or activation exists; legacy policy keys/paths remain unchanged. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 011 | Load Normal Operations Data from SD Card | Planned | Current medium: USB `normal_behavior/`. The baseline byte loader exists, but no removable-media package load path is implemented. |
 | 012 | Load User Permissions from SD Card | Planned | Desired permissions input is USB `permissions/`; trusted user/agent identity and delegated permissions contracts/loaders remain unimplemented. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
-| 013 | Verify Package Signatures | Planned | Expected byte-digest checks are not signature/issuer verification; [package verifier][package-verifier] remains a skeleton. |
+| 013 | Verify Package Signatures | Partial | [Package verifier][package-verifier] now verifies the first-light release: manifest Ed25519 signature plus per-payload sha256 digests, fail-closed at startup, with [tamper tests][first-light-tests]. Issuer trust provisioning, staging/activation, freshness and rollback checks remain unimplemented; the lab signing key is demonstration trust only. |
 | 014 | Validate Package Versions | Partial | [Schema/profile versions][feature-validation] and baseline labels are checked. Package freshness, rollback prevention and compatible activation are not implemented. |
 
 ## Request admission and policy checks (015–024)
@@ -278,7 +289,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 018 | Identify Requested Action | Partial | [Builder][features] resolves the normalized action against the fixed five-action catalog. The public request/admission path remains. |
 | 019 | Identify Target Resource | Partial | [Builder][features] identifies and compares the normalized target; the public request/admission path remains. |
 | 020 | Identify Requested Parameters | Partial | [Builder][features] validates empty diagnostic parameters or exact outbound endpoint parameters. Other action domains and public admission remain. |
-| 021 | Check Agent Permissions | Planned | OFFLINE permissions checks belong to the unimplemented admission/fusion path; profile membership is not permission. ONLINE enterprise systems retain direct control. |
+| 021 | Check Agent Permissions | Partial | The [policy engine][policy] now resolves exact agent/action/target/parameter matches against a verified release's PERMIT grants (default deny, approval-required maps to REVIEW_REQUIRED), feeding the shared PermissionFinding type, with [unit and end-to-end coverage][first-light-tests]. Prohibitions, conditions, generations and the full admission/fusion path remain. |
 | 022 | Check Mission Scope | Planned | Behavioral profile matching is not policy mission authorization; [policy engine][policy] remains a skeleton. |
 | 023 | Check Hard Deny Rules | Planned | Hard-deny precedence is documented but [policy evaluation][policy] is not implemented. |
 | 024 | Check Approval-Required Rules | Planned | Mandatory-review requirements are documented but [policy evaluation][policy] is not implemented. |
@@ -353,7 +364,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | No real core technician-action receiver exists. The console reports local action construction/persistence; authenticated delivery and receipts remain. |
 | 070 | Require Technician Authentication for Approval | Planned | Console local ArcFace enrollment/login and approval grants are reported. Core-verifiable, fresh, one-use proof bound to current decision/request/authority remains; live approval camera acceptance is pending. |
-| 071 | Execute Approved Action | Planned | The [enforcement gateway][enforcement] is empty. OFFLINE local execution requires the endpoint fence; ONLINE enterprise control remains direct. |
+| 071 | Execute Approved Action | Partial | The [enforcement gateway][enforcement] now commands the first-light ESP light over HTTP (receipt and state readback separated; idempotency owned by the runtime), verified against a mock ESP in [tests][first-light-tests]. The real ESP firmware contract, endpoint fence and general action execution remain; ONLINE enterprise control remains direct. |
 | 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
 | 073 | Record Action Execution Result | Partial | [Ledger][audit-guide] persists separate supplied execution attempts, controller receipts/results and sensor observations with identity/time/evidence binding. [Tests][audit-contract-tests] preserve UNKNOWN outcomes. No controller execution, authenticated result receiver or sensor driver is connected. |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |
@@ -500,3 +511,5 @@ Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 [audit-outbox-tests]: ../tests/test_audit_outbox.py
 [audit-integrity-tests]: ../tests/test_audit_integrity.py
 [context-ledger-replay]: ../scripts/lab/replay_contextual_ledger.py
+[first-light-tests]: ../tests/test_first_light.py
+[first-light-handoff]: handoffs/2026-09-05-first-light-test.md

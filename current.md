@@ -1,51 +1,54 @@
 # Current
 
 Updated: 2026-09-05
-Baseline: `ce617cf` (main and locally available origin/main at session start).
-Delivery: user authorized commit to local main; not pushed or deployed.
-Implementation branch: `codex/technician-console-layout`.
+Baseline: `ce617cf` (main). Work branch: `first-light-test` (local, not pushed).
+Prior console-layout state is preserved in the
+[console handoff](docs/handoffs/2026-09-05-console-layout.md).
 
 ## Current objective
 
-Technician-console migration into the shared repository layout is complete;
-workstation/ is removed. Start with [AGENTS.md](AGENTS.md).
+First-light integration test implemented: one OFFLINE terminal request
+(`set_light_state -> ESP-LIGHT-01`) runs end to end against a mock ESP.
+Start with [AGENTS.md](AGENTS.md).
 
 ## Current state
 
-- Console source now lives in apps/desktop, packages and services/biometrics.
-- Scripts are in scripts/console and scripts/biometrics, with checkout discovery.
-  npm commands run at the root; tests are under tests/console.
-- Console docs use the shared topic folders. Legacy empty scaffolds are preserved
-  under apps/dashboard, services/backend and services/face_verification.
-- Private settings, dependencies, environments, models and runtime data moved
-  safely; ignored local files remain uncommitted. All 369 tracked files survive.
-- Lab tools remain in scripts/lab with public lab.* imports; Pi runtime in dcamr.
-- Product totals remain 12 done components, 35 partial and 71 planned tasks.
-  [Tracker](docs/implementation-tracker.md); live integration remains unfinished.
+- Seam fills on `first-light-test`: action-request schema, package verifier,
+  exact-match policy engine, additive `decide()` (teammate's assessment
+  boundary in decision_model preserved), ESP enforcement gateway, and the
+  `dcamr/main.py` runtime producing into the existing AuditLog.
+- Lab tooling in `scripts/lab/first_light/` (`lab.first_light.*`): release
+  builder (demo trust only), fixture assessment, mock ESP, terminal client,
+  read-only technician view, verified USB export.
+- Console source remains in apps/desktop, packages and services; lab tools in
+  scripts/lab; Pi runtime in dcamr. Tracker rows 001/013/021/071 now Partial.
 
 ## Next steps
 
-1. Review the [complete move map](docs/handoffs/2026-09-05-console-layout.md).
-2. Use root npm commands and the [console guide](docs/guides/technician-console.md).
-3. Connect trusted permissions, technician transport and execution to assessments.
-4. Bind the assessment contract to the durable ledger adapter.
+1. Agree the real ESP firmware HTTP contract, then run the physical first-light
+   test (swap the mock URL); owner unassigned.
+2. Check teammate branches for Pi-runtime work, then review/merge
+   `first-light-test`.
+3. Point the console's future remote transport at read-only `GET /events`.
+4. Connect trusted permissions, technician transport and execution to
+   assessments (full runtime plan); bind assessment contract to the ledger
+   adapter beyond the fixture.
 5. Complete model export and real sensor/Pi acceptance; owners unassigned.
 
 ## Blockers and decisions
 
-- No layout blocker. Live camera acceptance, remote approval proof, authority
-  transfer and protected execution remain separate integration work.
-- Local core venv lacks cryptography; regression used the existing biometric
-  Python 3.11 site-packages via PYTHONPATH, without installing dependencies.
+- No blocker for the mock run. Physical run blocked on the ESP contract.
+- The first-light assessment is an explicitly labelled fixture (wiring proof,
+  not detection); all first-light keys are demonstration trust only.
 
 ## Verification
 
-64 Vitest, 4 relocation, 14 default Rust, 11 biometric Python, 5 Playwright and
-257 core tests passed. Real public-image ArcFace and isolated native identity
-checks passed. Frontend and native ALICE.app builds passed. Nine generated
-schema/fixture objects match the original; published bytes remain unchanged.
-[Commands, limitations and move map](docs/handoffs/2026-09-05-console-layout.md).
-Prior lab migration evidence is [historical](docs/handoffs/2026-09-05-lab-script-relocation.md).
+263 core tests passed (30 pre-existing skips), including 6 new first-light
+tests, plus a multi-process Mac dry run: ALLOW/COMPLETED/observed=on, exactly
+one ESP command across a retried request, verified+acknowledged USB export,
+`validate()` clean after reopen.
+[Commands and limitations](docs/handoffs/2026-09-05-first-light-test.md).
+Console-layout evidence is [historical](docs/handoffs/2026-09-05-console-layout.md).
 
 ## Start here
 
