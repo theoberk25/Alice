@@ -3,7 +3,7 @@
 The technician console is now a self-contained subsystem under `workstation/`.
 This is source integration: authenticated console/core transport, shared wire
 contracts, remote approval proof and protected execution remain unfinished.
-Use the [main workstation guide](../../../docs/workstation.md) for setup and
+Use the [main workstation guide](../../../docs/guides/workstation.md) for setup and
 current migration verification. Commands and code paths in the subsystem docs
 are relative to `workstation/` unless they explicitly say otherwise.
 
@@ -51,7 +51,7 @@ authority-transfer protocol is added to the console.
 The main [architecture](../../../docs/prds/ALICE-DCAMR-Architecture.md),
 [product PRD](../../../docs/prds/ALICE-DCAMR-PRD.md),
 [team handoff](../../../docs/prds/ALICE-DCAMR-PRD-Handoff.md), and
-[console integration requirements](../../../docs/technician-console-integration.md)
+[console integration requirements](../../../docs/integration/technician-console.md)
 govern current product semantics. The supplied external `ALICE.md` is historical
 context. Its earlier every-request enforcement model and Pi-dashboard placement
 do not supersede the main design. The preserved dashboard contract remains

@@ -64,7 +64,7 @@ by the caller, not inferred by this recorder.
 
 ## Event and evidence boundary
 
-[`audit_event.json`](../common/schemas/audit_event.json) is an independently
+[`audit_event.json`](../../common/schemas/audit_event.json) is an independently
 versioned **local** contract. It does not replace the empty shared request/decision
 schemas, the cyber anomaly schema or the workstation's contracts. `validate_input`
 accepts exactly these caller fields:
@@ -266,6 +266,6 @@ power-loss, physical-media or actual sensor acceptance.
 Run `.venv/bin/python -m unittest discover -v` with the pinned training dependencies
 installed to avoid skipping the existing model tests. Run both
 `lab.replay_anomaly_fixtures` and `lab.replay_feature_fixtures`. Actual counts are in
-the [implementation tracker](implementation-tracker.md). Pi 4 Model B (2 GB RAM)
+the [implementation tracker](../implementation-tracker.md). Pi 4 Model B (2 GB RAM)
 latency, combined memory, physical power-loss behavior and live system integration
 remain unmeasured.

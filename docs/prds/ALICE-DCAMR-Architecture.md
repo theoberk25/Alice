@@ -15,13 +15,13 @@ is in a separate repository and has not been independently audited here.
 
 Read with the [product PRD](ALICE-DCAMR-PRD.md),
 [developer handoff](ALICE-DCAMR-PRD-Handoff.md),
-[console integration guide](../technician-console-integration.md), and
+[console integration guide](../integration/technician-console.md), and
 [implementation tracker](../implementation-tracker.md).
 
 
 ## Current decision boundary — technician application
 
-The [Pi assessment contract](../decision-assessment.md) supersedes earlier
+The [Pi assessment contract](../contracts/decision-assessment.md) supersedes earlier
 Pi-owned final-fusion descriptions for the current increment. The Pi supplies
 permission findings, contextual Isolation Forest scores, source provenance,
 review signals and approval blockers. The technician application's local LLM
@@ -186,7 +186,7 @@ The demo must identify simulated transfer behavior until this boundary is tested
 
 ## 5. Trusted cache synchronization
 
-The [enterprise simulation handoff](../enterprise-sim-handoff.md) now supplies
+The [enterprise simulation handoff](../handoffs/enterprise-sim-handoff.md) now supplies
 concrete demonstration permissions releases 42–44, a generation-42 USB image,
 Wazuh index/rule configuration and synthetic normal-behavior inputs. These are
 enterprise-side fixtures, not a working Pi cache loader. The deterministic demo
@@ -262,20 +262,20 @@ numerical-library threads limited to one. It is not an LLM. The current corpus i
 synthetic Web-01 activity; fitting uses 3,600 normal requests, with separate normal
 calibration and evaluation sessions and challenge scenarios.
 
-The [feature builder](../anomaly-features.md) covers agent/action/target familiarity,
+The [feature builder](../contracts/anomaly-features.md) covers agent/action/target familiarity,
 endpoint relationships, action frequency, five-minute proposal/execution counts
 and unsmoothed action-transition frequency. Authenticated agents without a personal
 baseline can use an exact role/mission cohort while retaining novelty. These
 comparisons and flags remain distinct from learned forest scores.
 
-The [training experiments](../anomaly-training.md) map `score_samples` to a
+The [training experiments](../guides/anomaly-training.md) map `score_samples` to a
 normal-tail rank. Separate diagnostic/change references improved legitimate-change
 bands on fresh synthetic requests (32/68 elevated/high → 2/68), but all 20 unseen
 endpoints still received low conditional ML bands. Explicit novelty cannot be
 suppressed by a low score. The percentile is not a compromise probability or
 permission; failed/unavailable evaluations have null scores.
 
-A separate [general contextual interface](../contextual-behavior-model.md) now
+A separate [general contextual interface](../architecture/contextual-behavior-model.md) now
 supports supplied numeric features with explicit units, freshness and timing.
 Jared selected both PRE_ACTION and POST_ACTION assessments. Each phase/profile
 uses separate forests and normal references for exact supported contexts; an
@@ -376,7 +376,7 @@ During ONLINE, this offline approval path must not independently authorize an
 enterprise-controlled action. Show current authority, cache/feed freshness and
 pending synchronization distinctly from historical decision-time mode. Any future
 enterprise review integration needs its own agreement. See the
-[console integration guide](../technician-console-integration.md) for reported
+[console integration guide](../integration/technician-console.md) for reported
 contracts, gaps, identity lifecycle and operator acceptance.
 
 ## 10. Audit, accountability and execution evidence
@@ -419,7 +419,7 @@ intended reconciliation inputs; it does not prove live Pi delivery or authority
 transfer. Its proposed internal-storage audit authority with a USB copy still
 needs agreement. Wazuh's agent buffer is not the durable DDIL outbox; the supplied
 indexer role also does not enforce append-only storage. See the
-[handoff boundaries](../enterprise-sim-handoff.md) before implementing delivery,
+[handoff boundaries](../handoffs/enterprise-sim-handoff.md) before implementing delivery,
 per-event acknowledgements, conflict checking and retention.
 
 The Pi communicates directly with configured enterprise interfaces. The sequence
@@ -487,5 +487,5 @@ adapter, permissions/input schema agreement, console/core event/proof compatibil
 offline request-to-audit loop, motor/controller contract and two-direction recovery
 tests. Preserve the working cyber regression profile while agreeing motor semantics.
 The [developer handoff](ALICE-DCAMR-PRD-Handoff.md) assigns those boundaries and the
-[demo runbook](../demo-runbook.md) separates current runnable checks from future
+[demo runbook](../guides/demo-runbook.md) separates current runnable checks from future
 end-to-end acceptance.

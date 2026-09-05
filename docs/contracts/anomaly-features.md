@@ -4,7 +4,7 @@ This increment turns an authenticated, normalized cyber-action request and a tru
 
 Jared selected normal diagnostics plus occasional changes to known destinations. Jared also selected a matching role/mission cohort for authenticated agents without a personal baseline, while preserving a new-agent flag. The target is a 2 GB Raspberry Pi 4 running Raspberry Pi OS Lite; hardware measurement and OS bitness confirmation remain separate deployment work.
 
-The [canonical architecture](architecture.md) distinguishes **ONLINE** enterprise-controlled direct execution from **OFFLINE** Pi-governed local actions after a controlled single-authority handover. ONLINE Pi work synchronizes bounded trusted caches/authenticated activity feeds and sends audit upstream; these features do not create a mandatory Pi gateway. OFFLINE feature/model observations advise a separate permissions decision. Direct Pi-to-enterprise reconnection, authority transfer and source adapters are future integration work, not behavior implemented by this pure builder.
+The [canonical architecture](../architecture.md) distinguishes **ONLINE** enterprise-controlled direct execution from **OFFLINE** Pi-governed local actions after a controlled single-authority handover. ONLINE Pi work synchronizes bounded trusted caches/authenticated activity feeds and sends audit upstream; these features do not create a mandatory Pi gateway. OFFLINE feature/model observations advise a separate permissions decision. Direct Pi-to-enterprise reconnection, authority transfer and source adapters are future integration work, not behavior implemented by this pure builder.
 
 ## Run the fixtures and tests
 
@@ -151,6 +151,6 @@ Tests cover exact vectors, new-agent cohort scope, endpoint novelty, complete ve
 
 ## Next checkpoint
 
-The separate [Mac training lab](anomaly-training.md) now uses these exact features with independent normal sessions and synthetic challenge scenarios. It fits in memory and exports JSON reports; model artifact format and Pi deployment remain separate decisions. The [latest motor/USB data direction](data-direction-2026-09-05.md) requires a new motor profile rather than silently changing these cyber columns. Package verification, queue supervision, outer decision fusion and real Pi measurements remain outside this builder.
+The separate [Mac training lab](../guides/anomaly-training.md) now uses these exact features with independent normal sessions and synthetic challenge scenarios. It fits in memory and exports JSON reports; model artifact format and Pi deployment remain separate decisions. The [latest motor/USB data direction](../decisions/2026-09-05-data-direction.md) requires a new motor profile rather than silently changing these cyber columns. Package verification, queue supervision, outer decision fusion and real Pi measurements remain outside this builder.
 
-The [technician-console integration document](technician-console-integration.md) describes a separate team's reported Mac implementation and its unconnected boundaries. Console displays, local facial grants and explanation output do not supply trusted history, new feature semantics or authority to this builder.
+The [technician-console integration document](../integration/technician-console.md) describes a separate team's reported Mac implementation and its unconnected boundaries. Console displays, local facial grants and explanation output do not supply trusted history, new feature semantics or authority to this builder.

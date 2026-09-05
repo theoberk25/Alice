@@ -93,7 +93,7 @@ The technician console is the human review and local identity subsystem. It is n
 11. Keep credentials, face images, embeddings, and enrollment keys out of Git, LLM prompts, Pi decision records, and enterprise audit exports.
 12. Keep mock transport, biometric provider choice, network connectivity, and execution authority as distinct concepts.
 
-Sources: [architecture](prds/ALICE-DCAMR-Architecture.md), [PRD](prds/ALICE-DCAMR-PRD.md), [threat model](threat-model.md), [migration assessment](../workstation/docs/integration/main-repository-migration.md).
+Sources: [architecture](../prds/ALICE-DCAMR-Architecture.md), [PRD](../prds/ALICE-DCAMR-PRD.md), [threat model](../architecture/threat-model.md), [migration assessment](../../workstation/docs/integration/main-repository-migration.md).
 
 ## 3. Repository and delivery state
 
@@ -746,7 +746,8 @@ Use one bounded prompt per coherent milestone. Each prompt should specify:
 ### 16.1 Reusable planning prompt skeleton
 
 ```text
-Read docs/ALICE-ZERO-TRUST-ARCHITECTURE-AND-UPGRADE-CONTEXT.md and the linked
+Read AGENTS.md, current.md, and
+docs/handoffs/2026-09-05-zero-trust-upgrade-context.md and the linked
 sources for [milestone]. Recheck current Git state and executable contracts.
 
 We are planning [specific outcome]. Do not implement, install models, migrate
@@ -817,223 +818,223 @@ The tracker snapshot is historical source data. In particular, its older console
 
 All 37 tracked Markdown sources were included in the source inventory. Descriptions below retain their title and section coverage; interpret dated evidence through the precedence rules above. Hashes are shortened SHA-256 content identifiers.
 
-#### [README.md](../README.md)
+#### [README.md](../../README.md)
 
 - **Title:** ALICE / DCAMR
 - **Snapshot:** 4,261 bytes; SHA-256 `a6bfff46eb0021c2`.
 - **Coverage:** Technician Console.
 
-#### [docs/anomaly-contract.md](anomaly-contract.md)
+#### [docs/anomaly-contract.md](../contracts/anomaly-contract.md)
 
 - **Title:** Run the first anomaly contract slice
 - **Snapshot:** 11,220 bytes; SHA-256 `547a4381730cc311`.
 - **Coverage:** System authority and this contract; Run locally; Files and entry points; Consume a result in DCAMR; Contract details enforced by Python; Feature-builder increment.
 
-#### [docs/anomaly-features.md](anomaly-features.md)
+#### [docs/anomaly-features.md](../contracts/anomaly-features.md)
 
 - **Title:** Build Web-01 behavioral features
 - **Snapshot:** 18,181 bytes; SHA-256 `bb852cc860f07287`.
 - **Coverage:** Run the fixtures and tests; Fixed feature profile; Baseline selection and comparisons; History rules; API and output; Resource limits and verification; Next checkpoint.
 
-#### [docs/anomaly-training.md](anomaly-training.md)
+#### [docs/anomaly-training.md](../guides/anomaly-training.md)
 
 - **Title:** Mac anomaly training lab
 - **Snapshot:** 12,125 bytes; SHA-256 `bd450a5be648b5b4`.
 - **Coverage:** System role and authority; Run; Source and split contract; Candidate and score semantics; First experiment; Separate-reference experiment.
 
-#### [docs/architecture.md](architecture.md)
+#### [docs/architecture.md](../architecture.md)
 
 - **Title:** Architecture guide
 - **Snapshot:** 2,630 bytes; SHA-256 `142813a6998fab6b`.
 - **Coverage:** Read by integration boundary.
 
-#### [docs/contextual-behavior-model.md](contextual-behavior-model.md)
+#### [docs/contextual-behavior-model.md](../architecture/contextual-behavior-model.md)
 
 - **Title:** Contextual behavior model
 - **Snapshot:** 15,411 bytes; SHA-256 `42f0c068dcc61bc3`.
 - **Coverage:** What “context” means here; Current modules; Profile and observation contract; Minimal untrained example; Collecting and fitting data later; Reading an assessment; Wazuh and the Pi boundary.
 
-#### [docs/data-direction-2026-09-05.md](data-direction-2026-09-05.md)
+#### [docs/data-direction-2026-09-05.md](../decisions/2026-09-05-data-direction.md)
 
 - **Title:** Accepted data and product direction — 2026-09-05
 - **Snapshot:** 9,132 bytes; SHA-256 `0370ea2d205a16b9`.
 - **Coverage:** Latest implementation direction; Accepted direction; Removable storage and cache ownership; Physical demo and model compatibility; Decisions to settle in upcoming implementation slices.
 
-#### [docs/demo-runbook.md](demo-runbook.md)
+#### [docs/demo-runbook.md](../guides/demo-runbook.md)
 
 - **Title:** Demo runbook and acceptance plan
 - **Snapshot:** 8,029 bytes; SHA-256 `cab52d20a1bafdad`.
 - **Coverage:** Runnable component checks; Prerequisites for the future lifecycle demo; Demonstration sequence; 1. ONLINE: enterprise control and cache synchronization; 2. Lose enterprise connectivity and transfer authority; 3. Exercise local decisions and review; 4. Restore connectivity and reconcile; 5. Failure and recovery acceptance.
 
-#### [docs/implementation-tracker.md](implementation-tracker.md)
+#### [docs/implementation-tracker.md](../implementation-tracker.md)
 
 - **Title:** ALICE implementation tracker
 - **Snapshot:** 43,621 bytes; SHA-256 `3acee8c9c378c18a`.
 - **Coverage:** Status and current checkpoint; Agreed scope and resource constraints; Boundaries used when marking progress; Shared contracts (001–009); Initial package loading and trust (010–014); Request admission and policy checks (015–024); Behavioral features (025–036); Model and sequence scoring (037–044); Decision fusion and context exchange (045–057); Provenance and audit (058–065); Dashboard, technician and execution (066–076); DDIL and reconciliation (077–092); Package updates and connected recovery (093–107); End-to-end acceptance (108–118); Supplemental planned requirements from the two-mode revision; Maintaining this tracker.
 
-#### [docs/prds/ALICE-DCAMR-Architecture.md](prds/ALICE-DCAMR-Architecture.md)
+#### [docs/prds/ALICE-DCAMR-Architecture.md](../prds/ALICE-DCAMR-Architecture.md)
 
 - **Title:** ALICE — architecture and integration boundaries
 - **Snapshot:** 29,468 bytes; SHA-256 `1ff41b592aecbf47`.
 - **Coverage:** 1. Product names, modes and authority; 2. Components and responsibility; 3. Data flow in each mode; ONLINE activity visibility; OFFLINE local decision path; 4. Controlled transfer of execution authority; 5. Trusted cache synchronization; 6. One USB, distinct input and output lifecycles; 7. Local anomaly model and limits; 8. Decision, context and reassessment semantics; 9. Technician console and facial verification; 10. Audit, accountability and execution evidence; 11. Reconnection, upstream reporting and cache refresh; 12. Pi resource and offline-readiness requirements; 13. Implementation evidence and next integration work.
 
-#### [docs/prds/ALICE-DCAMR-PRD-Handoff.md](prds/ALICE-DCAMR-PRD-Handoff.md)
+#### [docs/prds/ALICE-DCAMR-PRD-Handoff.md](../prds/ALICE-DCAMR-PRD-Handoff.md)
 
 - **Title:** ALICE / DCAMR — Developer Handoff
 - **Snapshot:** 18,993 bytes; SHA-256 `21ba69f09754a1e4`.
 - **Coverage:** 1. Product boundary: exactly two modes; 2. Owners and deliverables; 3. What exists now; Alice core repository; External `ALICE_TechnicalReview` console; 4. Shared contracts: implemented versus proposed integration; Rules the adapter must preserve; 5. Trusted caches, USB and audit handoff; 6. Repository handoff and resource boundaries; 7. Next integration checkpoints.
 
-#### [docs/prds/ALICE-DCAMR-PRD.md](prds/ALICE-DCAMR-PRD.md)
+#### [docs/prds/ALICE-DCAMR-PRD.md](../prds/ALICE-DCAMR-PRD.md)
 
 - **Title:** ALICE — Product Requirements Document
 - **Snapshot:** 26,740 bytes; SHA-256 `bab42658dc6d2bc1`.
 - **Coverage:** 1. Product purpose; 2. Terminology and compatibility; 3. Two operating modes; 3.1 ONLINE behavior; 3.2 OFFLINE/DDIL behavior; 3.3 Transfer of execution authority; 4. Users and trust boundaries; 5. Functional requirements; FR-1 — Mode and authority status; FR-2 — Online synchronization; FR-3 — Online activity coverage; FR-4 — Controlled handover; FR-5 — Offline request normalization and accountability; FR-6 — Offline permissions; FR-7 — Local anomaly contribution; FR-8 — Offline fusion outcomes; FR-9 — Context and reassessment; FR-10 — Local audit coverage; FR-11 — Audit integrity and capacity; FR-12 — Technician review and facial verification; FR-13 — Approval delivery and execution confirmation; FR-14 — Returning ONLINE; FR-15 — Durable uploads and priority alerts; FR-16 — Cache activation and removable storage; FR-17 — Workstation explanation; 6. Data placement and resource constraints; 7. Shared records and console integration; 8. Demo scope and device direction; 9. Team and repository boundaries; 10. Implementation evidence and limitations; 11. Product acceptance checklist; 12. Next decisions and delivery checkpoints.
 
-#### [docs/prds/anomaly-model-prd.md](prds/anomaly-model-prd.md)
+#### [docs/prds/anomaly-model-prd.md](../prds/anomaly-model-prd.md)
 
 - **Title:** Anomaly-model output and integration PRD
 - **Snapshot:** 57,952 bytes; SHA-256 `be9fc9d80b484f62`.
 - **Coverage:** 1. Purpose and this increment; Source context and precedence; 2. Scope and authority; 3. Proposed first runtime slice; 4. Input integration contract; 4.1 Logical call boundary; 4.2 Feature profile: `cyber-behavior-v1`; 4.3 Package and snapshot lifecycle; 5. Anomaly result contract; 5.1 Envelope and field definitions; 5.2 Factor schema; 5.3 Initial reason-code vocabulary; 6. Score semantics and calibration; 7. DCAMR consumption, failure and re-evaluation; 8. Test fixtures consumed by DCAMR; 8.1 Fixture boundary and deterministic score reference; 8.2 Complete scored-result fixture; 8.3 Complete unavailable-result fixture; 8.4 Fixture manifest and expected assertions; 9. Raspberry Pi 4 resource guardrails; 10. Functional requirements and acceptance; 11. Repository scope and delivery sequence; 12. Decisions for Jared and the integration team; Immediate questions already raised with Jared; Next decisions, before the affected code is written.
 
-#### [docs/reports/anomaly-lab/README.md](reports/anomaly-lab/README.md)
+#### [docs/reports/anomaly-lab/README.md](../reports/anomaly-lab/README.md)
 
 - **Title:** Published synthetic experiment evidence
 - **Snapshot:** 1,400 bytes; SHA-256 `c17ac27419a01add`.
 - **Coverage:** single-section reference; consult the source for its exact scope.
 
-#### [docs/technician-console-integration.md](technician-console-integration.md)
+#### [docs/technician-console-integration.md](../integration/technician-console.md)
 
 - **Title:** Technician console integration
 - **Snapshot:** 18,884 bytes; SHA-256 `cdcc6b0975a8d48e`.
 - **Coverage:** Current evidence and component placement; Product authority: ONLINE and OFFLINE; Reported wire boundary; schema exchange still required; Reassessment, currentness and execution boundaries; Facial identity and approval proof; Language, transport and recovery requirements; Focused operator acceptance and open agreements.
 
-#### [docs/threat-model.md](threat-model.md)
+#### [docs/threat-model.md](../architecture/threat-model.md)
 
 - **Title:** Trust boundaries and threat model
 - **Snapshot:** 7,631 bytes; SHA-256 `5a0dd970b133c914`.
 - **Coverage:** Assets, principals and trust; Threats and required responses; Identity material and audit separation; Acceptance boundary.
 
-#### [docs/workstation.md](workstation.md)
+#### [docs/workstation.md](../guides/workstation.md)
 
 - **Title:** ALICE Technician Console in this repository
 - **Snapshot:** 3,181 bytes; SHA-256 `58e2d7aae4ce5024`.
 - **Coverage:** Scope and authority; Verification and remaining work.
 
-#### [tests/fixtures/anomaly/README.md](../tests/fixtures/anomaly/README.md)
+#### [tests/fixtures/anomaly/README.md](../../tests/fixtures/anomaly/README.md)
 
 - **Title:** Anomaly contract fixtures
 - **Snapshot:** 4,364 bytes; SHA-256 `30b2dbfb94b3b387`.
 - **Coverage:** Files and consumption; Scope of this increment.
 
-#### [tests/fixtures/features/README.md](../tests/fixtures/features/README.md)
+#### [tests/fixtures/features/README.md](../../tests/fixtures/features/README.md)
 
 - **Title:** Synthetic behavioral feature fixtures
 - **Snapshot:** 4,059 bytes; SHA-256 `c2191e5d5e26c340`.
 - **Coverage:** Feature order; Cases; Baseline meaning and limits.
 
-#### [workstation/CONTRIBUTING.md](../workstation/CONTRIBUTING.md)
+#### [workstation/CONTRIBUTING.md](../../workstation/CONTRIBUTING.md)
 
 - **Title:** Contributing
 - **Snapshot:** 1,549 bytes; SHA-256 `944e9ba851d5c75c`.
 - **Coverage:** single-section reference; consult the source for its exact scope.
 
-#### [workstation/HANDOFF.md](../workstation/HANDOFF.md)
+#### [workstation/HANDOFF.md](../../workstation/HANDOFF.md)
 
 - **Title:** ALICE Technician Console — complete implementation handoff
 - **Snapshot:** 66,302 bytes; SHA-256 `715bf64f87080b21`.
 - **Coverage:** 1. Current position; Historical standalone snapshot, not a portable installation guarantee; 2. Scope and authority to preserve; Supplied-data ambiguities already documented; 3. Repository inventory; 4. Implemented behavior and its limits; HOLD flow in this build; 5. Contracts and integration points; 6. Identity, configuration and data; Historical standalone identity status; Configuration reference; Storage inventory; Local files excluded from source control; 7. Existing demo scenarios; 8. Historical standalone verification; 9. Functional work to finish next; F1 — Finish live approval and negative-case acceptance (enrollment/login complete); F2 — Finish workflow correlation and recovery; F3 — Complete language-context and status behavior; F4 — Finish native operator operations; 10. Upstream integration still to implement; I1 — Real authenticated native transport; I2 — Durable delivery and reconciliation; I3 — Remote biometric approval proof; I4 — Contract completion; 11. Reliability, security and distribution work; R1 — Biometric hardening and separate liveness; R2 — Identity storage and credential lifecycle; R3 — Database and audit lifecycle; R4 — Managed service startup and distributable packaging; R5 — Expand repeatable validation; 12. Deferred full visual and animation update; 13. Recommended execution order and completion evidence; 14. Reading order for the next contributor; 15. Reassessment implementation file map.
 
-#### [workstation/PROMPT_CONTEXT.md](../workstation/PROMPT_CONTEXT.md)
+#### [workstation/PROMPT_CONTEXT.md](../../workstation/PROMPT_CONTEXT.md)
 
 - **Title:** Context for a separate ALICE prompt-writing chat
 - **Snapshot:** 12,691 bytes; SHA-256 `e9e7b7376b6f11c9`.
 - **Coverage:** Paste this as the opening message; Required attachments and why they matter; Authority and conflict handling; Non-negotiable technical boundaries; What to supply when requesting the next prompt; Suggested prompt output structure.
 
-#### [workstation/README.md](../workstation/README.md)
+#### [workstation/README.md](../../workstation/README.md)
 
 - **Title:** ALICE — Technician Console
 - **Snapshot:** 9,929 bytes; SHA-256 `88aed1c71dcbb6e3`.
 - **Coverage:** Quick start; Real identity with a simulated edge; Moving from an existing standalone installation; Local language assistance; Checks and packaging; Repository map; Reassessment demo.
 
-#### [workstation/docs/architecture/biometrics.md](../workstation/docs/architecture/biometrics.md)
+#### [workstation/docs/architecture/biometrics.md](../../workstation/docs/architecture/biometrics.md)
 
 - **Title:** Facial identity and future liveness
 - **Snapshot:** 2,857 bytes; SHA-256 `1dc1a8c4eb8430d5`.
 - **Coverage:** single-section reference; consult the source for its exact scope.
 
-#### [workstation/docs/architecture/hold-workflow.md](../workstation/docs/architecture/hold-workflow.md)
+#### [workstation/docs/architecture/hold-workflow.md](../../workstation/docs/architecture/hold-workflow.md)
 
 - **Title:** Deterministic HOLD workflow and reassessment lineage
 - **Snapshot:** 6,213 bytes; SHA-256 `9ba32581cb7b952e`.
 - **Coverage:** Immutable lineage and current assessment; Approval and race handling; Persistence and operational record.
 
-#### [workstation/docs/architecture/llm-boundary.md](../workstation/docs/architecture/llm-boundary.md)
+#### [workstation/docs/architecture/llm-boundary.md](../../workstation/docs/architecture/llm-boundary.md)
 
 - **Title:** Local semantic gateway
 - **Snapshot:** 2,591 bytes; SHA-256 `a194b1d4e83dfe33`.
 - **Coverage:** Ollama grammar compatibility.
 
-#### [workstation/docs/architecture/overview.md](../workstation/docs/architecture/overview.md)
+#### [workstation/docs/architecture/overview.md](../../workstation/docs/architecture/overview.md)
 
 - **Title:** Console architecture
 - **Snapshot:** 4,164 bytes; SHA-256 `45b182483851fff3`.
 - **Coverage:** Contract ambiguities retained.
 
-#### [workstation/docs/contracts/agent-status.md](../workstation/docs/contracts/agent-status.md)
+#### [workstation/docs/contracts/agent-status.md](../../workstation/docs/contracts/agent-status.md)
 
 - **Title:** Agent and service status
 - **Snapshot:** 1,206 bytes; SHA-256 `ad8dbe1ddd7cae10`.
 - **Coverage:** single-section reference; consult the source for its exact scope.
 
-#### [workstation/docs/contracts/alice-events.md](../workstation/docs/contracts/alice-events.md)
+#### [workstation/docs/contracts/alice-events.md](../../workstation/docs/contracts/alice-events.md)
 
 - **Title:** ALICE-native events
 - **Snapshot:** 4,553 bytes; SHA-256 `a2b2bdfb0e8e1b60`.
 - **Coverage:** Decision reassessment contract.
 
-#### [workstation/docs/contracts/legacy-dashboard-contract.md](../workstation/docs/contracts/legacy-dashboard-contract.md)
+#### [workstation/docs/contracts/legacy-dashboard-contract.md](../../workstation/docs/contracts/legacy-dashboard-contract.md)
 
 - **Title:** Legacy dashboard compatibility
 - **Snapshot:** 1,758 bytes; SHA-256 `229f9b656bd939fd`.
 - **Coverage:** single-section reference; consult the source for its exact scope.
 
-#### [workstation/docs/development/facial-verification-quickstart.md](../workstation/docs/development/facial-verification-quickstart.md)
+#### [workstation/docs/development/facial-verification-quickstart.md](../../workstation/docs/development/facial-verification-quickstart.md)
 
 - **Title:** Set up and test local facial verification
 - **Snapshot:** 15,614 bytes; SHA-256 `b648541a7159fc02`.
 - **Coverage:** Implemented behavior and historical evidence; Fastest check without using the camera; Configure the real camera test once; Set a user's face through Administration; Test actual face login; Test fresh face verification before approval; Troubleshooting; On a new teammate's Mac; Reassessment demo and face binding.
 
-#### [workstation/docs/development/mac-setup.md](../workstation/docs/development/mac-setup.md)
+#### [workstation/docs/development/mac-setup.md](../../workstation/docs/development/mac-setup.md)
 
 - **Title:** macOS setup and packaging
 - **Snapshot:** 4,361 bytes; SHA-256 `623a40c530a87277`.
 - **Coverage:** Runtime setup; Camera; One-command demo; Bundle.
 
-#### [workstation/docs/development/mock-scenarios.md](../workstation/docs/development/mock-scenarios.md)
+#### [workstation/docs/development/mock-scenarios.md](../../workstation/docs/development/mock-scenarios.md)
 
 - **Title:** Mock scenarios
 - **Snapshot:** 5,467 bytes; SHA-256 `be5f9bb25a819a8e`.
 - **Coverage:** Primary reassessment demonstration: scenario 04.
 
-#### [workstation/docs/development/verification.md](../workstation/docs/development/verification.md)
+#### [workstation/docs/development/verification.md](../../workstation/docs/development/verification.md)
 
 - **Title:** Historical standalone console implementation verification
 - **Snapshot:** 26,691 bytes; SHA-256 `3cba11a3d5eb32ee`.
 - **Coverage:** Executed checks; Operator-confirmed live results; Operator and upstream checks still required; Reassessment-specific coverage and assumptions; Main repository migration verification; Source preservation and environment; Launch and functional evidence; Failures, warnings and limits; Security and remaining integration; Follow-up: local demo toolchain setup; Follow-up: real-service readiness and functionality.
 
-#### [workstation/docs/integration/main-repository-migration.md](../workstation/docs/integration/main-repository-migration.md)
+#### [workstation/docs/integration/main-repository-migration.md](../../workstation/docs/integration/main-repository-migration.md)
 
 - **Title:** Main repository migration and contract assessment
 - **Snapshot:** 13,106 bytes; SHA-256 `256989927e030d81`.
 - **Coverage:** Provenance and scope; Migration map; Current authority and historical conflicts; Contract classification; A. Console-local contracts; B. Candidate cross-system contracts retained locally; C. Concepts already represented under common; D. Version, vocabulary and semantic conflicts; Preserved safety and implementation boundaries.
 
-#### [workstation/docs/integration/upstream-alice.md](../workstation/docs/integration/upstream-alice.md)
+#### [workstation/docs/integration/upstream-alice.md](../../workstation/docs/integration/upstream-alice.md)
 
 - **Title:** Console contract reference for upstream ALICE
 - **Snapshot:** 13,122 bytes; SHA-256 `7cc2459cd197d0d0`.
 - **Coverage:** Current product authority and legacy compatibility; Inbound events; Outbound automatic clarification; Outbound technician action; Transport integration; What is implemented and what is mocked; Reassessment exchange and delivery constraints.
 
-#### [workstation/services/biometrics/README.md](../workstation/services/biometrics/README.md)
+#### [workstation/services/biometrics/README.md](../../workstation/services/biometrics/README.md)
 
 - **Title:** ALICE face identity service
 - **Snapshot:** 1,860 bytes; SHA-256 `24698700faad1335`.
@@ -1041,20 +1042,20 @@ All 37 tracked Markdown sources were included in the source inventory. Descripti
 
 ### Appendix B. Original 118-task registry and supplemental requirements
 
-Copied from [implementation-tracker.md](implementation-tracker.md) at this snapshot, preserving task IDs, labels, statuses, and evidence wording. Its declared totals are **12 Done component, 25 Partial, and 81 Planned**. These are not product-readiness percentages. Older references to an external console are historical; sections 1–3 of this handoff explain its now-merged location. The supplemental requirements are separate from the original 118 counts.
+Copied from [implementation-tracker.md](../implementation-tracker.md) at this snapshot, preserving task IDs, labels, statuses, and evidence wording. Its declared totals are **12 Done component, 25 Partial, and 81 Planned**. These are not product-readiness percentages. Older references to an external console are historical; sections 1–3 of this handoff explain its now-merged location. The supplemental requirements are separate from the original 118 counts.
 
 #### Shared contracts (001–009)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 001 | Define Agent Action Request Schema | Partial | [Internal feature-request shape](../common/schemas/anomaly_feature_input.json) is validated; the public [action-request schema](../common/schemas/action_request.json) is still an empty skeleton. |
-| 002 | Define Context Push-Back Schema | Planned | The core [challenge skeleton](../common/schemas/challenge.json) is empty. The external console reports `alice.context_request`; cross-system schema agreement and real producer/routing remain. |
-| 003 | Define Agent Context Response Schema | Planned | No accepted core agent context-response contract exists. The [external console](technician-console-integration.md) reports a local `alice.agent_response` schema; exchange and adapter validation remain. |
-| 004 | Define Policy Package Schema | Planned | The [package manifest skeleton](../common/schemas/package_manifest.json) is empty. This original policy task now covers the signed authorized-permissions package; existing code keys have not been renamed. |
-| 005 | Define Normal Operations Package Schema | Partial | [Baseline payload schema](../common/schemas/anomaly_baseline.json) exists. The signed normal-operations package envelope, manifest and lifecycle are not defined by that payload schema. |
+| 001 | Define Agent Action Request Schema | Partial | [Internal feature-request shape](../../common/schemas/anomaly_feature_input.json) is validated; the public [action-request schema](../../common/schemas/action_request.json) is still an empty skeleton. |
+| 002 | Define Context Push-Back Schema | Planned | The core [challenge skeleton](../../common/schemas/challenge.json) is empty. The external console reports `alice.context_request`; cross-system schema agreement and real producer/routing remain. |
+| 003 | Define Agent Context Response Schema | Planned | No accepted core agent context-response contract exists. The [external console](../integration/technician-console.md) reports a local `alice.agent_response` schema; exchange and adapter validation remain. |
+| 004 | Define Policy Package Schema | Planned | The [package manifest skeleton](../../common/schemas/package_manifest.json) is empty. This original policy task now covers the signed authorized-permissions package; existing code keys have not been renamed. |
+| 005 | Define Normal Operations Package Schema | Partial | [Baseline payload schema](../../common/schemas/anomaly_baseline.json) exists. The signed normal-operations package envelope, manifest and lifecycle are not defined by that payload schema. |
 | 006 | Define User Permissions Schema | Planned | No permissions-package or user-permissions schema is implemented. |
 | 007 | Define Local Telemetry Schema | Planned | Trusted history input is defined, but the general telemetry/sensor contract is not. |
-| 008 | Define Decision Output Schema | Partial | [Nested anomaly result](../common/schemas/anomaly_result.json) and [validator](../dcamr/anomaly_engine/contract.py) exist; the [core complete decision record](../common/schemas/decision_record.json) is empty. The reported console `alice.decision` requires an agreed adapter, not a guessed payload. |
+| 008 | Define Decision Output Schema | Partial | [Nested anomaly result](../../common/schemas/anomaly_result.json) and [validator](../../dcamr/anomaly_engine/contract.py) exist; the [core complete decision record](../../common/schemas/decision_record.json) is empty. The reported console `alice.decision` requires an agreed adapter, not a guessed payload. |
 | 009 | Define Reconciliation Event Schema | Planned | No core reconciliation-event producer/contract exists. The console reports later annotations against immutable decisions; direct Pi/enterprise integration remains. |
 
 #### Initial package loading and trust (010–014)
@@ -1064,100 +1065,100 @@ Copied from [implementation-tracker.md](implementation-tracker.md) at this snaps
 | 010 | Load Policy Data from SD Card | Planned | Desired medium/path: USB `permissions/`. No discovery, authorized-permissions package load or activation exists; legacy policy keys/paths remain unchanged. |
 | 011 | Load Normal Operations Data from SD Card | Planned | Current medium: USB `normal_behavior/`. The baseline byte loader exists, but no removable-media package load path is implemented. |
 | 012 | Load User Permissions from SD Card | Planned | Desired permissions input is USB `permissions/`; trusted user/agent identity and delegated permissions contracts/loaders remain unimplemented. |
-| 013 | Verify Package Signatures | Planned | Expected byte-digest checks are not signature/issuer verification; [package verifier](../dcamr/packages/package_verifier.py) remains a skeleton. |
-| 014 | Validate Package Versions | Partial | [Schema/profile versions](../dcamr/anomaly_engine/feature_validation.py) and baseline labels are checked. Package freshness, rollback prevention and compatible activation are not implemented. |
+| 013 | Verify Package Signatures | Planned | Expected byte-digest checks are not signature/issuer verification; [package verifier](../../dcamr/packages/package_verifier.py) remains a skeleton. |
+| 014 | Validate Package Versions | Partial | [Schema/profile versions](../../dcamr/anomaly_engine/feature_validation.py) and baseline labels are checked. Package freshness, rollback prevention and compatible activation are not implemented. |
 
 #### Request admission and policy checks (015–024)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 015 | Normalize Incoming Agent Requests | Partial | [Feature validation and endpoint normalization](../dcamr/anomaly_engine/feature_validation.py) exist. OFFLINE authenticated admission, user accountability and canonical request hashing remain; ONLINE feeds use a separate observed-activity contract. |
-| 016 | Identify Agent | Partial | [Builder](../dcamr/anomaly_engine/features.py) checks request/subject identity agreement and baseline registration. Caller authentication is still an external prerequisite. |
-| 017 | Identify Mission | Partial | [Builder](../dcamr/anomaly_engine/features.py) checks the bound mission ID and role/mission profile scope; independent mission authorization is not implemented. |
-| 018 | Identify Requested Action | Partial | [Builder](../dcamr/anomaly_engine/features.py) resolves the normalized action against the fixed five-action catalog. The public request/admission path remains. |
-| 019 | Identify Target Resource | Partial | [Builder](../dcamr/anomaly_engine/features.py) identifies and compares the normalized target; the public request/admission path remains. |
-| 020 | Identify Requested Parameters | Partial | [Builder](../dcamr/anomaly_engine/features.py) validates empty diagnostic parameters or exact outbound endpoint parameters. Other action domains and public admission remain. |
+| 015 | Normalize Incoming Agent Requests | Partial | [Feature validation and endpoint normalization](../../dcamr/anomaly_engine/feature_validation.py) exist. OFFLINE authenticated admission, user accountability and canonical request hashing remain; ONLINE feeds use a separate observed-activity contract. |
+| 016 | Identify Agent | Partial | [Builder](../../dcamr/anomaly_engine/features.py) checks request/subject identity agreement and baseline registration. Caller authentication is still an external prerequisite. |
+| 017 | Identify Mission | Partial | [Builder](../../dcamr/anomaly_engine/features.py) checks the bound mission ID and role/mission profile scope; independent mission authorization is not implemented. |
+| 018 | Identify Requested Action | Partial | [Builder](../../dcamr/anomaly_engine/features.py) resolves the normalized action against the fixed five-action catalog. The public request/admission path remains. |
+| 019 | Identify Target Resource | Partial | [Builder](../../dcamr/anomaly_engine/features.py) identifies and compares the normalized target; the public request/admission path remains. |
+| 020 | Identify Requested Parameters | Partial | [Builder](../../dcamr/anomaly_engine/features.py) validates empty diagnostic parameters or exact outbound endpoint parameters. Other action domains and public admission remain. |
 | 021 | Check Agent Permissions | Planned | OFFLINE permissions checks belong to the unimplemented admission/fusion path; profile membership is not permission. ONLINE enterprise systems retain direct control. |
-| 022 | Check Mission Scope | Planned | Behavioral profile matching is not policy mission authorization; [policy engine](../dcamr/policy_engine/policy_engine.py) remains a skeleton. |
-| 023 | Check Hard Deny Rules | Planned | Hard-deny precedence is documented but [policy evaluation](../dcamr/policy_engine/policy_engine.py) is not implemented. |
-| 024 | Check Approval-Required Rules | Planned | Mandatory-review requirements are documented but [policy evaluation](../dcamr/policy_engine/policy_engine.py) is not implemented. |
+| 022 | Check Mission Scope | Planned | Behavioral profile matching is not policy mission authorization; [policy engine](../../dcamr/policy_engine/policy_engine.py) remains a skeleton. |
+| 023 | Check Hard Deny Rules | Planned | Hard-deny precedence is documented but [policy evaluation](../../dcamr/policy_engine/policy_engine.py) is not implemented. |
+| 024 | Check Approval-Required Rules | Planned | Mandatory-review requirements are documented but [policy evaluation](../../dcamr/policy_engine/policy_engine.py) is not implemented. |
 
 #### Behavioral features (025–036)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 025 | Check Known Agent Status | Done component | [Baseline selection](../dcamr/anomaly_engine/baseline.py) and [tests](../tests/test_feature_builder.py) distinguish a registered agent from cohort fallback without erasing novelty. |
-| 026 | Check Known Target Status | Done component | [Builder](../dcamr/anomaly_engine/features.py) and [tests](../tests/test_feature_builder.py) check the complete baseline target table and selected profile. |
-| 027 | Check Known Action Status | Done component | [Builder](../dcamr/anomaly_engine/features.py) and [tests](../tests/test_feature_builder.py) distinguish supported actions with positive versus zero normal counts. |
-| 028 | Build Behavioral Feature Vector | Done component | [Fixed 11-feature builder](../dcamr/anomaly_engine/features.py) and [five replay fixtures](../tests/fixtures/features/README.md) produce bounded immutable vectors. |
-| 029 | Build Time-Based Features | Partial | [Five-minute history counts and time boundaries](../dcamr/anomaly_engine/sequence.py) exist. Operating-window features are deliberately outside the current profile. |
-| 030 | Build Target-Novelty Features | Done component | [Builder](../dcamr/anomaly_engine/features.py) exposes target/profile-target novelty and exact destination-relationship novelty; [tests](../tests/test_feature_builder.py) cover these comparisons. |
-| 031 | Build Action-Novelty Features | Done component | [Builder](../dcamr/anomaly_engine/features.py) exposes action-count novelty; missing baseline data is distinct from an explicit zero count. |
-| 032 | Build Agent-Novelty Features | Done component | [Builder](../dcamr/anomaly_engine/features.py) preserves `agent_known=0` and `AGENT_UNSEEN` for new authenticated agents using a valid cohort. |
-| 033 | Build Mission-Consistency Features | Partial | [Profile selection](../dcamr/anomaly_engine/baseline.py) and [history scoping](../dcamr/anomaly_engine/sequence.py) bind role, mission type and mission ID. Policy mission-scope enforcement remains. |
-| 034 | Build Action-Sequence Features | Done component | [Sequence extraction](../dcamr/anomaly_engine/sequence.py) and [tests](../tests/test_feature_builder.py) derive predecessor masks and transition frequency with explicit completeness/order rules. |
-| 035 | Build Physical Sensor Features | Planned | [Generic named numeric inputs](contextual-behavior-model.md) validate units, time and provenance. Raw ESP acquisition, voltage conversion and sensor/history feature extraction still need the actual device contract and data; cyber columns remain unchanged. |
-| 036 | Build Local Evidence Features | Planned | Evidence sufficiency remains with DCAMR fusion; the [evidence component](../dcamr/evidence/evidence_interface.py) is a skeleton. |
+| 025 | Check Known Agent Status | Done component | [Baseline selection](../../dcamr/anomaly_engine/baseline.py) and [tests](../../tests/test_feature_builder.py) distinguish a registered agent from cohort fallback without erasing novelty. |
+| 026 | Check Known Target Status | Done component | [Builder](../../dcamr/anomaly_engine/features.py) and [tests](../../tests/test_feature_builder.py) check the complete baseline target table and selected profile. |
+| 027 | Check Known Action Status | Done component | [Builder](../../dcamr/anomaly_engine/features.py) and [tests](../../tests/test_feature_builder.py) distinguish supported actions with positive versus zero normal counts. |
+| 028 | Build Behavioral Feature Vector | Done component | [Fixed 11-feature builder](../../dcamr/anomaly_engine/features.py) and [five replay fixtures](../../tests/fixtures/features/README.md) produce bounded immutable vectors. |
+| 029 | Build Time-Based Features | Partial | [Five-minute history counts and time boundaries](../../dcamr/anomaly_engine/sequence.py) exist. Operating-window features are deliberately outside the current profile. |
+| 030 | Build Target-Novelty Features | Done component | [Builder](../../dcamr/anomaly_engine/features.py) exposes target/profile-target novelty and exact destination-relationship novelty; [tests](../../tests/test_feature_builder.py) cover these comparisons. |
+| 031 | Build Action-Novelty Features | Done component | [Builder](../../dcamr/anomaly_engine/features.py) exposes action-count novelty; missing baseline data is distinct from an explicit zero count. |
+| 032 | Build Agent-Novelty Features | Done component | [Builder](../../dcamr/anomaly_engine/features.py) preserves `agent_known=0` and `AGENT_UNSEEN` for new authenticated agents using a valid cohort. |
+| 033 | Build Mission-Consistency Features | Partial | [Profile selection](../../dcamr/anomaly_engine/baseline.py) and [history scoping](../../dcamr/anomaly_engine/sequence.py) bind role, mission type and mission ID. Policy mission-scope enforcement remains. |
+| 034 | Build Action-Sequence Features | Done component | [Sequence extraction](../../dcamr/anomaly_engine/sequence.py) and [tests](../../tests/test_feature_builder.py) derive predecessor masks and transition frequency with explicit completeness/order rules. |
+| 035 | Build Physical Sensor Features | Planned | [Generic named numeric inputs](../architecture/contextual-behavior-model.md) validate units, time and provenance. Raw ESP acquisition, voltage conversion and sensor/history feature extraction still need the actual device contract and data; cyber columns remain unchanged. |
+| 036 | Build Local Evidence Features | Planned | Evidence sufficiency remains with DCAMR fusion; the [evidence component](../../dcamr/evidence/evidence_interface.py) is a skeleton. |
 
 #### Model and sequence scoring (037–044)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 037 | Train Isolation Forest | Done component | [Mac training pipeline](../lab/anomaly_training.py) and [actual-fit tests](../tests/test_anomaly_training.py) fit a bounded Isolation Forest on synthetic normal sessions; [candidate-002](reports/anomaly-lab/candidate-002/training-report.json) is an in-memory lab fit, not an accepted deployment model. |
-| 038 | Save Isolation Forest Model | Planned | A real model was fitted in memory, but no fitted artifact was persisted. [JSON run outputs](reports/anomaly-lab/candidate-002/training-report.json) are not a deployable model; format and trusted loading remain pending. |
+| 037 | Train Isolation Forest | Done component | [Mac training pipeline](../../lab/anomaly_training.py) and [actual-fit tests](../../tests/test_anomaly_training.py) fit a bounded Isolation Forest on synthetic normal sessions; [candidate-002](../reports/anomaly-lab/candidate-002/training-report.json) is an in-memory lab fit, not an accepted deployment model. |
+| 038 | Save Isolation Forest Model | Planned | A real model was fitted in memory, but no fitted artifact was persisted. [JSON run outputs](../reports/anomaly-lab/candidate-002/training-report.json) are not a deployable model; format and trusted loading remain pending. |
 | 039 | Load Isolation Forest Model on Boot | Planned | No trusted artifact loader, boot integration or model worker exists. |
-| 040 | Score Incoming Requests | Partial | [Contextual scorer](../dcamr/anomaly_engine/contextual_model.py) now assesses captured PRE/POST observations using exact-context forests and frozen references; [cyber lab](../lab/anomaly_training.py) remains. Live request transport, supervised Pi worker and canonical result adapter remain. |
-| 041 | Calculate Anomaly Percentile | Done component | [Rank mapper](../dcamr/anomaly_engine/scoring.py) and [tests](../tests/test_anomaly_training.py) map cyber scores against 1,200 frozen normal calibration scores. The [completed separate-reference experiment](anomaly-training.md) used 1,000 distinct normal source requests per family; within-session correlation remains, and no reference is accepted for deployment. |
-| 042 | Calculate Individual Anomaly Factors | Partial | [Cyber comparisons](../dcamr/anomaly_engine/features.py) and [contextual training-range factors](../dcamr/anomaly_engine/contextual_model.py) retain source/timing and deviations, including changed constant features with LOW ML bands. These are observations, not learned attribution; final fusion remains. |
-| 043 | Build Action-Sequence Model | Partial | [Validated transition-count tables](../dcamr/anomaly_engine/baseline.py) and [synthetic rows](../tests/fixtures/features/README.md) exist; no sequence-training pipeline or learned sequence artifact exists. |
-| 044 | Score Action Sequences | Done component | [History component](../dcamr/anomaly_engine/sequence.py) computes unsmoothed transition frequency for a complete row and masks no-predecessor cases. This is not an attack probability or authorization score. |
+| 040 | Score Incoming Requests | Partial | [Contextual scorer](../../dcamr/anomaly_engine/contextual_model.py) now assesses captured PRE/POST observations using exact-context forests and frozen references; [cyber lab](../../lab/anomaly_training.py) remains. Live request transport, supervised Pi worker and canonical result adapter remain. |
+| 041 | Calculate Anomaly Percentile | Done component | [Rank mapper](../../dcamr/anomaly_engine/scoring.py) and [tests](../../tests/test_anomaly_training.py) map cyber scores against 1,200 frozen normal calibration scores. The [completed separate-reference experiment](../guides/anomaly-training.md) used 1,000 distinct normal source requests per family; within-session correlation remains, and no reference is accepted for deployment. |
+| 042 | Calculate Individual Anomaly Factors | Partial | [Cyber comparisons](../../dcamr/anomaly_engine/features.py) and [contextual training-range factors](../../dcamr/anomaly_engine/contextual_model.py) retain source/timing and deviations, including changed constant features with LOW ML bands. These are observations, not learned attribution; final fusion remains. |
+| 043 | Build Action-Sequence Model | Partial | [Validated transition-count tables](../../dcamr/anomaly_engine/baseline.py) and [synthetic rows](../../tests/fixtures/features/README.md) exist; no sequence-training pipeline or learned sequence artifact exists. |
+| 044 | Score Action Sequences | Done component | [History component](../../dcamr/anomaly_engine/sequence.py) computes unsmoothed transition frequency for a complete row and masks no-predecessor cases. This is not an attack probability or authorization score. |
 
 #### Decision fusion and context exchange (045–057)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 045 | Combine Policy and Anomaly Results | Planned | The [decision-model skeleton](../dcamr/decision_model.py) is empty; no OFFLINE permissions/anomaly fusion runs. ONLINE enterprise actions do not require a Pi authorization decision. |
-| 046 | Define ALLOW Logic | Planned | [Current PRD](prds/ALICE-DCAMR-PRD.md) defines the OFFLINE authority boundary; executable ALLOW logic and endpoint binding remain. |
-| 047 | Define REQUEST_CONTEXT Logic | Planned | [Current PRD](prds/ALICE-DCAMR-PRD.md) defines OFFLINE context escalation; executable core push-back/fusion, one challenge authority and bounded attempts remain. |
-| 048 | Define HOLD Logic | Planned | [Current PRD](prds/ALICE-DCAMR-PRD.md) defines OFFLINE blocking/review; high-anomaly context-versus-hold specifics and executable fusion remain. |
-| 049 | Define DENY Logic | Planned | [Current PRD](prds/ALICE-DCAMR-PRD.md) requires hard-deny precedence for local governance; no executable core denial/enforcement path exists. |
-| 050 | Trigger Automated Context Push-Back | Planned | The core [challenge component](../dcamr/challenge/challenge.py) is empty. Console mock automation is reported separately; real OFFLINE agent routing and a single challenge authority remain. |
+| 045 | Combine Policy and Anomaly Results | Planned | The [decision-model skeleton](../../dcamr/decision_model.py) is empty; no OFFLINE permissions/anomaly fusion runs. ONLINE enterprise actions do not require a Pi authorization decision. |
+| 046 | Define ALLOW Logic | Planned | [Current PRD](../prds/ALICE-DCAMR-PRD.md) defines the OFFLINE authority boundary; executable ALLOW logic and endpoint binding remain. |
+| 047 | Define REQUEST_CONTEXT Logic | Planned | [Current PRD](../prds/ALICE-DCAMR-PRD.md) defines OFFLINE context escalation; executable core push-back/fusion, one challenge authority and bounded attempts remain. |
+| 048 | Define HOLD Logic | Planned | [Current PRD](../prds/ALICE-DCAMR-PRD.md) defines OFFLINE blocking/review; high-anomaly context-versus-hold specifics and executable fusion remain. |
+| 049 | Define DENY Logic | Planned | [Current PRD](../prds/ALICE-DCAMR-PRD.md) requires hard-deny precedence for local governance; no executable core denial/enforcement path exists. |
+| 050 | Trigger Automated Context Push-Back | Planned | The core [challenge component](../../dcamr/challenge/challenge.py) is empty. Console mock automation is reported separately; real OFFLINE agent routing and a single challenge authority remain. |
 | 051 | Receive Agent Context Response | Planned | No real core agent context-response receiver runs. Console mock response ingestion does not complete authenticated upstream delivery. |
 | 052 | Validate Context Response | Planned | Core context response admission/correlation remains unimplemented; console-local schema checks are reported evidence, not completed cross-system validation. |
 | 053 | Verify Context Evidence Locally | Planned | No local evidence authenticity, relevance or freshness verifier is implemented. |
-| 054 | Recalculate Features After Context | Partial | [Builder/tests](../tests/test_feature_builder.py) preserve context-round counting and reject later-history substitution. The context workflow and evaluator re-dispatch are not implemented. |
+| 054 | Recalculate Features After Context | Partial | [Builder/tests](../../tests/test_feature_builder.py) preserve context-round counting and reject later-history substitution. The context workflow and evaluator re-dispatch are not implemented. |
 | 055 | Recalculate Anomaly Score | Planned | No live model scorer or context re-scoring adapter exists. |
 | 056 | Re-run Policy Evaluation | Planned | No initial or repeated policy evaluation exists. |
-| 057 | Produce Final Decision | Planned | No authoritative OFFLINE final decision is produced by the [fusion skeleton](../dcamr/decision_model.py). ONLINE enterprise decisions are observed/audited through a separate feed contract. |
+| 057 | Produce Final Decision | Planned | No authoritative OFFLINE final decision is produced by the [fusion skeleton](../../dcamr/decision_model.py). ONLINE enterprise decisions are observed/audited through a separate feed contract. |
 
 #### Provenance and audit (058–065)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 058 | Generate Decision Provenance | Partial | [Immutable feature provenance](../dcamr/anomaly_engine/feature_types.py) and [anomaly provenance fields](../common/schemas/anomaly_result.json) exist; final DCAMR decision provenance is not generated. |
-| 059 | Record Source of Every Decision Factor | Partial | [Builder](../dcamr/anomaly_engine/features.py) supplies a source for every feature. Policy, evidence and final fused decision factors are not yet produced. |
-| 060 | Record Model Metadata | Partial | [Mac report](reports/anomaly-lab/candidate-002/training-report.json) records actual fit parameters, tree counts and runtime versions; [anomaly contract](../common/schemas/anomaly_result.json) supports binding metadata. No persisted/signed model artifact or live decision metadata exists. |
+| 058 | Generate Decision Provenance | Partial | [Immutable feature provenance](../../dcamr/anomaly_engine/feature_types.py) and [anomaly provenance fields](../../common/schemas/anomaly_result.json) exist; final DCAMR decision provenance is not generated. |
+| 059 | Record Source of Every Decision Factor | Partial | [Builder](../../dcamr/anomaly_engine/features.py) supplies a source for every feature. Policy, evidence and final fused decision factors are not yet produced. |
+| 060 | Record Model Metadata | Partial | [Mac report](../reports/anomaly-lab/candidate-002/training-report.json) records actual fit parameters, tree counts and runtime versions; [anomaly contract](../../common/schemas/anomaly_result.json) supports binding metadata. No persisted/signed model artifact or live decision metadata exists. |
 | 061 | Record Policy Metadata | Planned | No live authorized-permission result or source recorder exists in core. Original task label and existing policy keys remain unchanged. |
-| 062 | Record Baseline Metadata | Done component | [Baseline loader](../dcamr/anomaly_engine/baseline.py) records payload identity/version and verified expected byte digest; [FeatureBatch](../dcamr/anomaly_engine/feature_types.py) preserves them. Enclosing package identity stays separate. |
+| 062 | Record Baseline Metadata | Done component | [Baseline loader](../../dcamr/anomaly_engine/baseline.py) records payload identity/version and verified expected byte digest; [FeatureBatch](../../dcamr/anomaly_engine/feature_types.py) preserves them. Enclosing package identity stays separate. |
 | 063 | Record Evidence Metadata | Planned | No live evidence-verification result or evidence-metadata recorder exists. |
 | 064 | Record Connectivity State | Planned | No authoritative connectivity/authority state recorder exists. An ONLINE connection is not proof of endpoint control or completed synchronization. |
-| 065 | Write Tamper-Evident Audit Record | Planned | The core [audit writer](../dcamr/audit/audit_log.py) is empty. Required ONLINE feed audit and every OFFLINE request/decision/attempt/result have no tamper-evident mission store yet; console-local audit is separate. |
+| 065 | Write Tamper-Evident Audit Record | Planned | The core [audit writer](../../dcamr/audit/audit_log.py) is empty. Required ONLINE feed audit and every OFFLINE request/decision/attempt/result have no tamper-evident mission store yet; console-local audit is separate. |
 
 #### Dashboard, technician and execution (066–076)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 066 | Export Raw Decision Data to Dashboard | Partial | [Serializable anomaly contract](../dcamr/anomaly_engine/contract.py) and [mock replay](../lab/replay_anomaly_fixtures.py) exist. The external console renders supplied fixtures, but no complete live core decision/event transport is connected. |
+| 066 | Export Raw Decision Data to Dashboard | Partial | [Serializable anomaly contract](../../dcamr/anomaly_engine/contract.py) and [mock replay](../../lab/replay_anomaly_fixtures.py) exist. The external console renders supplied fixtures, but no complete live core decision/event transport is connected. |
 | 067 | Export Live Pi Status to Dashboard | Planned | No actual Pi status endpoint or authenticated telemetry transport is connected to the console; reported console status views currently consume fixtures. |
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | No real core technician-action receiver exists. The console reports local action construction/persistence; authenticated delivery and receipts remain. |
 | 070 | Require Technician Authentication for Approval | Planned | Console local ArcFace enrollment/login and approval grants are reported. Core-verifiable, fresh, one-use proof bound to current decision/request/authority remains; live approval camera acceptance is pending. |
-| 071 | Execute Approved Action | Planned | The [enforcement gateway](../dcamr/enforcement/enforcement_gateway.py) is empty. OFFLINE local execution requires the endpoint fence; ONLINE enterprise control remains direct. |
+| 071 | Execute Approved Action | Planned | The [enforcement gateway](../../dcamr/enforcement/enforcement_gateway.py) is empty. OFFLINE local execution requires the endpoint fence; ONLINE enterprise control remains direct. |
 | 072 | Record Technician Decision | Planned | No core mission-audit technician-decision recorder exists. The external console reports local records; durable delivery/acknowledgement to core remains. |
 | 073 | Record Action Execution Result | Planned | The builder consumes supplied execution history; core does not execute or persist results. A console receipt currently reports NOT_EXECUTED and is not controller confirmation. |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |
 | 075 | Compare Expected vs Actual Result | Planned | No expected-versus-observed execution-outcome comparison exists. |
-| 076 | Flag Post-Execution Anomalies | Partial | [POST_ACTION scoring](../dcamr/anomaly_engine/contextual_model.py) requires a separately trained profile/context and at least one temporally valid resulting-state feature. [Tests](../tests/test_contextual_model.py) cover post timing and scoring; real execution/sensor ingestion, outcome validation and response remain unimplemented. |
+| 076 | Flag Post-Execution Anomalies | Partial | [POST_ACTION scoring](../../dcamr/anomaly_engine/contextual_model.py) requires a separately trained profile/context and at least one temporally valid resulting-state feature. [Tests](../../tests/test_contextual_model.py) cover post timing and scoring; real execution/sensor ingestion, outcome validation and response remain unimplemented. |
 
 #### DDIL and reconciliation (077–092)
 
@@ -1166,7 +1167,7 @@ Copied from [implementation-tracker.md](implementation-tracker.md) at this snaps
 | 077 | Detect Cloud Connectivity Loss | Planned | No cloud connectivity detector exists. |
 | 078 | Enter DDIL Mode | Planned | No automatic failover/state machine or endpoint authority transfer exists; loss of cloud reachability cannot by itself authorize local control. |
 | 079 | Continue Local Policy Enforcement | Planned | OFFLINE authorized-permission enforcement remains unimplemented. ONLINE enterprise direct control is intentionally not replaced by a Pi policy gate. |
-| 080 | Continue Local Anomaly Scoring | Partial | [Local lab scoring](../lab/anomaly_training.py) runs real Isolation Forest offline, alongside [feature checks](../tests/test_feature_builder.py). Live Pi inference for OFFLINE governance and authority-mode orchestration remain unimplemented. |
+| 080 | Continue Local Anomaly Scoring | Partial | [Local lab scoring](../../lab/anomaly_training.py) runs real Isolation Forest offline, alongside [feature checks](../../tests/test_feature_builder.py). Live Pi inference for OFFLINE governance and authority-mode orchestration remain unimplemented. |
 | 081 | Continue Local Context Push-Back | Planned | No real OFFLINE core context exchange runs. Console fixture automation does not establish agent routing, bounded retries or a single authoritative challenge loop. |
 | 082 | Continue Local Dashboard Output | Planned | No real core/console event transport exists in either product mode. The external console reports local UI and DDIL fixture behavior separately. |
 | 083 | Cache Unverified External Evidence Requests | Planned | No bounded persistent external-evidence request cache exists. |
@@ -1175,7 +1176,7 @@ Copied from [implementation-tracker.md](implementation-tracker.md) at this snaps
 | 086 | Reconnect to SIEM | Planned | The SIEM connector is empty; direct Pi/enterprise source authentication, replay/cursors and reconnection remain. |
 | 087 | Reconnect to EDR | Planned | The EDR connector is empty; direct Pi/enterprise source authentication, replay/cursors and reconnection remain. |
 | 088 | Fetch Pending External Evidence | Planned | No direct Pi/enterprise pending-evidence fetch workflow exists; the technician is not the manual relay. |
-| 089 | Reconcile Local Evidence with Cloud Evidence | Planned | The core [reconciliation component](../dcamr/reconcile/reconciliation.py) is empty. Direct Pi comparison/upload and append-only findings remain. |
+| 089 | Reconcile Local Evidence with Cloud Evidence | Planned | The core [reconciliation component](../../dcamr/reconcile/reconciliation.py) is empty. Direct Pi comparison/upload and append-only findings remain. |
 | 090 | Detect Evidence Discrepancies | Planned | No local/cloud evidence discrepancy detector exists. |
 | 091 | Append Reconciliation Results | Planned | No core reconciliation appender or persistent mission-audit integration exists. Console annotation display is reported; original decisions must remain intact. |
 | 092 | Preserve Original Decision History | Planned | Core feature/dispatch objects are immutable, but persistent mission-decision history is absent. The external console reports its own immutable cache/lineage; that does not complete core audit. |
@@ -1191,13 +1192,13 @@ Copied from [implementation-tracker.md](implementation-tracker.md) at this snaps
 | 097 | Validate Updated Policy Package | Planned | No updated authorized-permissions signature, validity or compatibility verifier exists; the original policy label and current code keys remain. |
 | 098 | Write Updated Policy Package to SD Card | Planned | Desired path is USB `permissions/`; no update writer exists. Existing policy-named code is not migrated by this documentation change. |
 | 099 | Fetch Updated Normal Operations Package | Planned | No authenticated direct Pi/enterprise normal-behavior update fetch path exists. |
-| 100 | Validate Updated Normal Operations Package | Partial | [Baseline payload validation](../dcamr/anomaly_engine/baseline.py) checks digest, schema and table consistency. An updated package still needs signature/issuer/expiry checks and activation handling. |
+| 100 | Validate Updated Normal Operations Package | Partial | [Baseline payload validation](../../dcamr/anomaly_engine/baseline.py) checks digest, schema and table consistency. An updated package still needs signature/issuer/expiry checks and activation handling. |
 | 101 | Write Updated Normal Operations Package to SD Card | Planned | No USB `normal_behavior/` update writer exists; direct Pi sync is selected, while verified release and failure handling remain. |
 | 102 | Reload Updated Permissions | Planned | No atomic permissions activation/reload path exists. |
 | 103 | Reload Updated Policy | Planned | No atomic authorized-permissions activation/reload exists; the original task label and current policy keys remain legacy names. |
-| 104 | Reload Updated Baseline | Partial | [Loader](../dcamr/anomaly_engine/baseline.py) creates a fresh immutable payload instance. USB watching, atomic replacement and in-flight evaluation coordination are not implemented. |
+| 104 | Reload Updated Baseline | Partial | [Loader](../../dcamr/anomaly_engine/baseline.py) creates a fresh immutable payload instance. USB watching, atomic replacement and in-flight evaluation coordination are not implemented. |
 | 105 | Version All Updated Packages | Planned | Per-payload baseline labels exist; versioning and compatibility across all package types are not implemented. |
-| 106 | Reject Invalid or Tampered Updates | Partial | [Payload digest/schema checks](../dcamr/anomaly_engine/feature_validation.py) reject altered or malformed supplied bytes. Signed update verification, rollback prevention and replacement recovery remain. |
+| 106 | Reject Invalid or Tampered Updates | Partial | [Payload digest/schema checks](../../dcamr/anomaly_engine/feature_validation.py) reject altered or malformed supplied bytes. Signed update verification, rollback prevention and replacement recovery remain. |
 | 107 | Restore Full Connected Decision Context | Planned | No fenced ONLINE return plus direct Pi audit upload, risk/reconciliation append and verified atomic cache refresh exists. ONLINE execution need not wait for every retained audit event to upload, but transfer and backlog state must be explicit. |
 
 #### End-to-end acceptance (108–118)
@@ -1220,7 +1221,7 @@ Copied from [implementation-tracker.md](implementation-tracker.md) at this snaps
 
 These requirements supplement the unchanged original list. **Every item below is
 Planned**, and none is included in the 118-task totals or represents implementation
-progress. The [architecture](prds/ALICE-DCAMR-Architecture.md) and [console integration note](technician-console-integration.md)
+progress. The [architecture](../prds/ALICE-DCAMR-Architecture.md) and [console integration note](../integration/technician-console.md)
 describe the required boundaries; protocol details still need agreement.
 
 | Supplemental ID | Planned requirement | Required acceptance boundary |
@@ -1267,72 +1268,72 @@ The baseline has 288 tracked files. Runtime dependencies, private `.env`, databa
 
 The following zero-byte files identify unfinished boundaries. Empty `__init__.py` and `.gitkeep` marker files are omitted because emptiness alone does not indicate a missing implementation for those markers.
 
-- [agent/action_proposer.py](../agent/action_proposer.py)
-- [agent/agent.py](../agent/agent.py)
-- [agent/challenge_responder.py](../agent/challenge_responder.py)
-- [agent/config/agent.yaml](../agent/config/agent.yaml)
-- [agent/dcamr_client.py](../agent/dcamr_client.py)
-- [agent/investigator.py](../agent/investigator.py)
-- [cloud/edr_connector.py](../cloud/edr_connector.py)
-- [cloud/siem_connector.py](../cloud/siem_connector.py)
-- [common/protocol.py](../common/protocol.py)
-- [common/schemas/action_request.json](../common/schemas/action_request.json)
-- [common/schemas/challenge.json](../common/schemas/challenge.json)
-- [common/schemas/decision_record.json](../common/schemas/decision_record.json)
-- [common/schemas/evidence.json](../common/schemas/evidence.json)
-- [common/schemas/package_manifest.json](../common/schemas/package_manifest.json)
-- [dcamr/anomaly_engine/anomaly_engine.py](../dcamr/anomaly_engine/anomaly_engine.py)
-- [dcamr/api/dashboard_api.py](../dcamr/api/dashboard_api.py)
-- [dcamr/audit/audit_log.py](../dcamr/audit/audit_log.py)
-- [dcamr/challenge/challenge.py](../dcamr/challenge/challenge.py)
-- [dcamr/config/dcamr.yaml](../dcamr/config/dcamr.yaml)
-- [dcamr/decision_model.py](../dcamr/decision_model.py)
-- [dcamr/enforcement/enforcement_gateway.py](../dcamr/enforcement/enforcement_gateway.py)
-- [dcamr/evidence/evidence_interface.py](../dcamr/evidence/evidence_interface.py)
-- [dcamr/main.py](../dcamr/main.py)
-- [dcamr/packages/loader.py](../dcamr/packages/loader.py)
-- [dcamr/packages/package_verifier.py](../dcamr/packages/package_verifier.py)
-- [dcamr/policy_engine/policy_engine.py](../dcamr/policy_engine/policy_engine.py)
-- [dcamr/policy_engine/rules.py](../dcamr/policy_engine/rules.py)
-- [dcamr/provenance/provenance.py](../dcamr/provenance/provenance.py)
-- [dcamr/reconcile/reconciliation.py](../dcamr/reconcile/reconciliation.py)
-- [dcamr/state/local_cache.py](../dcamr/state/local_cache.py)
-- [lab/attacker_sim.py](../lab/attacker_sim.py)
-- [lab/ddil_toggle.py](../lab/ddil_toggle.py)
-- [lab/scenario_runner.py](../lab/scenario_runner.py)
-- [lab/telemetry_generator.py](../lab/telemetry_generator.py)
-- [packages/mission_policy/manifest.json](../packages/mission_policy/manifest.json)
-- [packages/mission_policy/policy.yaml](../packages/mission_policy/policy.yaml)
-- [packages/ops_baseline/baseline.json](../packages/ops_baseline/baseline.json)
-- [packages/ops_baseline/manifest.json](../packages/ops_baseline/manifest.json)
-- [packages/tooling/keys.README](../packages/tooling/keys.README)
-- [packages/tooling/sign_package.py](../packages/tooling/sign_package.py)
-- [packages/tooling/verify_package.py](../packages/tooling/verify_package.py)
-- [protected_systems/firewall_sim.py](../protected_systems/firewall_sim.py)
-- [protected_systems/web01/host_sim.py](../protected_systems/web01/host_sim.py)
-- [tests/test_challenge.py](../tests/test_challenge.py)
-- [tests/test_decision_model.py](../tests/test_decision_model.py)
-- [tests/test_evidence.py](../tests/test_evidence.py)
-- [tests/test_package_verifier.py](../tests/test_package_verifier.py)
-- [tests/test_policy_engine.py](../tests/test_policy_engine.py)
-- [tests/test_reconciliation.py](../tests/test_reconciliation.py)
-- [workstation/backend/dcamr_gateway.py](../workstation/backend/dcamr_gateway.py)
-- [workstation/backend/llm_explainer.py](../workstation/backend/llm_explainer.py)
-- [workstation/backend/server.py](../workstation/backend/server.py)
-- [workstation/dashboard/index.html](../workstation/dashboard/index.html)
-- [workstation/dashboard/package.json](../workstation/dashboard/package.json)
-- [workstation/dashboard/src/App.jsx](../workstation/dashboard/src/App.jsx)
-- [workstation/dashboard/src/DecisionView.jsx](../workstation/dashboard/src/DecisionView.jsx)
-- [workstation/dashboard/src/ProvenanceTable.jsx](../workstation/dashboard/src/ProvenanceTable.jsx)
-- [workstation/dashboard/src/RawDecisionViewer.jsx](../workstation/dashboard/src/RawDecisionViewer.jsx)
-- [workstation/dashboard/src/SwarmView.jsx](../workstation/dashboard/src/SwarmView.jsx)
-- [workstation/dashboard/src/TechnicianControls.jsx](../workstation/dashboard/src/TechnicianControls.jsx)
-- [workstation/dashboard/src/api.js](../workstation/dashboard/src/api.js)
-- [workstation/face_verification/arcface.py](../workstation/face_verification/arcface.py)
-- [workstation/face_verification/camera.py](../workstation/face_verification/camera.py)
-- [workstation/face_verification/enroll.py](../workstation/face_verification/enroll.py)
-- [workstation/face_verification/face_detect.py](../workstation/face_verification/face_detect.py)
-- [workstation/face_verification/verify.py](../workstation/face_verification/verify.py)
+- [agent/action_proposer.py](../../agent/action_proposer.py)
+- [agent/agent.py](../../agent/agent.py)
+- [agent/challenge_responder.py](../../agent/challenge_responder.py)
+- [agent/config/agent.yaml](../../agent/config/agent.yaml)
+- [agent/dcamr_client.py](../../agent/dcamr_client.py)
+- [agent/investigator.py](../../agent/investigator.py)
+- [cloud/edr_connector.py](../../cloud/edr_connector.py)
+- [cloud/siem_connector.py](../../cloud/siem_connector.py)
+- [common/protocol.py](../../common/protocol.py)
+- [common/schemas/action_request.json](../../common/schemas/action_request.json)
+- [common/schemas/challenge.json](../../common/schemas/challenge.json)
+- [common/schemas/decision_record.json](../../common/schemas/decision_record.json)
+- [common/schemas/evidence.json](../../common/schemas/evidence.json)
+- [common/schemas/package_manifest.json](../../common/schemas/package_manifest.json)
+- [dcamr/anomaly_engine/anomaly_engine.py](../../dcamr/anomaly_engine/anomaly_engine.py)
+- [dcamr/api/dashboard_api.py](../../dcamr/api/dashboard_api.py)
+- [dcamr/audit/audit_log.py](../../dcamr/audit/audit_log.py)
+- [dcamr/challenge/challenge.py](../../dcamr/challenge/challenge.py)
+- [dcamr/config/dcamr.yaml](../../dcamr/config/dcamr.yaml)
+- [dcamr/decision_model.py](../../dcamr/decision_model.py)
+- [dcamr/enforcement/enforcement_gateway.py](../../dcamr/enforcement/enforcement_gateway.py)
+- [dcamr/evidence/evidence_interface.py](../../dcamr/evidence/evidence_interface.py)
+- [dcamr/main.py](../../dcamr/main.py)
+- [dcamr/packages/loader.py](../../dcamr/packages/loader.py)
+- [dcamr/packages/package_verifier.py](../../dcamr/packages/package_verifier.py)
+- [dcamr/policy_engine/policy_engine.py](../../dcamr/policy_engine/policy_engine.py)
+- [dcamr/policy_engine/rules.py](../../dcamr/policy_engine/rules.py)
+- [dcamr/provenance/provenance.py](../../dcamr/provenance/provenance.py)
+- [dcamr/reconcile/reconciliation.py](../../dcamr/reconcile/reconciliation.py)
+- [dcamr/state/local_cache.py](../../dcamr/state/local_cache.py)
+- [lab/attacker_sim.py](../../lab/attacker_sim.py)
+- [lab/ddil_toggle.py](../../lab/ddil_toggle.py)
+- [lab/scenario_runner.py](../../lab/scenario_runner.py)
+- [lab/telemetry_generator.py](../../lab/telemetry_generator.py)
+- [packages/mission_policy/manifest.json](../../packages/mission_policy/manifest.json)
+- [packages/mission_policy/policy.yaml](../../packages/mission_policy/policy.yaml)
+- [packages/ops_baseline/baseline.json](../../packages/ops_baseline/baseline.json)
+- [packages/ops_baseline/manifest.json](../../packages/ops_baseline/manifest.json)
+- [packages/tooling/keys.README](../../packages/tooling/keys.README)
+- [packages/tooling/sign_package.py](../../packages/tooling/sign_package.py)
+- [packages/tooling/verify_package.py](../../packages/tooling/verify_package.py)
+- [protected_systems/firewall_sim.py](../../protected_systems/firewall_sim.py)
+- [protected_systems/web01/host_sim.py](../../protected_systems/web01/host_sim.py)
+- [tests/test_challenge.py](../../tests/test_challenge.py)
+- [tests/test_decision_model.py](../../tests/test_decision_model.py)
+- [tests/test_evidence.py](../../tests/test_evidence.py)
+- [tests/test_package_verifier.py](../../tests/test_package_verifier.py)
+- [tests/test_policy_engine.py](../../tests/test_policy_engine.py)
+- [tests/test_reconciliation.py](../../tests/test_reconciliation.py)
+- [workstation/backend/dcamr_gateway.py](../../workstation/backend/dcamr_gateway.py)
+- [workstation/backend/llm_explainer.py](../../workstation/backend/llm_explainer.py)
+- [workstation/backend/server.py](../../workstation/backend/server.py)
+- [workstation/dashboard/index.html](../../workstation/dashboard/index.html)
+- [workstation/dashboard/package.json](../../workstation/dashboard/package.json)
+- [workstation/dashboard/src/App.jsx](../../workstation/dashboard/src/App.jsx)
+- [workstation/dashboard/src/DecisionView.jsx](../../workstation/dashboard/src/DecisionView.jsx)
+- [workstation/dashboard/src/ProvenanceTable.jsx](../../workstation/dashboard/src/ProvenanceTable.jsx)
+- [workstation/dashboard/src/RawDecisionViewer.jsx](../../workstation/dashboard/src/RawDecisionViewer.jsx)
+- [workstation/dashboard/src/SwarmView.jsx](../../workstation/dashboard/src/SwarmView.jsx)
+- [workstation/dashboard/src/TechnicianControls.jsx](../../workstation/dashboard/src/TechnicianControls.jsx)
+- [workstation/dashboard/src/api.js](../../workstation/dashboard/src/api.js)
+- [workstation/face_verification/arcface.py](../../workstation/face_verification/arcface.py)
+- [workstation/face_verification/camera.py](../../workstation/face_verification/camera.py)
+- [workstation/face_verification/enroll.py](../../workstation/face_verification/enroll.py)
+- [workstation/face_verification/face_detect.py](../../workstation/face_verification/face_detect.py)
+- [workstation/face_verification/verify.py](../../workstation/face_verification/verify.py)
 
 ### Appendix D. Refresh procedure for the next upgrade prompt
 
@@ -1349,7 +1350,7 @@ The following zero-byte files identify unfinished boundaries. Empty `__init__.py
 
 #### Cyber feature order
 
-The table below is copied from [the feature guide](anomaly-features.md). Keep this order and feature meaning stable; new physical features require separate/versioned profiles and compatible training/inference rather than insertion into this vector.
+The table below is copied from [the feature guide](../contracts/anomaly-features.md). Keep this order and feature meaning stable; new physical features require separate/versioned profiles and compatible training/inference rather than insertion into this vector.
 
 | Index | Name | Definition |
 | --- | --- | --- |

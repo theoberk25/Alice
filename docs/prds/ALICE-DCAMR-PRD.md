@@ -10,7 +10,7 @@
 
 ## Current decision boundary — technician application
 
-The [Pi assessment contract](../decision-assessment.md) supersedes earlier
+The [Pi assessment contract](../contracts/decision-assessment.md) supersedes earlier
 Pi-owned final-fusion descriptions for the current increment. The Pi supplies
 permission findings, contextual Isolation Forest scores, source provenance,
 review signals and approval blockers. The technician application's local LLM
@@ -257,14 +257,14 @@ The external console reports `alice.decision`, status, agent/response, reconcili
 Its current receipt declares `NOT_EXECUTED`; an `ACCEPTED` submission does not establish that a protected action ran.
 Agree mappings for the four outcomes, permissions/legacy policy keys, score scales, challenges, lineage, remote proof, and execution results.
 
-See [Technician console integration](../technician-console-integration.md) for the source-attributed handoff and unresolved protocol work.
+See [Technician console integration](../integration/technician-console.md) for the source-attributed handoff and unresolved protocol work.
 The console's mock/remote transport and biometric settings are implementation settings, not extra product modes.
 
 ## 8. Demo scope and device direction
 
 The latest likely device is an ESP with lights and a voltage sensor. Jared
 selected before-action and after-action behavioral assessment and will supply
-normal operating data later. The [general contextual model](../contextual-behavior-model.md)
+normal operating data later. The [general contextual model](../architecture/contextual-behavior-model.md)
 now provides the bounded phase/profile interface. Actual sensor/action semantics,
 source adapters, collected baselines and integrated execution remain pending.
 Wazuh is the planned permissions-related context and auditing integration; its
@@ -306,7 +306,7 @@ The console handoff reports 91 default tests plus separate real-service checks; 
 It states that console audit is not tamper-evident and that the app bundle does not include every Python/model/Ollama dependency.
 Live enrollment/login does not demonstrate fresh approval, liveness, a connected Pi, or a complete distributed security boundary.
 
-Details belong in [Anomaly training](../anomaly-training.md), [Feature contract](../anomaly-features.md), and the [Anomaly PRD](anomaly-model-prd.md).
+Details belong in [Anomaly training](../guides/anomaly-training.md), [Feature contract](../contracts/anomaly-features.md), and the [Anomaly PRD](anomaly-model-prd.md).
 This is a hackathon/lab product. Production identity/key governance, liveness, hardened capture, fleet availability, distribution, and enterprise connector robustness remain future work.
 
 ## 11. Product acceptance checklist

@@ -1,6 +1,6 @@
 # Console architecture
 
-ALICE is the whole system; `workstation/` is its technician console subsystem. The main [architecture](../../../docs/prds/ALICE-DCAMR-Architecture.md) and [console integration requirements](../../../docs/technician-console-integration.md) govern product behavior. The preserved dashboard payloads define existing legacy inbound examples, and the Europa image informs only visual craftsmanship.
+ALICE is the whole system; `workstation/` is its technician console subsystem. The main [architecture](../../../docs/prds/ALICE-DCAMR-Architecture.md) and [console integration requirements](../../../docs/integration/technician-console.md) govern product behavior. The preserved dashboard payloads define existing legacy inbound examples, and the Europa image informs only visual craftsmanship.
 
 The existing DDIL/CONNECTED/DEGRADED schema and fixture display are retained. Main product modes are ONLINE (enterprise execution) and OFFLINE (local ALICE execution after controlled transfer). A connection flag, mock/remote transport setting or face match does not establish the current control owner. The authenticated transfer protocol and direct Pi-to-enterprise synchronization remain future integration work; see the [migration assessment](../integration/main-repository-migration.md). The implementation uses its own shield identity, decision workspace, agent network, evidence ledger, and explicit action bar.
 

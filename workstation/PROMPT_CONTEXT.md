@@ -23,7 +23,7 @@ Migrated into `workstation/` on September 5, 2026. The standalone source recorde
 1. **HANDOFF.md** — current implementation inventory, local setup, known gaps, staged backlog and deferred design brief. Subsystem status map; dated machine observations are historical.
 2. **docs/development/verification.md** — actual automated and operator-confirmed evidence. Distinguishes live login from unverified live approval and deployment cases.
 3. **docs/integration/upstream-alice.md** — event/action schemas, mock versus real boundary and outstanding teammate protocol decisions.
-4. **Main repository docs/prds/ALICE-DCAMR-Architecture.md, ALICE-DCAMR-PRD.md, ALICE-DCAMR-PRD-Handoff.md, and docs/technician-console-integration.md** — current system authority. The original externally supplied ALICE.md is historical context and is not required to run the migrated subsystem.
+4. **Main repository docs/prds/ALICE-DCAMR-Architecture.md, ALICE-DCAMR-PRD.md, ALICE-DCAMR-PRD-Handoff.md, and docs/integration/technician-console.md** — current system authority. The original externally supplied ALICE.md is historical context and is not required to run the migrated subsystem.
 5. **The dashboard contract.json**, or the byte-preserved `fixtures/legacy/dashboard-contract.original.txt` — unchanged legacy inbound examples. Despite the extension, the source contains prose and three JSON objects.
 6. **The original detailed repository-build prompt** — historical requirements and acceptance criteria. Current implementation/evidence should prevent duplicate work; unresolved requirements still matter.
 7. **README.md and docs/development/facial-verification-quickstart.md** — working launch/setup flow and current face enrollment procedure.
@@ -66,7 +66,7 @@ For edge integration, provide actual team endpoint/authentication/event/receipt/
 
 Do not attach `.env`, password/token values, native databases, face embeddings, enrollment keys, raw face captures, private runtime logs, model weights, node_modules, Python virtualenvs or Rust build output. Those are unnecessary for crafting prompts. `.env.example` and a nonsecret configuration summary are sufficient.
 
-Start with the [main workstation guide](../docs/workstation.md), [migration assessment](docs/integration/main-repository-migration.md), and [main console integration requirements](../docs/technician-console-integration.md).
+Start with the [main workstation guide](../docs/guides/workstation.md), [migration assessment](docs/integration/main-repository-migration.md), and [main console integration requirements](../docs/integration/technician-console.md).
 
 ## Suggested prompt output structure
 

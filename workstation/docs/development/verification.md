@@ -1,6 +1,6 @@
 # Historical standalone console implementation verification
 
-The checks and operator observations below were recorded on September 5, 2026 for standalone source commit `50de955737a647b856658bf7a5da6f52d15b4a4a` on its original Apple Silicon Mac. They are preserved historical evidence, not claims that this migrated checkout has those dependencies, accounts, services or results. The source is now the `workstation/` subsystem, with simulated upstream infrastructure. See the [main workstation guide](../../../docs/workstation.md) for current migration verification and the [migration assessment](../integration/main-repository-migration.md) for scope. All commands below are relative to `workstation/`.
+The checks and operator observations below were recorded on September 5, 2026 for standalone source commit `50de955737a647b856658bf7a5da6f52d15b4a4a` on its original Apple Silicon Mac. They are preserved historical evidence, not claims that this migrated checkout has those dependencies, accounts, services or results. The source is now the `workstation/` subsystem, with simulated upstream infrastructure. See the [main workstation guide](../../../docs/guides/workstation.md) for current migration verification and the [migration assessment](../integration/main-repository-migration.md) for scope. All commands below are relative to `workstation/`.
 
 ## Executed checks
 
@@ -77,7 +77,7 @@ Three new repository-boundary tests and the migration assessment are additions.
 The original supplied dashboard contract is still byte-identical.
 
 The main root README received a small console section, its existing integration
-agreement received a migration note, and `docs/workstation.md` was added.
+agreement received a migration note, and `docs/guides/workstation.md` was added.
 No existing workstation placeholder or teammate core file changed. No console
 contract was moved to `common/`. The preexisting untracked root `.DS_Store`
 was left alone.

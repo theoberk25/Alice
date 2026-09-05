@@ -1,6 +1,6 @@
 # Console contract reference for upstream ALICE
 
-This is the migrated console's executable-contract reference, subordinate to the main [architecture](../../../docs/prds/ALICE-DCAMR-Architecture.md), [PRD](../../../docs/prds/ALICE-DCAMR-PRD.md), and [console integration requirements](../../../docs/technician-console-integration.md). Paths below are relative to `workstation/`. The [migration assessment](main-repository-migration.md) records contract ownership and unresolved differences. Shared schema promotion and real wiring are not part of the source migration. The console owns identity, explanation, presentation, request-scoped technician controls, and a local record. It does not own ALLOW/HOLD/DENY generation or protected action execution.
+This is the migrated console's executable-contract reference, subordinate to the main [architecture](../../../docs/prds/ALICE-DCAMR-Architecture.md), [PRD](../../../docs/prds/ALICE-DCAMR-PRD.md), and [console integration requirements](../../../docs/integration/technician-console.md). Paths below are relative to `workstation/`. The [migration assessment](main-repository-migration.md) records contract ownership and unresolved differences. Shared schema promotion and real wiring are not part of the source migration. The console owns identity, explanation, presentation, request-scoped technician controls, and a local record. It does not own ALLOW/HOLD/DENY generation or protected action execution.
 
 ```text
 ALICE upstream/core (agent/, dcamr/, cloud/, common/)

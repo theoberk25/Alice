@@ -2,7 +2,7 @@
 
 Standalone source last audited: **September 5, 2026**, at commit `50de955737a647b856658bf7a5da6f52d15b4a4a`. The subsystem now lives in `workstation/` in the main ALICE repository. This handoff preserves that implementation inventory, dated standalone evidence, and remaining work. Local accounts, processes, installed dependencies and test outcomes below describe the original workstation audit; they are not claims that migration provisioned or revalidated them.
 
-Commands and code paths in this document are relative to `workstation/`. See the [main workstation guide](../docs/workstation.md) for current setup and migration verification, and the [migration assessment](docs/integration/main-repository-migration.md) for provenance and contract conflicts. Update evidence when a milestone is completed; do not treat a planned capability as implemented.
+Commands and code paths in this document are relative to `workstation/`. See the [main workstation guide](../docs/guides/workstation.md) for current setup and migration verification, and the [migration assessment](docs/integration/main-repository-migration.md) for provenance and contract conflicts. Update evidence when a milestone is completed; do not treat a planned capability as implemented.
 
 Main repository migration verified September 5, 2026: all 127 source files are
 represented under `workstation/`, with application/security code, existing tests,
@@ -66,7 +66,7 @@ For the shortest operator path, use [Facial verification quick start](docs/devel
 
 The complete team project is **ALICE — Authenticated Local Identity & Cyber Enforcement**. The `workstation/` subsystem owns its technician console, local identity controls, semantic gateway, console persistence, and integration boundary.
 
-The main [architecture](../docs/prds/ALICE-DCAMR-Architecture.md), [PRD](../docs/prds/ALICE-DCAMR-PRD.md), and [console integration requirements](../docs/technician-console-integration.md) are authoritative for current product behavior. The original project brief is historical context; the preserved [dashboard-contract.original.txt](fixtures/legacy/dashboard-contract.original.txt) and its three extracted payloads define the existing legacy examples. The Europa screenshot was visual inspiration only.
+The main [architecture](../docs/prds/ALICE-DCAMR-Architecture.md), [PRD](../docs/prds/ALICE-DCAMR-PRD.md), and [console integration requirements](../docs/integration/technician-console.md) are authoritative for current product behavior. The original project brief is historical context; the preserved [dashboard-contract.original.txt](fixtures/legacy/dashboard-contract.original.txt) and its three extracted payloads define the existing legacy examples. The Europa screenshot was visual inspiration only.
 
 The main design distinguishes ONLINE enterprise execution from OFFLINE local ALICE authority after controlled transfer. Current DDIL/CONNECTED/DEGRADED fields and mock/remote transport do not implement that authority protocol. Reconnection is a workflow, and direct Pi-to-enterprise synchronization is upstream work. See the [migration assessment](docs/integration/main-repository-migration.md); the source migration keeps executable schemas and legacy examples intact.
 

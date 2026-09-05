@@ -2,7 +2,7 @@
 
 This increment adds a general, context-conditioned Isolation Forest interface for **PRE_ACTION** and **POST_ACTION** assessment. It accepts a fixed numeric feature profile and supplied evidence; it does not yet know what normal ESP, light, or voltage behavior looks like. Real operating data and the device contract will be defined later.
 
-The existing [cyber feature builder](anomaly-features.md), [anomaly result contract](anomaly-contract.md), and published training experiments remain unchanged. This new interface has its own `context-behavior-assessment-v1` output; a DCAMR adapter and dashboard agreement remain pending.
+The existing [cyber feature builder](../contracts/anomaly-features.md), [anomaly result contract](../contracts/anomaly-contract.md), and published training experiments remain unchanged. This new interface has its own `context-behavior-assessment-v1` output; a DCAMR adapter and dashboard agreement remain pending.
 
 The [local model-to-ledger replay](decision-evidence-ledger.md#verification-scope)
 checks supplied assessments through compact projection, durable recording, sealing
@@ -31,11 +31,11 @@ Possible later light/voltage features include requested output level, recent vol
 
 | Module | Responsibility |
 |---|---|
-| [`context_profile.py`](../dcamr/anomaly_engine/context_profile.py) | Parse immutable profiles and observations; validate exact fields, units, phase, time, size and byte digests. |
-| [`contextual_model.py`](../dcamr/anomaly_engine/contextual_model.py) | Read-only assessment against an exact fitted context, or an explicit unavailable result. |
-| [`contextual_training.py`](../lab/contextual_training.py) | Fit independent forests and calibration references on a workstation from approved normal examples. |
+| [`context_profile.py`](../../dcamr/anomaly_engine/context_profile.py) | Parse immutable profiles and observations; validate exact fields, units, phase, time, size and byte digests. |
+| [`contextual_model.py`](../../dcamr/anomaly_engine/contextual_model.py) | Read-only assessment against an exact fitted context, or an explicit unavailable result. |
+| [`contextual_training.py`](../../lab/contextual_training.py) | Fit independent forests and calibration references on a workstation from approved normal examples. |
 
-Scoring performs no network calls, protected actions, data retention, permission evaluation, fitting or adaptation. ONLINE enterprise execution and OFFLINE local governance remain as defined in the [architecture](prds/ALICE-DCAMR-Architecture.md). A low anomaly score does not authorize an action; a high score is evidence for decision fusion, not an automatic policy denial.
+Scoring performs no network calls, protected actions, data retention, permission evaluation, fitting or adaptation. ONLINE enterprise execution and OFFLINE local governance remain as defined in the [architecture](../prds/ALICE-DCAMR-Architecture.md). A low anomaly score does not authorize an action; a high score is evidence for decision fusion, not an automatic policy denial.
 
 ## Profile and observation contract
 
@@ -124,7 +124,7 @@ These are separate forests per **profile, phase and exact context**, not one glo
 | `profile_sha256`, `model_id`, `model_fingerprint`, `calibration_sha256`, `context` | Exact reference identity. The model fingerprint describes learned in-memory state; it is not a signed artifact. |
 | `source_ids`, `factors` | Evidence references and per-feature value/unit comparisons with observed training minima/maxima, timing rule, source ID and observation timestamp. |
 
-The calibrated rank uses `normal_tail_rank_v1` from the existing [scoring contract](anomaly-contract.md): `LOW` below 0.95, `ELEVATED` from 0.95 to below 0.99, and `HIGH` at or above 0.99. It is not a probability of compromise, a safety guarantee, or an authorization level.
+The calibrated rank uses `normal_tail_rank_v1` from the existing [scoring contract](../contracts/anomaly-contract.md): `LOW` below 0.95, `ELEVATED` from 0.95 to below 0.99, and `HIGH` at or above 0.99. It is not a probability of compromise, a safety guarantee, or an authorization level.
 
 An untrained model, unseen context, or unavailable required telemetry produces `UNKNOWN` and null scores. Invalid input and scoring errors also produce `UNKNOWN` with a corresponding status/reason; malformed input is not presented as a trusted observation.
 

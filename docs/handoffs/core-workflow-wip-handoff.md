@@ -10,7 +10,7 @@ local-only restrictions in historical handoffs are superseded for this publicati
 ## Subsequent Pi assessment increment
 
 `dcamr/decision_model.py` now implements the
-[technician-application assessment boundary](decision-assessment.md); it is no
+[technician-application assessment boundary](../contracts/decision-assessment.md); it is no
 longer an empty skeleton. This combines trusted permission findings and contextual
 scores without choosing a final decision. The local LLM interprets the evidence;
 unusual actions require human approval enforced outside the LLM. The ledger's
@@ -44,7 +44,7 @@ as part of this merge.
 | Durable history and delivery state | `dcamr/audit/audit_log.py:AuditLog` | Explicit initialize/open, append, seal, queue, attempts, ACK and reconciliation markers; no sender. |
 | Executable model-to-ledger example | `lab/replay_contextual_ledger.py` | Six synthetic cases, temporary evidence/test key, anchored restart and duplicate retry. |
 | Enterprise simulation | `lab/enterprise_sim/`, [Jared's handoff](enterprise-sim-handoff.md) | Demonstration permissions/releases, datasets, Wazuh configuration and authored activity; not a live Pi runtime. |
-| Technician console | `workstation/`, [integration guide](workstation.md) | Local UI/native services; remote actions remain blocked until transport is implemented. |
+| Technician console | `workstation/`, [integration guide](../guides/workstation.md) | Local UI/native services; remote actions remain blocked until transport is implemented. |
 
 ## Compare before connecting
 

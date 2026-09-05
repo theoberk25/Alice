@@ -1,5 +1,10 @@
 # Decision Evidence Ledger Implementation Plan
 
+> Archived 2026-09-05: completed ledger work and superseded session instructions.
+> Preserve as historical evidence; do not execute its old resume checklist.
+> Start with [current status](../../../current.md), the [tracker](../../implementation-tracker.md),
+> and the [active workflow handoff](../../handoffs/core-workflow-wip-handoff.md).
+
 > **For agentic workers:** Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking.
 
 **Goal:** Deliver the first bounded durable local recorder, checkpoint and outbox component, without claiming admission or execution integration.
@@ -8,7 +13,7 @@
 
 **Tech Stack:** Python 3.11+, SQLite, jsonschema, pinned cryptography Ed25519 adapter.
 
-**Spec:** docs/superpowers/specs/2026-09-05-decision-evidence-ledger-design.md (user confirmed this is the approved final document).
+**Spec:** docs/architecture/2026-09-05-decision-evidence-ledger-design.md (user confirmed this is the approved final document).
 
 ## Global Constraints
 
@@ -85,7 +90,7 @@ self.assertEqual(ledger.pending()[0]['state'], 'QUEUED')
 
 ## Task 5: Review, complete verification and component documentation
 
-Files: docs/decision-evidence-ledger.md, docs/implementation-tracker.md, plan checkboxes.
+Files: docs/architecture/decision-evidence-ledger.md, docs/implementation-tracker.md, plan checkboxes.
 
 - [x] Review requirement-to-test coverage and dispatch independent code review; fix material issues with regression tests first.
 - [x] Run `.venv/bin/python -m unittest discover -v`, `.venv/bin/python -m lab.replay_anomaly_fixtures`, `.venv/bin/python -m lab.replay_feature_fixtures`, and `git diff --check`. Require training dependencies for no skips.
@@ -102,7 +107,7 @@ Files: docs/decision-evidence-ledger.md, docs/implementation-tracker.md, plan ch
 
 - Checkpoint at user request: implementation Tasks 1–4 are complete; 234 full-suite tests pass with zero skips and both cyber replays pass. Focused independent contract/signing/storage reviews are resolved. Final whole-branch review is deferred to the next session; do not imply finished feature acceptance.
 - Lean-code preference: preserve four focused modules, avoid speculative abstractions and unrelated changes. Deduplicated schema identifier/digest constraints reduced the schema from 1,799 to 596 lines without changing validation.
-- See `docs/superpowers/plans/2026-09-05-decision-evidence-ledger-handoff.md` for the exact resume checklist, review findings, commands, compatibility boundaries and original request path.
+- See `docs/archive/handoffs/2026-09-05-decision-evidence-ledger-handoff.md` for the exact resume checklist, review findings, commands, compatibility boundaries and original request path.
 
 - Final review completed against `b119637` on 2026-09-05. Independent whole-branch
   review identified one material gap: runtime validation used cached metadata

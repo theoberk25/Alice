@@ -1,5 +1,11 @@
 # Decision Evidence Ledger: first durable slice
 
+> Status clarification (2026-09-05): this design was subsequently approved and
+> its bounded ledger component implemented. The original approval status below
+> is historical; see the [approval record](../archive/handoffs/2026-09-05-decision-evidence-ledger-handoff.md),
+> [current component guide](decision-evidence-ledger.md) and
+> [implementation tracker](../implementation-tracker.md).
+
 Date: 2026-09-05
 
 Base: `main`, `e0796d03ffd5d80e94401737836c70ebac129ed6`.

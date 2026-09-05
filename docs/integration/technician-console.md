@@ -1,9 +1,9 @@
 # Technician console integration
 
 Repository migration note (2026-09-05): the console source is now located in
-[`workstation/`](../workstation/README.md), with its executable contracts,
-fixtures and tests. See the [migration assessment](../workstation/docs/integration/main-repository-migration.md)
-and [new verification record](../workstation/docs/development/verification.md#main-repository-migration-verification).
+[`workstation/`](../../workstation/README.md), with its executable contracts,
+fixtures and tests. See the [migration assessment](../../workstation/docs/integration/main-repository-migration.md)
+and [new verification record](../../workstation/docs/development/verification.md#main-repository-migration-verification).
 The earlier handoff-based assessment below is retained as historical context;
 source colocation does not implement the cross-system agreements described here.
 
@@ -112,10 +112,10 @@ branding. The source example's action and prose can disagree; display that
 conflict without changing the action. Overlapping pending/unverified evidence
 counts cannot be added as independent totals.
 
-The implemented core [anomaly result](../common/schemas/anomaly_result.json) uses
+The implemented core [anomaly result](../../common/schemas/anomaly_result.json) uses
 `schema_version="1.0.0-draft.1"`: independent `status` and behavioral `result`,
 nullable failure scores, normalized `score` in `[0,1]`, exact provenance and
-structured factors. The [contract guide](anomaly-contract.md) describes validation
+structured factors. The [contract guide](../contracts/anomaly-contract.md) describes validation
 and binding. Console legacy risk examples/presentation on a 0–100 scale do not
 define an equivalent quantity. Neither dividing a legacy risk by 100 nor showing
 `100 * score` establishes calibration compatibility or an authorization outcome.
@@ -213,7 +213,7 @@ not tamper-evident mission audit; its current display limit does not bound stora
 
 ## Language, transport and recovery requirements
 
-The Mac LLM now interprets the [Pi assessment](decision-assessment.md) and
+The Mac LLM now interprets the [Pi assessment](../contracts/decision-assessment.md) and
 explains decision handling. Unusual actions require human approval enforced by
 application code; LLM output alone cannot clear that requirement, hard permission
 prohibitions or missing prerequisites. It cannot invoke protected actions, alter

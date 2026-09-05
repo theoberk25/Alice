@@ -1,7 +1,7 @@
 # Trust boundaries and threat model
 
 Updated: 2026-09-05. Scope follows the
-[two-mode architecture](prds/ALICE-DCAMR-Architecture.md). This is a design review
+[two-mode architecture](../prds/ALICE-DCAMR-Architecture.md). This is a design review
 baseline. Most controls below are integration requirements, not implemented
 security guarantees. It is not a certification or a claim of physical safety.
 
@@ -69,8 +69,8 @@ loss need explicit assumptions; this draft does not claim resistance to all of
 them. Select the proof, key-storage, expiry and fencing mechanisms as implementation
 slices with their owners rather than treating this table as a completed design.
 
-Use the [demo runbook](demo-runbook.md) for targeted outage, replay, supersession,
+Use the [demo runbook](../guides/demo-runbook.md) for targeted outage, replay, supersession,
 storage and recovery checks. Update evidence in the
-[tracker](implementation-tracker.md) only when the corresponding boundary is
+[tracker](../implementation-tracker.md) only when the corresponding boundary is
 implemented and tested; local component or public-image tests do not establish
 end-to-end protection.

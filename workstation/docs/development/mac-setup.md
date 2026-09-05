@@ -1,6 +1,6 @@
 # macOS setup and packaging
 
-Run these commands from the `workstation/` subsystem root. The migration imports source and locks, not `.env`, toolchains, models, native databases or installed services. See the [main workstation guide](../../../docs/workstation.md).
+Run these commands from the `workstation/` subsystem root. The migration imports source and locks, not `.env`, toolchains, models, native databases or installed services. See the [main workstation guide](../../../docs/guides/workstation.md).
 
 ## Runtime setup
 

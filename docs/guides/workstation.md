@@ -1,7 +1,7 @@
 # ALICE Technician Console in this repository
 
 The existing Technician Console subsystem is integrated under
-[`workstation/`](../workstation/README.md). Start with its README for browser
+[`workstation/`](../../workstation/README.md). Start with its README for browser
 preview, the native macOS Tauri application, ArcFace enrollment/login/approval,
 Ollama configuration, tests and packaging. The standalone checkout is no longer
 required to build it.
@@ -25,12 +25,12 @@ the implemented console entry points are `workstation/apps/desktop/` and
 
 ## Scope and authority
 
-The [team integration agreement](technician-console-integration.md) and
-[current architecture](prds/ALICE-DCAMR-Architecture.md) govern whole-system
-authority. The [migration assessment](../workstation/docs/integration/main-repository-migration.md)
+The [team integration agreement](../integration/technician-console.md) and
+[current architecture](../prds/ALICE-DCAMR-Architecture.md) govern whole-system
+authority. The [migration assessment](../../workstation/docs/integration/main-repository-migration.md)
 records the differences between those requirements and the preserved console,
 including anomaly scores, context challenges and ONLINE/OFFLINE control transfer.
-The console's [executable contracts and upstream boundary](../workstation/docs/integration/upstream-alice.md)
+The console's [executable contracts and upstream boundary](../../workstation/docs/integration/upstream-alice.md)
 remain local to `workstation/packages/contracts/`; no shared core contracts were
 replaced or promoted during migration.
 
@@ -42,9 +42,9 @@ connect them or prove protected execution.
 
 ## Verification and remaining work
 
-See the [migration verification record](../workstation/docs/development/verification.md#main-repository-migration-verification)
+See the [migration verification record](../../workstation/docs/development/verification.md#main-repository-migration-verification)
 for commands actually executed and their outcomes, and the
-[console handoff](../workstation/HANDOFF.md) for implemented/planned distinctions.
+[console handoff](../../workstation/HANDOFF.md) for implemented/planned distinctions.
 Previous operator results refer to the original standalone installation unless
 explicitly recorded as migration checks.
 

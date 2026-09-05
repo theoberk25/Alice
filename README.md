@@ -1,5 +1,8 @@
 # ALICE / DCAMR
 
+Start every working session with [AGENTS.md](AGENTS.md) and [current.md](current.md).
+Use the [documentation map](docs/README.md) and [script catalog](scripts/README.md).
+
 ALICE synchronizes trusted enterprise context while connected, governs local
 agent actions during DDIL outages, and reports disconnected activity when
 enterprise services return.
@@ -19,19 +22,19 @@ Model training, the explanatory LLM and facial verification belong on the Mac.
 - [Architecture and authority boundaries](docs/prds/ALICE-DCAMR-Architecture.md)
 - [Product PRD](docs/prds/ALICE-DCAMR-PRD.md)
 - [Teammate handoff and integration responsibilities](docs/prds/ALICE-DCAMR-PRD-Handoff.md)
-- [Technician console and face-verification integration](docs/technician-console-integration.md)
+- [Technician console and face-verification integration](docs/integration/technician-console.md)
 
 - [Implementation tracker — all 118 to-dos](docs/implementation-tracker.md)
-- [Accepted data direction and remaining decisions](docs/data-direction-2026-09-05.md)
+- [Accepted data direction and remaining decisions](docs/decisions/2026-09-05-data-direction.md)
 - [Anomaly output PRD](docs/prds/anomaly-model-prd.md)
-- [Output contract and fixtures](docs/anomaly-contract.md)
-- [Web-01 feature builder](docs/anomaly-features.md)
-- [Mac synthetic training lab](docs/anomaly-training.md)
-- [General before/after behavior model](docs/contextual-behavior-model.md)
-- [Pi assessment for the technician application](docs/decision-assessment.md)
-- [Local Decision Evidence Ledger](docs/decision-evidence-ledger.md)
-- [Enterprise SIEM simulation and Wazuh setup](docs/enterprise-sim-handoff.md)
-- [WIP integration handoff for workflow development](docs/core-workflow-wip-handoff.md)
+- [Output contract and fixtures](docs/contracts/anomaly-contract.md)
+- [Web-01 feature builder](docs/contracts/anomaly-features.md)
+- [Mac synthetic training lab](docs/guides/anomaly-training.md)
+- [General before/after behavior model](docs/architecture/contextual-behavior-model.md)
+- [Pi assessment for the technician application](docs/contracts/decision-assessment.md)
+- [Local Decision Evidence Ledger](docs/architecture/decision-evidence-ledger.md)
+- [Enterprise SIEM simulation and Wazuh setup](docs/handoffs/enterprise-sim-handoff.md)
+- [WIP integration handoff for workflow development](docs/handoffs/core-workflow-wip-handoff.md)
 
 **WIP integration checkpoint:** analysis, ledger, workstation and enterprise
 simulation components are available for team integration. This is not a complete
@@ -81,16 +84,16 @@ With both audit and training dependencies installed, run
 `.venv/bin/python -m lab.replay_contextual_ledger` to verify synthetic PRE/POST and
 failure assessments through ledger sealing, restart and duplicate retry.
 
-See the [demo runbook](docs/demo-runbook.md) for the distinction between runnable
+See the [demo runbook](docs/guides/demo-runbook.md) for the distinction between runnable
 component checks and planned end-to-end acceptance, and the
-[threat model](docs/threat-model.md) for trust boundaries that integration must enforce.
+[threat model](docs/architecture/threat-model.md) for trust boundaries that integration must enforce.
 
 ## Technician Console
 
 The macOS ALICE Technician Console lives under [`workstation/`](workstation/README.md).
 Run `cd workstation && npm ci && npm run dev` for the independent mock dashboard.
 See its README for native Tauri operation, biometric setup, Ollama, tests and
-`ALICE.app` packaging, and the [repository integration guide](docs/workstation.md)
+`ALICE.app` packaging, and the [repository integration guide](docs/guides/workstation.md)
 for scope and shared-contract boundaries. Remote core transport remains fail-closed.
 
 ## Enterprise Simulation
@@ -104,5 +107,5 @@ python3.12 -m venv .venv
 .venv/bin/python -m lab.enterprise_sim
 ```
 
-See the [enterprise handoff](docs/enterprise-sim-handoff.md) for fitting, console
+See the [enterprise handoff](docs/handoffs/enterprise-sim-handoff.md) for fitting, console
 startup and trust boundaries. Generated signing material is demonstration-only.

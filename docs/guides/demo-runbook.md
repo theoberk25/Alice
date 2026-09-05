@@ -1,7 +1,7 @@
 # Demo runbook and acceptance plan
 
-Updated: 2026-09-05. Read the [architecture](prds/ALICE-DCAMR-Architecture.md)
-and [console integration guide](technician-console-integration.md) first.
+Updated: 2026-09-05. Read the [architecture](../prds/ALICE-DCAMR-Architecture.md)
+and [console integration guide](../integration/technician-console.md) first.
 The commands below run existing components; the lifecycle demo is a **planned
 integration test**, not a working startup procedure. There is no implemented
 Pi server, enterprise connector or motor executor to launch from this checkout.
@@ -135,5 +135,5 @@ unknown states, preserved history and recoverable unacknowledged delivery.
 Record request/event/command IDs, captured source versions, mode/ownership evidence,
 expected versus observed outcomes, simulation boundaries and resource measurements.
 Exclude credentials, biometric material and private model reasoning. Track failures
-and unimplemented checks in the [implementation tracker](implementation-tracker.md);
+and unimplemented checks in the [implementation tracker](../implementation-tracker.md);
 none of this planned sequence is marked passed by a fixture replay.

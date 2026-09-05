@@ -5,7 +5,7 @@ the next integration increments; it does not claim that the full system runs.
 
 - [Parent PRD](ALICE-DCAMR-PRD.md): current product scope and authority.
 - [Architecture](ALICE-DCAMR-Architecture.md): components, trust and data flow.
-- [Technician console integration](../technician-console-integration.md): the
+- [Technician console integration](../integration/technician-console.md): the
   external console's reported contracts, implemented behavior and upstream gaps.
 - [Implementation tracker](../implementation-tracker.md): all 118 original tasks.
 
@@ -18,7 +18,7 @@ its older upstream assumptions do not redefine the current product modes.
 
 ## Current decision boundary — technician application
 
-The [Pi assessment contract](../decision-assessment.md) supersedes earlier
+The [Pi assessment contract](../contracts/decision-assessment.md) supersedes earlier
 Pi-owned final-fusion descriptions for the current increment. The Pi supplies
 permission findings, contextual Isolation Forest scores, source provenance,
 review signals and approval blockers. The technician application's local LLM
@@ -91,7 +91,7 @@ Each workstream increment should provide a short PRD or implementation note with
 
 ### Alice core repository
 
-The [enterprise simulation](../enterprise-sim-handoff.md) adds a deterministic
+The [enterprise simulation](../handoffs/enterprise-sim-handoff.md) adds a deterministic
 Sentinel AFB generator, signed demonstration permissions generations 42–44,
 Wazuh configuration, cyber baselines, separate synthetic PRE_ACTION/POST_ACTION
 voltage datasets and a local enterprise console. Regenerate the ignored datasets
@@ -123,7 +123,7 @@ authority transfer, live transports, protected execution, persistent audit and
 cloud reconciliation remain integration work. The `workstation/` files in this
 repository are placeholders, not the external console's implemented application.
 
-The new [contextual behavior model](../contextual-behavior-model.md) adds separate
+The new [contextual behavior model](../architecture/contextual-behavior-model.md) adds separate
 PRE_ACTION/POST_ACTION profile validation, per-context forests and frozen normal
 references, with source/time checks and explicit unavailable results. It consumes
 supplied named features; actual ESP ingestion/voltage conversion and normal data
@@ -166,7 +166,7 @@ with the external console's executable schemas before publishing full examples.
 | --- | --- | --- |
 | Normalized request / trusted feature input | Core [feature-input schema](../../common/schemas/anomaly_feature_input.json) binds a request and trusted snapshot. | Public authenticated admission, user accountability, shared canonical action digest and authority binding; the generic action schema remains a skeleton. |
 | Normal behavior payload | Core [baseline schema](../../common/schemas/anomaly_baseline.json) and byte-digest validation exist. | Signed package envelope, issuer/expiry/version checks, USB activation and model/reference compatibility. Payload validation is not package authentication. |
-| Anomaly result | Core [nested anomaly schema](../../common/schemas/anomaly_result.json), [validator](../../dcamr/anomaly_engine/contract.py) and [contract guide](../anomaly-contract.md) exist. | A live evaluator and agreed embedding/adapter into the complete decision/event record. |
+| Anomaly result | Core [nested anomaly schema](../../common/schemas/anomaly_result.json), [validator](../../dcamr/anomaly_engine/contract.py) and [contract guide](../contracts/anomaly-contract.md) exist. | A live evaluator and agreed embedding/adapter into the complete decision/event record. |
 | Final decision | Console reports `alice.decision`, immutable snapshots, capabilities and optional reassessment lineage. | Exchange the console's executable schemas/fixtures and agree the core producer; [core decision schema](../../common/schemas/decision_record.json) is still a skeleton. |
 | Status and activity | Console reports separate `alice.status`, `alice.agent_status` and `alice.service_status` events. | Authenticated producers, ONLINE audit/sync status versus OFFLINE authority status, freshness and unknown-value semantics. |
 | Context exchange | Console reports `alice.context_request` and `alice.agent_response`, currently driven by mock routing. | Core-owned challenge policy, agent/user identity, correlation, bounded attempts, timeout/retry rules and fresh reassessment production. |
@@ -174,7 +174,7 @@ with the external console's executable schemas before publishing full examples.
 | Submission receipt / execution | Console receipt reports `ACCEPTED`, `PENDING` or `REJECTED` and currently `NOT_EXECUTED`. | Separate controller-confirmed attempt/result events; accepted submission must never be displayed or audited as completed execution. |
 | Reconciliation | Console reports append-only `alice.reconciliation` annotations against an original decision. | Direct Pi/cloud delivery of all DDIL audit, discrepancy rules, replay/order recovery and receipt-backed synchronization. |
 
-Read the [console integration note](../technician-console-integration.md) for the
+Read the [console integration note](../integration/technician-console.md) for the
 reported field names and compatibility gaps. The supplied handoff describes
 Zod sources and generated JSON Schemas in the external repository; their full
 payloads were not supplied as accepted core contracts. Do not invent replacements

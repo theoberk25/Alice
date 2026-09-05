@@ -1,6 +1,6 @@
 # Set up and test local facial verification
 
-Updated for source migration: September 5, 2026. Run commands from `workstation/` in the main ALICE repository. Follow the [main workstation guide](../../../docs/workstation.md) and [Mac setup](mac-setup.md) to provision dependencies first.
+Updated for source migration: September 5, 2026. Run commands from `workstation/` in the main ALICE repository. Follow the [main workstation guide](../../../docs/guides/workstation.md) and [Mac setup](mac-setup.md) to provision dependencies first.
 
 ## Implemented behavior and historical evidence
 
@@ -128,7 +128,7 @@ For another run after approval or rejection, use the development sliders → **R
 | Still seeing Alex Morgan or simulate controls     | The active native process is still using mock biometrics. Fully restart with `ALICE_BIOMETRIC_MODE=arcface`.                                                          |
 | Account missing after changing transport mode     | Mock and remote modes use different native databases by default. Their admin/technician metadata is not automatically shared.                                         |
 
-Do not use a photo or replay rejection as an acceptance criterion for this initial ArcFace-only implementation: liveness/anti-spoof is future work. Identity threshold calibration, live approval step-up and broader negative-case acceptance are still required; basic live enrollment/login were confirmed only in the historical standalone audit. Record new outcomes as separately dated operator evidence linked from the [main workstation guide](../../../docs/workstation.md); retain the [standalone verification record](verification.md) as historical evidence.
+Do not use a photo or replay rejection as an acceptance criterion for this initial ArcFace-only implementation: liveness/anti-spoof is future work. Identity threshold calibration, live approval step-up and broader negative-case acceptance are still required; basic live enrollment/login were confirmed only in the historical standalone audit. Record new outcomes as separately dated operator evidence linked from the [main workstation guide](../../../docs/guides/workstation.md); retain the [standalone verification record](verification.md) as historical evidence.
 
 ## On a new teammate's Mac
 

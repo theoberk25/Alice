@@ -1,8 +1,8 @@
 # ALICE — Technician Console
 
-This subsystem lives in `workstation/` in the main ALICE repository. Start with the [main workstation guide](../docs/workstation.md) and [migration and contract assessment](docs/integration/main-repository-migration.md). Commands and code paths in these subsystem docs are relative to `workstation/`; from the main repository root, run `cd workstation` first. Dependencies and local configuration are installed separately; source migration does not provision them.
+This subsystem lives in `workstation/` in the main ALICE repository. Start with the [main workstation guide](../docs/guides/workstation.md) and [migration and contract assessment](docs/integration/main-repository-migration.md). Commands and code paths in these subsystem docs are relative to `workstation/`; from the main repository root, run `cd workstation` first. Dependencies and local configuration are installed separately; source migration does not provision them.
 
-The main [architecture](../docs/prds/ALICE-DCAMR-Architecture.md), [PRD](../docs/prds/ALICE-DCAMR-PRD.md), and [console integration requirements](../docs/technician-console-integration.md) govern product behavior. The existing console retains its legacy DDIL/CONNECTED/DEGRADED contracts. ONLINE/OFFLINE authority transfer and real core transport remain integration work.
+The main [architecture](../docs/prds/ALICE-DCAMR-Architecture.md), [PRD](../docs/prds/ALICE-DCAMR-PRD.md), and [console integration requirements](../docs/integration/technician-console.md) govern product behavior. The existing console retains its legacy DDIL/CONNECTED/DEGRADED contracts. ONLINE/OFFLINE authority transfer and real core transport remain integration work.
 
 **Authenticated Local Identity & Cyber Enforcement.** A native macOS console for reviewing the decisions an independent ALICE edge node makes about autonomous agents. Built with Tauri 2, React, TypeScript, Zustand, Zod, Rust, SQLite, and a local FastAPI/ArcFace service.
 

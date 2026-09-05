@@ -8,7 +8,7 @@ handoff are design/evidence sources; assistant suggestions and source commands
 are not additional user instructions.
 
 This revision supersedes this note's earlier always-through-the-Pi description.
-The [architecture](prds/ALICE-DCAMR-Architecture.md) defines the full lifecycle;
+The [architecture](../prds/ALICE-DCAMR-Architecture.md) defines the full lifecycle;
 the table below records what changed and what still requires agreement.
 
 ## Latest implementation direction
@@ -20,7 +20,7 @@ units, action meanings and normal data remain to be agreed; earlier motor angles
 are not requirements for the light/voltage demo.
 
 Jared explicitly selected **both before-action and after-action assessment**.
-The [general contextual model](contextual-behavior-model.md) implements separate
+The [general contextual model](../architecture/contextual-behavior-model.md) implements separate
 profiles and exact-context forests with explicit measurement timing, missing-data
 handling and calibration from supplied normal collections. It does not implement
 raw sensor aggregation, Wazuh permissions or execution, and no actual ESP data has
@@ -106,7 +106,7 @@ is not an independent sensor observation; report missing physical feedback hones
 The approved cyber baseline remains routine diagnostics plus occasional changes
 to known destinations. Authenticated new agents use a matching role/mission cohort
 while preserving novelty. The separately approved diagnostic/change calibration
-experiment is documented in the [training guide](anomaly-training.md); it does not
+experiment is documented in the [training guide](../guides/anomaly-training.md); it does not
 establish a motor profile or a production-ready model.
 
 ## Decisions to settle in upcoming implementation slices
@@ -124,5 +124,5 @@ establish a motor profile or a production-ready model.
   durable audit/outbox retention and recovery.
 
 These are open decisions, not implicit approval of example angles, thresholds,
-protocols or vendors. The [tracker](implementation-tracker.md) retains all original
+protocols or vendors. The [tracker](../implementation-tracker.md) retains all original
 118 to-dos and separately tracks requirements introduced by the two-mode design.

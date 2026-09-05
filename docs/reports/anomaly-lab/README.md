@@ -17,7 +17,7 @@ changes the digest. Source-code digests identify the code used for each run;
 later code edits do not retroactively change that evidence. Model fitting used
 the recorded versions and seeds; timing measurements can differ on another run.
 
-The [training guide](../../anomaly-training.md) documents reproduction commands,
+The [training guide](../../guides/anomaly-training.md) documents reproduction commands,
 normal-request results, challenge misses and limitations. New generated runs
 remain ignored under `artifacts/anomaly-lab/`; update this curated evidence only
 when intentionally recording another measured experiment.

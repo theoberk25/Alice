@@ -26,11 +26,11 @@ execution ownership are separate status facts.
 | Product behavior and acceptance | [Product PRD](prds/ALICE-DCAMR-PRD.md) |
 | Components, authority transfer, cache/audit lifecycle and Pi limits | [Architecture](prds/ALICE-DCAMR-Architecture.md) |
 | Team ownership and contract handoffs | [Developer handoff](prds/ALICE-DCAMR-PRD-Handoff.md) |
-| Native Mac console, facial verification, reassessment and remote proof | [Console integration](technician-console-integration.md) |
-| Normal data, removable storage, motor decisions and compatibility | [Data direction](data-direction-2026-09-05.md) |
-| Tested anomaly output and cyber features | [Output contract](anomaly-contract.md), [feature builder](anomaly-features.md) |
-| Current model and calibration evidence | [Mac training lab](anomaly-training.md) |
-| Trust boundaries and verification scenarios | [Threat model](threat-model.md), [demo runbook](demo-runbook.md) |
+| Native Mac console, facial verification, reassessment and remote proof | [Console integration](integration/technician-console.md) |
+| Normal data, removable storage, motor decisions and compatibility | [Data direction](decisions/2026-09-05-data-direction.md) |
+| Tested anomaly output and cyber features | [Output contract](contracts/anomaly-contract.md), [feature builder](contracts/anomaly-features.md) |
+| Current model and calibration evidence | [Mac training lab](guides/anomaly-training.md) |
+| Trust boundaries and verification scenarios | [Threat model](architecture/threat-model.md), [demo runbook](guides/demo-runbook.md) |
 | Implementation status and next work | [Tracker](implementation-tracker.md) |
 
 The core currently implements anomaly components and synthetic Mac experiments.

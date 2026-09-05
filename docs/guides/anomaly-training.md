@@ -3,17 +3,17 @@
 This slice prepares synthetic Web-01 sessions, trains one small Isolation Forest
 in memory on the Mac, calibrates it against separate normal sessions, and exports
 plain JSON reports. It does not save a deployable model or change the Pi runtime.
-See the [implementation tracker](implementation-tracker.md) for system work and
-[updated data direction](data-direction-2026-09-05.md) for the motor/USB changes.
+See the [implementation tracker](../implementation-tracker.md) for system work and
+[updated data direction](../decisions/2026-09-05-data-direction.md) for the motor/USB changes.
 
-A separate [general contextual model](contextual-behavior-model.md) now fits and
+A separate [general contextual model](../architecture/contextual-behavior-model.md) now fits and
 scores supplied normal observations for exact contexts in separate PRE_ACTION
 and POST_ACTION profiles. It does not alter the historical cyber experiments
 below or invent an ESP baseline.
 
 ## System role and authority
 
-The [canonical architecture](architecture.md) assigns direct execution to enterprise
+The [canonical architecture](../architecture.md) assigns direct execution to enterprise
 controls in **ONLINE** mode. The Pi synchronizes bounded trusted caches and
 authenticated activity feeds and sends audit upstream; the lab model does not
 make it a mandatory enterprise gateway. **OFFLINE**, the Pi governs local actions
@@ -28,7 +28,7 @@ approval proof and in-flight action rules remain future integration requirements
 not fields added to the existing anomaly result or training artifacts. Existing
 `policy` machine identifiers remain unchanged while product language uses permissions.
 
-The [console integration handoff](technician-console-integration.md) describes a
+The [console integration handoff](../integration/technician-console.md) describes a
 separate, reported Mac review/identity/explanation implementation. It is not a
 deployed core integration, and its UI outcomes or facial login do not validate
 these candidates. The experiments, numerical results and published historical
@@ -79,7 +79,7 @@ The report binds the dataset manifest and calibration file by SHA-256. No model
 file exists: `model_persisted=false`, `model_sha256=null`, and
 `deployment_ready=false` are deliberate. Generated runs under
 `artifacts/anomaly-lab/` are local and ignored by Git. Selected measured outputs
-are copied byte-for-byte into the tracked [experiment evidence](reports/anomaly-lab/README.md)
+are copied byte-for-byte into the tracked [experiment evidence](../reports/anomaly-lab/README.md)
 so teammates can inspect the reports and verify their digest links after cloning.
 
 ## Source and split contract
@@ -166,7 +166,7 @@ training command, the anomaly result contract, or any Pi runtime:
 .venv/bin/python -m lab.compare_anomaly_calibration --output artifacts/anomaly-lab/calibration-comparison-002
 ```
 
-The [first comparison report](reports/anomaly-lab/calibration-comparison-001/comparison-report.json)
+The [first comparison report](../reports/anomaly-lab/calibration-comparison-001/comparison-report.json)
 uses the same 64-tree forest and fixed `.95/.99` thresholds for both mappings.
 It collected 1,000 distinct normal source requests per family by filtering
 ordinary generated sessions from fresh seeds `1730..1732`: 15,628 requests were

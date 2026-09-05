@@ -17,7 +17,7 @@ two-mode admission, authority and live transport still need runtime integration.
 
 Combined assessment + ledger verification: **253 tests passed, zero skips**.
 
-Latest decision-boundary increment: [Pi assessment](decision-assessment.md)
+Latest decision-boundary increment: [Pi assessment](contracts/decision-assessment.md)
 combines trusted permission findings with contextual model evidence for the
 technician application's local LLM. Unusual PRE_ACTION observations explicitly
 require human approval. This emits no final decision or execution token; transport,
@@ -69,7 +69,7 @@ sensor driver or Pi hardware acceptance is implied. Original history is retained
 acknowledgement does not permit deletion or prove execution.
 
 The probable demo hardware is now an ESP with lights and a voltage sensor.
-The [enterprise simulation](enterprise-sim-handoff.md) now supplies Wazuh
+The [enterprise simulation](handoffs/enterprise-sim-handoff.md) now supplies Wazuh
 configuration, demonstration permissions releases 42–44, synthetic voltage
 observations and authored audit fixtures. Pi permissions loading/resolution and
 live audit integration remain unimplemented. Synthetic electrical limits and
@@ -235,9 +235,9 @@ workflows run with explicit no-unintended-execution assertions.
 | 001 | Define Agent Action Request Schema | Partial | [Internal feature-request shape][feature-schema] is validated; the public [action-request schema][action-schema] is still an empty skeleton. |
 | 002 | Define Context Push-Back Schema | Planned | The core [challenge skeleton][challenge-schema] is empty. The external console reports `alice.context_request`; cross-system schema agreement and real producer/routing remain. |
 | 003 | Define Agent Context Response Schema | Planned | No accepted core agent context-response contract exists. The [external console][console-integration] reports a local `alice.agent_response` schema; exchange and adapter validation remain. |
-| 004 | Define Policy Package Schema | Planned | The [package manifest skeleton][package-schema] is empty. This original policy task now covers the signed authorized-permissions package; existing code keys have not been renamed. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 004 | Define Policy Package Schema | Planned | The [package manifest skeleton][package-schema] is empty. This original policy task now covers the signed authorized-permissions package; existing code keys have not been renamed. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 005 | Define Normal Operations Package Schema | Partial | [Baseline payload schema][baseline-schema] exists. The signed normal-operations package envelope, manifest and lifecycle are not defined by that payload schema. |
-| 006 | Define User Permissions Schema | Planned | No permissions-package or user-permissions schema is implemented. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 006 | Define User Permissions Schema | Planned | No permissions-package or user-permissions schema is implemented. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 007 | Define Local Telemetry Schema | Planned | Trusted history input is defined, but the general telemetry/sensor contract is not. |
 | 008 | Define Decision Output Schema | Partial | [Nested anomaly result][result-schema] and [validator][contract] exist; the [core complete decision record][decision-schema] is empty. The reported console `alice.decision` requires an agreed adapter, not a guessed payload. |
 | 009 | Define Reconciliation Event Schema | Partial | [Local ledger finding contract][audit-schema] binds an original event ID/hash and source metadata; [ledger tests][audit-outbox-tests] preserve originals. This is independent of the still-unimplemented public reconciliation wire contract, producer and enterprise comparison workflow. |
@@ -246,9 +246,9 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 010 | Load Policy Data from SD Card | Planned | Desired medium/path: USB `permissions/`. No discovery, authorized-permissions package load or activation exists; legacy policy keys/paths remain unchanged. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 010 | Load Policy Data from SD Card | Planned | Desired medium/path: USB `permissions/`. No discovery, authorized-permissions package load or activation exists; legacy policy keys/paths remain unchanged. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 011 | Load Normal Operations Data from SD Card | Planned | Current medium: USB `normal_behavior/`. The baseline byte loader exists, but no removable-media package load path is implemented. |
-| 012 | Load User Permissions from SD Card | Planned | Desired permissions input is USB `permissions/`; trusted user/agent identity and delegated permissions contracts/loaders remain unimplemented. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 012 | Load User Permissions from SD Card | Planned | Desired permissions input is USB `permissions/`; trusted user/agent identity and delegated permissions contracts/loaders remain unimplemented. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 013 | Verify Package Signatures | Planned | Expected byte-digest checks are not signature/issuer verification; [package verifier][package-verifier] remains a skeleton. |
 | 014 | Validate Package Versions | Partial | [Schema/profile versions][feature-validation] and baseline labels are checked. Package freshness, rollback prevention and compatible activation are not implemented. |
 
@@ -301,7 +301,7 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 045 | Combine Policy and Anomaly Results | Partial | [Assessment boundary](decision-assessment.md) combines trusted permission outcomes and contextual scores, preserves blockers and requires human approval for unusual actions. Permission resolution and final technician-application decision/enforcement integration remain pending. |
+| 045 | Combine Policy and Anomaly Results | Partial | [Assessment boundary](contracts/decision-assessment.md) combines trusted permission outcomes and contextual scores, preserves blockers and requires human approval for unusual actions. Permission resolution and final technician-application decision/enforcement integration remain pending. |
 | 046 | Define ALLOW Logic | Planned | [Current PRD][prd] defines the OFFLINE authority boundary; executable ALLOW logic and endpoint binding remain. |
 | 047 | Define REQUEST_CONTEXT Logic | Planned | [Current PRD][prd] defines OFFLINE context escalation; executable core push-back/fusion, one challenge authority and bounded attempts remain. |
 | 048 | Define HOLD Logic | Planned | [Current PRD][prd] defines OFFLINE blocking/review; high-anomaly context-versus-hold specifics and executable fusion remain. |
@@ -369,17 +369,17 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 093 | Fetch Updated User Permissions | Planned | Direct Pi synchronization is the selected path; authoritative enterprise permissions source, trust and update adapters remain unimplemented. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
-| 094 | Validate Updated User Permissions | Planned | A candidate permissions release shape exists in the simulation; Pi-side schema, signature and validity checks do not. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
-| 095 | Write Updated User Permissions to SD Card | Planned | Desired medium/path is USB `permissions/`; no verified permission-update writer exists. Pi synchronization is selected, while release/retention/failure rules remain to be agreed. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
-| 096 | Fetch Updated Policy Package | Planned | This original policy task now covers authorized-permissions releases; no authenticated direct Pi/enterprise fetch path exists. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
-| 097 | Validate Updated Policy Package | Planned | No updated authorized-permissions signature, validity or compatibility verifier exists; the original policy label and current code keys remain. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
-| 098 | Write Updated Policy Package to SD Card | Planned | Desired path is USB `permissions/`; no update writer exists. Existing policy-named code is not migrated by this documentation change. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 093 | Fetch Updated User Permissions | Planned | Direct Pi synchronization is the selected path; authoritative enterprise permissions source, trust and update adapters remain unimplemented. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 094 | Validate Updated User Permissions | Planned | A candidate permissions release shape exists in the simulation; Pi-side schema, signature and validity checks do not. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 095 | Write Updated User Permissions to SD Card | Planned | Desired medium/path is USB `permissions/`; no verified permission-update writer exists. Pi synchronization is selected, while release/retention/failure rules remain to be agreed. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 096 | Fetch Updated Policy Package | Planned | This original policy task now covers authorized-permissions releases; no authenticated direct Pi/enterprise fetch path exists. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 097 | Validate Updated Policy Package | Planned | No updated authorized-permissions signature, validity or compatibility verifier exists; the original policy label and current code keys remain. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 098 | Write Updated Policy Package to SD Card | Planned | Desired path is USB `permissions/`; no update writer exists. Existing policy-named code is not migrated by this documentation change. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 099 | Fetch Updated Normal Operations Package | Planned | No authenticated direct Pi/enterprise normal-behavior update fetch path exists. |
 | 100 | Validate Updated Normal Operations Package | Partial | [Baseline payload validation][baseline] checks digest, schema and table consistency. An updated package still needs signature/issuer/expiry checks and activation handling. |
 | 101 | Write Updated Normal Operations Package to SD Card | Planned | No USB `normal_behavior/` update writer exists; direct Pi sync is selected, while verified release and failure handling remain. |
-| 102 | Reload Updated Permissions | Planned | No atomic permissions activation/reload path exists. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
-| 103 | Reload Updated Policy | Planned | No atomic authorized-permissions activation/reload exists; the original task label and current policy keys remain legacy names. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 102 | Reload Updated Permissions | Planned | No atomic permissions activation/reload path exists. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
+| 103 | Reload Updated Policy | Planned | No atomic authorized-permissions activation/reload exists; the original task label and current policy keys remain legacy names. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 104 | Reload Updated Baseline | Partial | [Loader][baseline] creates a fresh immutable payload instance. USB watching, atomic replacement and in-flight evaluation coordination are not implemented. |
 | 105 | Version All Updated Packages | Planned | Per-payload baseline labels exist; versioning and compatibility across all package types are not implemented. |
 | 106 | Reject Invalid or Tampered Updates | Partial | [Payload digest/schema checks][feature-validation] reject altered or malformed supplied bytes. Signed update verification, rollback prevention and replacement recovery remain. |
@@ -429,17 +429,17 @@ after the corresponding real multi-component workflow runs; model-quality and
 Pi resource results should identify actual artifact/runtime/hardware versions.
 Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 
-[context-guide]: contextual-behavior-model.md
+[context-guide]: architecture/contextual-behavior-model.md
 [context-model]: ../dcamr/anomaly_engine/contextual_model.py
 [context-model-tests]: ../tests/test_contextual_model.py
 [prd]: prds/ALICE-DCAMR-PRD.md
 [architecture]: prds/ALICE-DCAMR-Architecture.md
 [handoff]: prds/ALICE-DCAMR-PRD-Handoff.md
-[console-integration]: technician-console-integration.md
-[contract-guide]: anomaly-contract.md
-[feature-guide]: anomaly-features.md
-[data-direction]: data-direction-2026-09-05.md
-[training-guide]: anomaly-training.md
+[console-integration]: integration/technician-console.md
+[contract-guide]: contracts/anomaly-contract.md
+[feature-guide]: contracts/anomaly-features.md
+[data-direction]: decisions/2026-09-05-data-direction.md
+[training-guide]: guides/anomaly-training.md
 [result-schema]: ../common/schemas/anomaly_result.json
 [baseline-schema]: ../common/schemas/anomaly_baseline.json
 [feature-schema]: ../common/schemas/anomaly_feature_input.json
@@ -476,7 +476,7 @@ Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 [training-calibration]: reports/anomaly-lab/candidate-002/calibration-reference.json
 [training-manifest]: reports/anomaly-lab/candidate-002/dataset-manifest.json
 
-[audit-guide]: decision-evidence-ledger.md
+[audit-guide]: architecture/decision-evidence-ledger.md
 [audit-schema]: ../common/schemas/audit_event.json
 [audit-contract]: ../dcamr/audit/event_contract.py
 [audit-contract-tests]: ../tests/test_audit_contract.py

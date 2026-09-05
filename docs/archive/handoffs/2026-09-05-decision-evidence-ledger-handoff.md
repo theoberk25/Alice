@@ -1,8 +1,13 @@
 # Decision Evidence Ledger — session handoff
 
+> Archived 2026-09-05: completed ledger work and superseded session instructions.
+> Preserve as historical evidence; do not execute its old resume checklist.
+> Start with [current status](../../../current.md), the [tracker](../../implementation-tracker.md),
+> and the [active workflow handoff](../../handoffs/core-workflow-wip-handoff.md).
+
 **Publication update:** the user subsequently authorized merging Jared's latest
 `main` and publishing the tested components as WIP for Theo's workflow integration.
-See [the current workflow handoff](../../core-workflow-wip-handoff.md). The earlier
+See [the current workflow handoff](../../handoffs/core-workflow-wip-handoff.md). The earlier
 local-only/no-push instructions below describe the historical checkpoint and are
 superseded for this publication. No deployment or teammate messages are authorized.
 
@@ -39,9 +44,9 @@ Do not restart design approval or represent this as completed live integration.
 - Remote: `git@github.com:theoberk25/Alice.git`, not a repository owned by `mereksor`.
 - No push, deploy or merge is authorized. The new branch is local only.
 - Keep work in this Alice directory. Do not create another worktree without a new reason.
-- The user explicitly confirmed that `docs/superpowers/specs/2026-09-05-decision-evidence-ledger-design.md` is the final approved design. Its old “awaiting approval” line is superseded by that confirmation.
-- Plan: `docs/superpowers/plans/2026-09-05-decision-evidence-ledger.md`.
-- Usage/recovery guide: `docs/decision-evidence-ledger.md`.
+- The user explicitly confirmed that `docs/architecture/2026-09-05-decision-evidence-ledger-design.md` is the final approved design. Its old “awaiting approval” line is superseded by that confirmation.
+- Plan: `docs/archive/plans/2026-09-05-decision-evidence-ledger.md`.
+- Usage/recovery guide: `docs/architecture/decision-evidence-ledger.md`.
 - Original request: `/Users/mereksoriano/.codex/attachments/ad0b87b2-204c-492f-b176-c388eb48e041/pasted-text.txt`.
 
 The user’s latest implementation preference: **lean, modular, compatible scripts;
@@ -98,7 +103,7 @@ cryptography were installed into `.venv`; final run has **no skips**.
 - `.venv/bin/python -m lab.replay_anomaly_fixtures`: **8 result fixtures and 7 score cases passed**.
 - `.venv/bin/python -m lab.replay_feature_fixtures`: **5 feature vectors passed**.
 - `git diff --check`: passed.
-- Executed the Python example in `docs/decision-evidence-ledger.md`: passed.
+- Executed the Python example in `docs/architecture/decision-evidence-ledger.md`: passed.
 - Temporary full-suite log: `/private/tmp/alice-ledger-checkpoint-tests.log`.
   Tests and counts above are retained here so resuming does not depend on that file.
 

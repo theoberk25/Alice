@@ -2,17 +2,17 @@
 
 This slice implements the anomaly **output boundary**, deterministic score mapping, and local mock replay. It does not yet train or run Isolation Forest, build behavioral features, evaluate policy, enforce actions, verify packages, or supervise an inference worker. A validated result is not an authorization decision.
 
-The subsequent [feature-builder slice](anomaly-features.md) implements model inputs separately, and the [Mac training lab](anomaly-training.md) fits a synthetic candidate in memory. This guide describes the output-contract boundary; a live model adapter, fusion and Pi deployment remain unimplemented.
+The subsequent [feature-builder slice](anomaly-features.md) implements model inputs separately, and the [Mac training lab](../guides/anomaly-training.md) fits a synthetic candidate in memory. This guide describes the output-contract boundary; a live model adapter, fusion and Pi deployment remain unimplemented.
 
 The selected direction is Mac training and Pi inference, starting with Web-01 cyber requests. The target Pi has **2 GB RAM** and runs Raspberry Pi OS Lite; OS bitness still needs confirmation (`getconf LONG_BIT` on the Pi). The mentioned 64 GB may describe storage. There is no reason to change the OS for this slice.
 
 ## System authority and this contract
 
-Under the [canonical architecture](architecture.md), **ONLINE** enterprise controls execute directly. The Pi synchronizes bounded trusted caches and authenticated activity feeds and sends audit upstream; it is not a mandatory enterprise execution gateway. **OFFLINE**, the Pi governs local actions only after controlled handover establishes one ready authority. An anomaly score is advisory, with permissions evaluated separately. Reconnection synchronization is direct Pi-to-enterprise, not a Technician Mac relay.
+Under the [canonical architecture](../architecture.md), **ONLINE** enterprise controls execute directly. The Pi synchronizes bounded trusted caches and authenticated activity feeds and sends audit upstream; it is not a mandatory enterprise execution gateway. **OFFLINE**, the Pi governs local actions only after controlled handover establishes one ready authority. An anomaly score is advisory, with permissions evaluated separately. Reconnection synchronization is direct Pi-to-enterprise, not a Technician Mac relay.
 
 The consumption example below describes the future OFFLINE decision path. The current nested result and binding helper do not implement mode selection, control transfer, authority-generation binding, remote approval proof or in-flight action handling. Matching request/artifact digests alone cannot carry an old approval across owners. Agree those protections in the trusted adapter/outer protocol without inventing fields in `1.0.0-draft.1`.
 
-Use **permissions** in operator-facing explanations; existing `policy` keys and codes below retain their schema meanings pending a versioned adapter. The [separate console handoff](technician-console-integration.md) reports Mac identity/review/explanation capabilities, not a connected or deployed core decision system. Its local grants and legacy risk display are not substitutes for this contract or remote authorization proof.
+Use **permissions** in operator-facing explanations; existing `policy` keys and codes below retain their schema meanings pending a versioned adapter. The [separate console handoff](../integration/technician-console.md) reports Mac identity/review/explanation capabilities, not a connected or deployed core decision system. Its local grants and legacy risk display are not substitutes for this contract or remote authorization proof.
 
 ## Run locally
 
@@ -104,6 +104,6 @@ The replay intentionally uses inert digest strings and injected raw scores from 
 
 ## Feature-builder increment
 
-Jared selected **routine diagnostics plus occasional changes to known destinations** and approved same-role/mission cohort fallback for new authenticated agents with an explicit novelty flag. The [implemented feature profile and runnable fixtures](anomaly-features.md) cover these choices. This describes usual behavior, not policy permission. The separate Mac lab uses these inputs; model format and Pi measurements remain future checkpoints. The [motor/USB data update](data-direction-2026-09-05.md) requires a separately versioned motor profile.
+Jared selected **routine diagnostics plus occasional changes to known destinations** and approved same-role/mission cohort fallback for new authenticated agents with an explicit novelty flag. The [implemented feature profile and runnable fixtures](anomaly-features.md) cover these choices. This describes usual behavior, not policy permission. The separate Mac lab uses these inputs; model format and Pi measurements remain future checkpoints. The [motor/USB data update](../decisions/2026-09-05-data-direction.md) requires a separately versioned motor profile.
 
 The 2 GB Pi constraint remains: one scoring worker, no Pi training or LLM, bounded history/queue/payloads and measured memory. The PRD's 256 MiB worker RSS and 384 MiB load-peak targets are still unmeasured budgets; timeout, queue and history enforcement are not implemented by this output-contract slice.

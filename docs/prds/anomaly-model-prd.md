@@ -9,7 +9,7 @@
 
 ## Current decision boundary — technician application
 
-The [Pi assessment contract](../decision-assessment.md) supersedes earlier
+The [Pi assessment contract](../contracts/decision-assessment.md) supersedes earlier
 Pi-owned final-fusion descriptions for the current increment. The Pi supplies
 permission findings, contextual Isolation Forest scores, source provenance,
 review signals and approval blockers. The technician application's local LLM
@@ -32,15 +32,15 @@ Define the anomaly result that the Raspberry Pi produces for DCAMR, its provenan
 
 The [canonical architecture](../architecture.md) now distinguishes **ONLINE**, when enterprise controls execute directly and the Pi synchronizes bounded trusted caches/authenticated activity feeds and sends audit upstream, from **OFFLINE**, when the Pi governs local actions after controlled single-authority handover. This PRD's proposed decision/fusion path describes that OFFLINE responsibility. The Pi is not a mandatory gateway for ONLINE enterprise execution; an anomaly score is advisory in either context.
 
-The initial increment delivered this PRD. Jared subsequently authorized implementation: the nested result schema, Python validation/binding, deterministic score mapper, eight result fixtures and local replay are implemented. The [feature-builder increment](../anomaly-features.md) implements 11 fixed features, trusted snapshot/baseline validation, cohort selection and five feature fixtures. A separate [Mac training lab](../anomaly-training.md) now fits and evaluates a synthetic Web-01 candidate in memory and emits JSON reports; it does not save or deploy a model. See [the output-contract guide](../anomaly-contract.md) for that boundary. The live evaluator, model persistence/loading, outer decision schema, fusion and device integration remain future increments.
+The initial increment delivered this PRD. Jared subsequently authorized implementation: the nested result schema, Python validation/binding, deterministic score mapper, eight result fixtures and local replay are implemented. The [feature-builder increment](../contracts/anomaly-features.md) implements 11 fixed features, trusted snapshot/baseline validation, cohort selection and five feature fixtures. A separate [Mac training lab](../guides/anomaly-training.md) now fits and evaluates a synthetic Web-01 candidate in memory and emits JSON reports; it does not save or deploy a model. See [the output-contract guide](../contracts/anomaly-contract.md) for that boundary. The live evaluator, model persistence/loading, outer decision schema, fusion and device integration remain future increments.
 
-The newer [general contextual interface](../contextual-behavior-model.md) supports
+The newer [general contextual interface](../architecture/contextual-behavior-model.md) supports
 separate before-action and after-action profiles with arbitrary named numeric
 features and exact categorical context. It is a distinct internal contract;
 this PRD's cyber schema/fixtures remain unchanged. Actual ESP light/voltage data
 and the adapter into the canonical decision result are still pending.
 
-The [2026-09-05 data update](../data-direction-2026-09-05.md) records the newer single-USB layout and motor-control demo direction. Motor requests require a separately agreed/versioned profile; this cyber implementation does not score them. Jared selected a separate diagnostic/state-change calibration experiment; its completed Mac comparison and measured limitations are in the training guide. The [implementation tracker](../implementation-tracker.md) preserves all 118 requested tasks and their current evidence.
+The [2026-09-05 data update](../decisions/2026-09-05-data-direction.md) records the newer single-USB layout and motor-control demo direction. Motor requests require a separately agreed/versioned profile; this cyber implementation does not score them. Jared selected a separate diagnostic/state-change calibration experiment; its completed Mac comparison and measured limitations are in the training guide. The [implementation tracker](../implementation-tracker.md) preserves all 118 requested tasks and their current evidence.
 
 ### Source context and precedence
 
@@ -53,7 +53,7 @@ The user's current request defines this increment. The supplied documents and pr
 
 The original source documents describe earlier design context; imported copies are retained alongside this PRD. The current canonical architecture and the user's two-mode decision take precedence over earlier always-on Pi-gateway assumptions. The repository initially inspected at `95d73b2` contained empty skeleton files, including shared schemas and anomaly modules; that is historical context, not the current implementation inventory. No working cross-team API or model compatibility follows from importing those documents.
 
-The separate [technician-console integration handoff](../technician-console-integration.md) distinguishes reported Mac console capabilities from verified core work and unimplemented live integration. Its facial identity and explanation services do not run on the Pi or establish a deployed core authorization path.
+The separate [technician-console integration handoff](../integration/technician-console.md) distinguishes reported Mac console capabilities from verified core work and unimplemented live integration. Its facial identity and explanation services do not run on the Pi or establish a deployed core authorization path.
 
 ## 2. Scope and authority
 
@@ -132,7 +132,7 @@ Admission requires a valid normalized action body and a serializable, correlated
 
 ### 4.2 Feature profile: `cyber-behavior-v1`
 
-The candidate table below records the original design discussion. The implemented 11-feature order and exact semantics are defined in [the feature-builder guide](../anomaly-features.md#fixed-feature-profile): `action_seen_for_profile` and `profile_target_seen` reflect cohort fallback; destination and sequence masks make inapplicability explicit; clock-window and host-metric features are excluded for this increment. Training and inference must use this same versioned order/types. Raw identifiers are lookup keys, not arbitrary integer encodings fed to the model.
+The candidate table below records the original design discussion. The implemented 11-feature order and exact semantics are defined in [the feature-builder guide](../contracts/anomaly-features.md#fixed-feature-profile): `action_seen_for_profile` and `profile_target_seen` reflect cohort fallback; destination and sequence masks make inapplicability explicit; clock-window and host-metric features are excluded for this increment. Training and inference must use this same versioned order/types. Raw identifiers are lookup keys, not arbitrary integer encodings fed to the model.
 
 | Candidate feature | Meaning/source |
 | --- | --- |
