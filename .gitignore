@@ -14,3 +14,38 @@ artifacts/enterprise-sim/datasets/
 # Never commit a signing key, even a demonstration one. Only the public
 # verifying key belongs here.
 artifacts/enterprise-sim/keys/*.sk
+
+# Technician console dependencies and private local state.
+node_modules/
+**/dist/
+**/target/
+.tools/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+*.db
+*.db-*
+*.sqlite*
+*.log
+.DS_Store
+test-results/
+playwright-report/
+apps/desktop/src-tauri/gen/
+services/biometrics/models/
+services/biometrics/data/
+artifacts/console/
+artifacts/local-state/
+:memory:.ses
+captures/
+enrollments/
+embeddings/
+*.npy
+*.npz
+*.onnx
+*.safetensors
+*.gguf
+*.key
+*.pem
+*.p12
+*.pfx

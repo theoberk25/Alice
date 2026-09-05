@@ -15,7 +15,17 @@ two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
 
-Developer-tool relocation: implementations now live in scripts/lab with preserved
+Technician console layout migration: workstation/ is removed; source is organized
+under apps, packages, services, fixtures, tests/console and the shared docs tree.
+Launchers are in scripts/console and scripts/biometrics; npm commands run at root.
+**64 frontend, 4 relocation, 14 default Rust, 11 Python and 5 browser tests passed**,
+plus real public-image ArcFace/native identity checks, app bundling and 257 core
+tests (with documented Python dependency setup). All 369 original tracked files
+survive; no console contracts or core product statuses changed. The user authorized
+committing this migration to local main; remote publication is not requested.
+[Complete move map and verification](handoffs/2026-09-05-console-layout.md).
+
+Earlier lab developer-tool relocation: implementations now live in scripts/lab with preserved
 lab.* imports and a launcher independent of working directory. Pi runtime stays
 in dcamr. **257 tests passed, zero skips**, including copied-checkout generation
 and unchanged enterprise payloads. [Move map and evidence](handoffs/2026-09-05-lab-script-relocation.md).

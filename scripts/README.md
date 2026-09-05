@@ -1,21 +1,16 @@
 # Script catalog
 
-This is the repository-wide entry point for developer scripts. New independent
-helpers belong in scripts/<area>/, with purpose, working directory, command,
-dependencies and output locations documented beside them. Runtime modules and
-tests remain in their owning packages.
+Developer tools live in scripts/<area>/. Runtime modules and tests remain in
+packages, services and tests. Follow each catalog for dependencies and outputs.
 
-ML and enterprise tools have been migrated into scripts/lab with a working-directory
-independent launcher and preserved lab.* imports. Other subsystem tools remain
-in their existing locations; follow each catalog for supported commands.
-
-| Area | Existing scripts / modules | Working directory and instructions |
+| Area | Tools | Commands |
 | --- | --- | --- |
-| Biometrics | [Catalog](biometrics/README.md) | workstation/ |
-| Desktop and Rust | [Catalog](workstation/README.md) | workstation/ |
-| Lab / simulation | [Catalog](lab/README.md) | Repository root for python -m; any directory through lab/run.py |
+| Technician console | [Catalog](console/README.md) | npm commands from repository root; direct launchers work from any directory |
+| Biometrics | [Catalog](biometrics/README.md) | Repository-local Python environment and model/service tools |
+| Lab / simulation | [Catalog](lab/README.md) | python -m lab.* from root; lab/run.py from any directory |
 | Package tooling | [Catalog](packages/README.md) | Empty placeholders; not runnable tools |
 
-The separately authorized lab migration includes path/import repairs and tests.
-Other physical consolidation remains deferred. The [organization handoff](../docs/handoffs/2026-09-05-repository-organization.md)
-records why. Do not duplicate existing scripts to populate this directory.
+The [console migration](../docs/handoffs/2026-09-05-console-layout.md) includes all
+former workstation files, path repairs and verification. The
+[lab migration](../docs/handoffs/2026-09-05-lab-script-relocation.md) preserves
+public lab.* imports. Neither migration changes product integration status.

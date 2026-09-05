@@ -41,10 +41,10 @@ are necessary, explain why and request explicit permission before reading them.
 ## File placement
 
 - Developer scripts belong under scripts/<area>/ for new independent helpers.
-  Existing workstation/scripts remains the subsystem script home and is indexed
-  from scripts/. Before creating a helper, inspect the script catalog.
+  Technician console tools live in scripts/console/ and scripts/biometrics/.
+  Before creating a helper, inspect the script catalog.
 - Python runtime modules remain in their owning packages (dcamr/, agent/, common/,
-  cloud/, protected_systems/, workstation/services/). Tests remain with tests.
+  cloud/, protected_systems/, services/). Tests remain with tests.
   A .py extension alone does not make a file a standalone script.
 - Implemented lab development tools and reusable simulation/training logic now
   live in scripts/lab/ after the authorized path migration. Preserve the public
@@ -54,7 +54,7 @@ are necessary, explain why and request explicit permission before reading them.
   Guides: docs/guides/. Integration: docs/integration/. Decisions: docs/decisions/.
   Plans: docs/plans/. Session records: docs/handoffs/. Evidence: docs/reports/.
   Completed/superseded context: docs/archive/; follow its README archive rules.
-- Subsystem-specific docs may remain under workstation/docs/ and fixture READMEs
+- Subsystem-specific docs may remain under docs/ and fixture READMEs
   beside their fixtures. Link them from the main documentation index.
 - Use snake_case.py and kebab-case.md for new files. Date historical records.
   Preserve existing public paths until a coordinated migration is authorized.
@@ -77,7 +77,7 @@ are necessary, explain why and request explicit permission before reading them.
 - Maintain one authoritative source per topic. PRDs define intended behavior;
   source, schemas and observed verification establish implemented behavior.
 - Coordinate cross-system contract changes with the affected owners. Follow
-  workstation/CONTRIBUTING.md for console work and preserve its trust boundaries.
+  docs/guides/console-contributing.md for console work and preserve its trust boundaries.
 
 ## Finish a session
 

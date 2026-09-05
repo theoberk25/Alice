@@ -1,44 +1,51 @@
 # Current
 
 Updated: 2026-09-05
-Product baseline: `84a06db` (GitHub main pulled before this migration).
-Delivery: migration approved for main; see Git history for the publishing commit.
+Baseline: `ce617cf` (main and locally available origin/main at session start).
+Delivery: user authorized commit to local main; not pushed or deployed.
+Implementation branch: `codex/technician-console-layout`.
 
 ## Current objective
 
-Consolidate ML and enterprise development tools under scripts/lab while preserving
-public lab.* imports. Start each session with [AGENTS.md](AGENTS.md).
+Technician-console migration into the shared repository layout is complete;
+workstation/ is removed. Start with [AGENTS.md](AGENTS.md).
 
 ## Current state
 
-- Implemented lab tools moved to scripts/lab; lab/__init__.py preserves imports.
-- Pi anomaly/decision runtime stays in dcamr, as explicitly confirmed by Jared.
-- Shared checkout-root lookup replaces fixed parent counts. Runtime schemas use
-  package resources. A single launcher works from any working directory.
-- Artifacts, datasets, keys and environments remain in their original locations.
+- Console source now lives in apps/desktop, packages and services/biometrics.
+- Scripts are in scripts/console and scripts/biometrics, with checkout discovery.
+  npm commands run at the root; tests are under tests/console.
+- Console docs use the shared topic folders. Legacy empty scaffolds are preserved
+  under apps/dashboard, services/backend and services/face_verification.
+- Private settings, dependencies, environments, models and runtime data moved
+  safely; ignored local files remain uncommitted. All 369 tracked files survive.
+- Lab tools remain in scripts/lab with public lab.* imports; Pi runtime in dcamr.
 - Product totals remain 12 done components, 35 partial and 71 planned tasks.
-  End-to-end integration remains unfinished. [Tracker](docs/implementation-tracker.md).
+  [Tracker](docs/implementation-tracker.md); live integration remains unfinished.
 
 ## Next steps
 
-1. Use the scripts/lab catalog and launcher for further developer tooling.
-2. Connect trusted permissions, technician transport and execution to assessments.
-3. Bind the assessment contract to the existing durable ledger adapter.
-4. Complete lightweight model export and real sensor/Pi acceptance.
+1. Review the [complete move map](docs/handoffs/2026-09-05-console-layout.md).
+2. Use root npm commands and the [console guide](docs/guides/technician-console.md).
+3. Connect trusted permissions, technician transport and execution to assessments.
+4. Bind the assessment contract to the durable ledger adapter.
+5. Complete model export and real sensor/Pi acceptance; owners unassigned.
 
 ## Blockers and decisions
 
-- No migration blocker. Use scripts/lab/run.py from outside the repository;
-  python -m lab.* remains supported from the root.
-- Live authority, application decision/enforcement contracts and sensor limits
-  remain integration work. [Workflow](docs/handoffs/core-workflow-wip-handoff.md).
+- No layout blocker. Live camera acceptance, remote approval proof, authority
+  transfer and protected execution remain separate integration work.
+- Local core venv lacks cryptography; regression used the existing biometric
+  Python 3.11 site-packages via PYTHONPATH, without installing dependencies.
 
 ## Verification
 
-`python3 -m unittest discover`: 257 tests passed, zero skips. New tests use a
-copied checkout with spaces and an unrelated cwd, verify replay/training paths,
-console assets and byte-identical generation of 28 published enterprise payloads.
-No live deployment was performed. [Move map](docs/handoffs/2026-09-05-lab-script-relocation.md).
+64 Vitest, 4 relocation, 14 default Rust, 11 biometric Python, 5 Playwright and
+257 core tests passed. Real public-image ArcFace and isolated native identity
+checks passed. Frontend and native ALICE.app builds passed. Nine generated
+schema/fixture objects match the original; published bytes remain unchanged.
+[Commands, limitations and move map](docs/handoffs/2026-09-05-console-layout.md).
+Prior lab migration evidence is [historical](docs/handoffs/2026-09-05-lab-script-relocation.md).
 
 ## Start here
 
