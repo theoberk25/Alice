@@ -1,0 +1,130 @@
+{
+  "schema_version": "1.0.0",
+  "feature_schema_version": "cyber-behavior-v1",
+  "package_id": "ops-web01",
+  "version": "42",
+  "action_catalog": {
+    "read_logs": {
+      "state_changing": false,
+      "destination_required": false
+    },
+    "query_status": {
+      "state_changing": false,
+      "destination_required": false
+    },
+    "query_network": {
+      "state_changing": false,
+      "destination_required": false
+    },
+    "modify_firewall": {
+      "state_changing": true,
+      "destination_required": true
+    },
+    "allow_outbound": {
+      "state_changing": true,
+      "destination_required": true
+    }
+  },
+  "targets": {
+    "Web-01": {
+      "destinations": [
+        {
+          "host": "10.0.0.10",
+          "port": 443,
+          "protocol": "tcp"
+        },
+        {
+          "host": "10.0.0.20",
+          "port": 443,
+          "protocol": "tcp"
+        }
+      ]
+    }
+  },
+  "profiles": {
+    "diagnostic-agent-04": {
+      "role": "diagnostic",
+      "mission_type": "network_investigation",
+      "targets": [
+        "Web-01"
+      ],
+      "action_counts": {
+        "read_logs": 50,
+        "query_status": 25,
+        "query_network": 20,
+        "modify_firewall": 3,
+        "allow_outbound": 2
+      },
+      "transitions": {
+        "read_logs": {
+          "query_status": 8,
+          "query_network": 2
+        },
+        "query_status": {
+          "query_network": 9,
+          "read_logs": 1
+        },
+        "query_network": {
+          "read_logs": 8,
+          "modify_firewall": 1,
+          "allow_outbound": 1
+        },
+        "modify_firewall": {
+          "query_status": 5
+        },
+        "allow_outbound": {
+          "query_status": 5
+        }
+      }
+    },
+    "diagnostic-cohort": {
+      "role": "diagnostic",
+      "mission_type": "network_investigation",
+      "targets": [
+        "Web-01"
+      ],
+      "action_counts": {
+        "read_logs": 50,
+        "query_status": 25,
+        "query_network": 20,
+        "modify_firewall": 3,
+        "allow_outbound": 2
+      },
+      "transitions": {
+        "read_logs": {
+          "query_status": 8,
+          "query_network": 2
+        },
+        "query_status": {
+          "query_network": 9,
+          "read_logs": 1
+        },
+        "query_network": {
+          "read_logs": 8,
+          "modify_firewall": 1,
+          "allow_outbound": 1
+        },
+        "modify_firewall": {
+          "query_status": 5
+        },
+        "allow_outbound": {
+          "query_status": 5
+        }
+      }
+    }
+  },
+  "agents": {
+    "diagnostic-agent-04": {
+      "role": "diagnostic",
+      "mission_type": "network_investigation",
+      "profile_id": "diagnostic-agent-04"
+    }
+  },
+  "cohorts": [
+    {
+      "role": "diagnostic",
+      "mission_type": "network_investigation",
+      "profile_id": "diagnostic-cohort"
+    }
+  ]
+}

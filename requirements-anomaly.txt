@@ -1,0 +1,2 @@
+# Contract and feature validation. Mac lab training has a separate requirements file.
+jsonschema==4.26.0

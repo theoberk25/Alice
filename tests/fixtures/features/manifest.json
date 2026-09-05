@@ -1,0 +1,96 @@
+{
+  "fixture_format": "anomaly-feature-cases-v1",
+  "baseline_file": "baseline.json",
+  "cases": [
+    {
+      "id": "F01-normal",
+      "input_file": "input-normal.json",
+      "expected_values": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0.2,
+        2,
+        0,
+        1,
+        0.9
+      ],
+      "expected_profile_id": "diagnostic-agent-04"
+    },
+    {
+      "id": "F02-known-change",
+      "input_file": "input-known-change.json",
+      "expected_values": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0.02,
+        2,
+        0,
+        1,
+        0.1
+      ],
+      "expected_profile_id": "diagnostic-agent-04"
+    },
+    {
+      "id": "F03-new-destination",
+      "input_file": "input-new-destination.json",
+      "expected_values": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0.02,
+        2,
+        0,
+        1,
+        0.1
+      ],
+      "expected_profile_id": "diagnostic-agent-04"
+    },
+    {
+      "id": "F04-new-agent",
+      "input_file": "input-new-agent.json",
+      "expected_values": [
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0.2,
+        2,
+        0,
+        1,
+        0.9
+      ],
+      "expected_profile_id": "diagnostic-cohort"
+    },
+    {
+      "id": "F05-session-start",
+      "input_file": "input-session-start.json",
+      "expected_values": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0.2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_profile_id": "diagnostic-agent-04"
+    }
+  ]
+}

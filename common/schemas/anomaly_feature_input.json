@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:alice:schemas:anomaly-feature-input:1.0.0",
+  "title": "DCAMR cyber behavior feature input",
+  "description": "Normalized action request and trusted snapshot for local cyber-behavior-v1 feature construction. Identity and observation provenance must be supplied by DCAMR.",
+  "$comment": "The reader enforces a 1 MiB byte limit, strict UTF-8 JSON, finite numbers, duplicate-key rejection, and matching expected dispatch bytes digest. Request and snapshot SHA-256 fields are supplied correlation labels; this schema does not define their canonical hashing protocol. Runtime additionally parses UTC calendar dates, checks identity bindings, action-specific parameter applicability, history completeness/order/uniqueness/conflicts, and baseline references. Enable a date-time format checker.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "request", "snapshot"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "request_sha256", "agent_id", "mission_id", "action", "target", "parameters"],
+      "properties": {
+        "request_id": {"$ref": "#/$defs/identifier"},
+        "request_sha256": {"$ref": "#/$defs/sha256"},
+        "agent_id": {"$ref": "#/$defs/identifier"},
+        "mission_id": {"$ref": "#/$defs/identifier"},
+        "action": {"$ref": "#/$defs/identifier"},
+        "target": {"$ref": "#/$defs/identifier"},
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "maxProperties": 3,
+          "properties": {
+            "destination": {"type": "string", "minLength": 1, "maxLength": 256},
+            "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+            "protocol": {"enum": ["tcp", "udp"]}
+          }
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sha256", "observed_at", "subject", "context_attempt", "history"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "observed_at": {"$ref": "#/$defs/nullableUtcTimestamp"},
+        "subject": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["agent_id", "mission_id", "role", "mission_type"],
+          "properties": {
+            "agent_id": {"$ref": "#/$defs/identifier"},
+            "mission_id": {"$ref": "#/$defs/identifier"},
+            "role": {"$ref": "#/$defs/identifier"},
+            "mission_type": {"$ref": "#/$defs/identifier"}
+          }
+        },
+        "context_attempt": {"$ref": "#/$defs/safeInteger"},
+        "history": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["complete_since", "incomplete_until", "proposals", "executions"],
+          "properties": {
+            "complete_since": {"$ref": "#/$defs/nullableUtcTimestamp"},
+            "incomplete_until": {"$ref": "#/$defs/nullableUtcTimestamp"},
+            "proposals": {
+              "type": "array",
+              "maxItems": 1024,
+              "items": {"$ref": "#/$defs/proposal"}
+            },
+            "executions": {
+              "type": "array",
+              "maxItems": 1024,
+              "items": {"$ref": "#/$defs/execution"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_.-]+$",
+      "not": {"pattern": "[^A-Za-z0-9_.-]"}
+    },
+    "sha256": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "safeInteger": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
+    "utcTimestamp": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 128,
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]+)?(?:Z|\\+00:00)$",
+      "description": "Trusted UTC using Z or +00:00; leap-second timestamps are outside this version. Runtime calendar parsing is also required."
+    },
+    "nullableUtcTimestamp": {
+      "anyOf": [{"$ref": "#/$defs/utcTimestamp"}, {"type": "null"}]
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "request_sha256", "agent_id", "mission_id", "action", "target", "admitted_at", "ordinal"],
+      "properties": {
+        "request_id": {"$ref": "#/$defs/identifier"},
+        "request_sha256": {"$ref": "#/$defs/sha256"},
+        "agent_id": {"$ref": "#/$defs/identifier"},
+        "mission_id": {"$ref": "#/$defs/identifier"},
+        "action": {"$ref": "#/$defs/identifier"},
+        "target": {"$ref": "#/$defs/identifier"},
+        "admitted_at": {"$ref": "#/$defs/utcTimestamp"},
+        "ordinal": {"$ref": "#/$defs/safeInteger"}
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["execution_id", "request_id", "request_sha256", "agent_id", "mission_id", "action", "target", "executed_at"],
+      "properties": {
+        "execution_id": {"$ref": "#/$defs/identifier"},
+        "request_id": {"$ref": "#/$defs/identifier"},
+        "request_sha256": {"$ref": "#/$defs/sha256"},
+        "agent_id": {"$ref": "#/$defs/identifier"},
+        "mission_id": {"$ref": "#/$defs/identifier"},
+        "action": {"$ref": "#/$defs/identifier"},
+        "target": {"$ref": "#/$defs/identifier"},
+        "executed_at": {"$ref": "#/$defs/utcTimestamp"}
+      }
+    }
+  }
+}

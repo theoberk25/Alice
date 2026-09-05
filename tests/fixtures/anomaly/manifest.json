@@ -1,0 +1,61 @@
+{
+  "fixture_format": "anomaly-results-v1",
+  "cases": [
+    {
+      "id": "A01-normal",
+      "result_file": "scored-low.json",
+      "expected_status": "OK",
+      "expected_result": "LOW",
+      "expected_score": 0.475
+    },
+    {
+      "id": "A02-new-destination",
+      "result_file": "scored-elevated.json",
+      "expected_status": "OK",
+      "expected_result": "ELEVATED",
+      "expected_score": 0.97
+    },
+    {
+      "id": "A03-high-behavior",
+      "result_file": "scored-high.json",
+      "expected_status": "OK",
+      "expected_result": "HIGH",
+      "expected_score": 0.995
+    },
+    {
+      "id": "A04-policy-deny",
+      "result_file": "skipped-policy-deny.json",
+      "expected_status": "SKIPPED",
+      "expected_result": "UNKNOWN",
+      "expected_score": null
+    },
+    {
+      "id": "A05-new-agent",
+      "result_file": "new-agent-low.json",
+      "expected_status": "OK",
+      "expected_result": "LOW",
+      "expected_score": 0.475
+    },
+    {
+      "id": "A07-missing-artifacts",
+      "result_file": "unavailable.json",
+      "expected_status": "UNAVAILABLE",
+      "expected_result": "UNKNOWN",
+      "expected_score": null
+    },
+    {
+      "id": "A12-clock-untrusted",
+      "result_file": "clock-untrusted.json",
+      "expected_status": "UNAVAILABLE",
+      "expected_result": "UNKNOWN",
+      "expected_score": null
+    },
+    {
+      "id": "A18-timeout",
+      "result_file": "timeout.json",
+      "expected_status": "TIMEOUT",
+      "expected_result": "UNKNOWN",
+      "expected_score": null
+    }
+  ]
+}

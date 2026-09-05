@@ -1,0 +1,8 @@
+# Mac lab training only. Do not add these to Pi runtime requirements by default.
+# Versions match the environment used for the first reproducibility check.
+-r requirements-anomaly.txt
+numpy==1.26.4
+scipy==1.16.0
+scikit-learn==1.5.2
+joblib==1.5.1
+threadpoolctl==3.6.0

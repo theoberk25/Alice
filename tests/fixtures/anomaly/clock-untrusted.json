@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0-draft.1",
+  "evaluation_id": "eval-fixture-012-0",
+  "previous_evaluation_id": null,
+  "request_id": "req-fixture-012",
+  "request_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evaluated_at": null,
+  "status": "UNAVAILABLE",
+  "result": "UNKNOWN",
+  "score": null,
+  "score_method": null,
+  "raw_score": null,
+  "source": null,
+  "baseline": null,
+  "model": null,
+  "calibration": null,
+  "input_snapshot": {
+    "id": "snapshot-fixture-012-0",
+    "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "observed_at": null,
+    "history_window_seconds": 300,
+    "context_attempt": 0
+  },
+  "factors": [],
+  "reason_codes": [
+    "CLOCK_UNTRUSTED"
+  ],
+  "quality": {
+    "missing_fields": [
+      "evaluated_at",
+      "input_snapshot.observed_at"
+    ],
+    "stale_fields": [],
+    "unsupported_fields": []
+  },
+  "runtime": {
+    "duration_ms": 0.0,
+    "execution_mode": "FIXTURE"
+  }
+}

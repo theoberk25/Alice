@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "request": {
+    "request_id": "req-feature-003",
+    "request_sha256": "000000000000000000000000000000000000000000000000000000000000001e",
+    "agent_id": "diagnostic-agent-04",
+    "mission_id": "INC-291",
+    "action": "allow_outbound",
+    "target": "Web-01",
+    "parameters": {
+      "destination": "203.0.113.42",
+      "port": 443,
+      "protocol": "tcp"
+    }
+  },
+  "snapshot": {
+    "id": "snapshot-feature-003-0",
+    "sha256": "00000000000000000000000000000000000000000000000000000000000003eb",
+    "observed_at": "2026-09-05T15:05:00Z",
+    "subject": {
+      "agent_id": "diagnostic-agent-04",
+      "mission_id": "INC-291",
+      "role": "diagnostic",
+      "mission_type": "network_investigation"
+    },
+    "context_attempt": 0,
+    "history": {
+      "complete_since": "2026-09-05T15:00:00Z",
+      "incomplete_until": null,
+      "proposals": [
+        {
+          "request_id": "req-feature-003-prior-1",
+          "request_sha256": "000000000000000000000000000000000000000000000000000000000000001f",
+          "agent_id": "diagnostic-agent-04",
+          "mission_id": "INC-291",
+          "action": "read_logs",
+          "target": "Web-01",
+          "admitted_at": "2026-09-05T15:01:00Z",
+          "ordinal": 1
+        },
+        {
+          "request_id": "req-feature-003-prior-2",
+          "request_sha256": "0000000000000000000000000000000000000000000000000000000000000020",
+          "agent_id": "diagnostic-agent-04",
+          "mission_id": "INC-291",
+          "action": "query_network",
+          "target": "Web-01",
+          "admitted_at": "2026-09-05T15:04:00Z",
+          "ordinal": 2
+        }
+      ],
+      "executions": []
+    }
+  }
+}

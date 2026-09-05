@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0-draft.1",
+  "evaluation_id": "eval-demo-003-0",
+  "previous_evaluation_id": null,
+  "request_id": "req-demo-003",
+  "request_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evaluated_at": "2026-09-05T15:43:00Z",
+  "status": "UNAVAILABLE",
+  "result": "UNKNOWN",
+  "score": null,
+  "score_method": null,
+  "raw_score": null,
+  "source": null,
+  "baseline": null,
+  "model": null,
+  "calibration": null,
+  "input_snapshot": {
+    "id": "snapshot-demo-003-0",
+    "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "observed_at": "2026-09-05T15:42:59Z",
+    "history_window_seconds": 300,
+    "context_attempt": 0
+  },
+  "factors": [],
+  "reason_codes": [
+    "BASELINE_MISSING",
+    "MODEL_MISSING"
+  ],
+  "quality": {
+    "missing_fields": [
+      "active_artifacts.baseline",
+      "active_artifacts.model"
+    ],
+    "stale_fields": [],
+    "unsupported_fields": []
+  },
+  "runtime": {
+    "duration_ms": 0.0,
+    "execution_mode": "FIXTURE"
+  }
+}

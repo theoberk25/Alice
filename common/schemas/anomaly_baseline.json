@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:alice:schemas:anomaly-baseline:1.0.0",
+  "title": "DCAMR cyber behavior baseline",
+  "description": "Bounded normal behavior data for cyber-behavior-v1. Policy permissions and signature verification are outside this document.",
+  "$comment": "The trusted reader enforces the 8 MiB byte limit, UTF-8, finite JSON numbers, duplicate-key rejection, and package provenance. The feature builder resolves references, supported action names, role/mission relationships, destination normalization, nondegenerate action support, and duplicate cohort mappings.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "feature_schema_version", "package_id", "version", "action_catalog", "targets", "profiles", "agents", "cohorts"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "feature_schema_version": {"const": "cyber-behavior-v1"},
+    "package_id": {"$ref": "#/$defs/identifier"},
+    "version": {"$ref": "#/$defs/identifier"},
+    "action_catalog": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 64,
+      "propertyNames": {"$ref": "#/$defs/identifier"},
+      "patternProperties": {"^[A-Za-z0-9_.-]+$": {"$ref": "#/$defs/action"}},
+      "additionalProperties": false
+    },
+    "targets": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 64,
+      "propertyNames": {"$ref": "#/$defs/identifier"},
+      "patternProperties": {"^[A-Za-z0-9_.-]+$": {"$ref": "#/$defs/target"}},
+      "additionalProperties": false
+    },
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 64,
+      "propertyNames": {"$ref": "#/$defs/identifier"},
+      "patternProperties": {"^[A-Za-z0-9_.-]+$": {"$ref": "#/$defs/profile"}},
+      "additionalProperties": false
+    },
+    "agents": {
+      "type": "object",
+      "maxProperties": 256,
+      "propertyNames": {"$ref": "#/$defs/identifier"},
+      "patternProperties": {"^[A-Za-z0-9_.-]+$": {"$ref": "#/$defs/subjectProfile"}},
+      "additionalProperties": false
+    },
+    "cohorts": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/subjectProfile"},
+      "description": "At most one mapping per authenticated role/mission_type pair; semantic validation checks that uniqueness and the referenced profile."
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_.-]+$",
+      "not": {"pattern": "[^A-Za-z0-9_.-]"}
+    },
+    "count": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state_changing", "destination_required"],
+      "properties": {
+        "state_changing": {"type": "boolean"},
+        "destination_required": {"type": "boolean"}
+      }
+    },
+    "destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "port", "protocol"],
+      "properties": {
+        "host": {"type": "string", "minLength": 1, "maxLength": 256},
+        "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+        "protocol": {"enum": ["tcp", "udp"]}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["destinations"],
+      "properties": {
+        "destinations": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/destination"}
+        }
+      }
+    },
+    "actionCounts": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 64,
+      "propertyNames": {"$ref": "#/$defs/identifier"},
+      "patternProperties": {"^[A-Za-z0-9_.-]+$": {"$ref": "#/$defs/count"}},
+      "additionalProperties": false
+    },
+    "transitionCounts": {
+      "type": "object",
+      "maxProperties": 64,
+      "propertyNames": {"$ref": "#/$defs/identifier"},
+      "patternProperties": {"^[A-Za-z0-9_.-]+$": {"$ref": "#/$defs/count"}},
+      "additionalProperties": false
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "mission_type", "targets", "action_counts", "transitions"],
+      "properties": {
+        "role": {"$ref": "#/$defs/identifier"},
+        "mission_type": {"$ref": "#/$defs/identifier"},
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/identifier"}
+        },
+        "action_counts": {"$ref": "#/$defs/actionCounts"},
+        "transitions": {
+          "type": "object",
+          "maxProperties": 64,
+          "propertyNames": {"$ref": "#/$defs/identifier"},
+          "patternProperties": {"^[A-Za-z0-9_.-]+$": {"$ref": "#/$defs/transitionCounts"}},
+          "additionalProperties": false
+        }
+      }
+    },
+    "subjectProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "mission_type", "profile_id"],
+      "properties": {
+        "role": {"$ref": "#/$defs/identifier"},
+        "mission_type": {"$ref": "#/$defs/identifier"},
+        "profile_id": {"$ref": "#/$defs/identifier"}
+      }
+    }
+  }
+}

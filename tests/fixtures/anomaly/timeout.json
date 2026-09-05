@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0-draft.1",
+  "evaluation_id": "eval-fixture-018-0",
+  "previous_evaluation_id": null,
+  "request_id": "req-fixture-018",
+  "request_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evaluated_at": "2026-09-05T15:42:18Z",
+  "status": "TIMEOUT",
+  "result": "UNKNOWN",
+  "score": null,
+  "score_method": null,
+  "raw_score": null,
+  "source": "OPS_BASELINE:ops-web01/42",
+  "baseline": {
+    "package_id": "ops-web01",
+    "version": "42",
+    "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "model": {
+    "name": "IsolationForest",
+    "version": "if-ops42-demo1",
+    "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "feature_schema_version": "cyber-behavior-v1"
+  },
+  "calibration": {
+    "version": "normal-reference-demo1",
+    "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "sample_count": 1000,
+    "threshold_profile": "demo-tail-v1",
+    "elevated_min": 0.95,
+    "high_min": 0.99
+  },
+  "input_snapshot": {
+    "id": "snapshot-fixture-018-0",
+    "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "observed_at": "2026-09-05T15:42:17Z",
+    "history_window_seconds": 300,
+    "context_attempt": 0
+  },
+  "factors": [],
+  "reason_codes": [
+    "INFERENCE_TIMEOUT"
+  ],
+  "quality": {
+    "missing_fields": [],
+    "stale_fields": [],
+    "unsupported_fields": []
+  },
+  "runtime": {
+    "duration_ms": 0.0,
+    "execution_mode": "FIXTURE"
+  }
+}

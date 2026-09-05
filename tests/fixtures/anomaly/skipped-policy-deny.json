@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0-draft.1",
+  "evaluation_id": "eval-fixture-004-0",
+  "previous_evaluation_id": null,
+  "request_id": "req-fixture-004",
+  "request_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evaluated_at": "2026-09-05T15:43:00Z",
+  "status": "SKIPPED",
+  "result": "UNKNOWN",
+  "score": null,
+  "score_method": null,
+  "raw_score": null,
+  "source": null,
+  "baseline": null,
+  "model": null,
+  "calibration": null,
+  "input_snapshot": {
+    "id": "snapshot-fixture-004-0",
+    "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "observed_at": "2026-09-05T15:42:59Z",
+    "history_window_seconds": 300,
+    "context_attempt": 0
+  },
+  "factors": [],
+  "reason_codes": [
+    "POLICY_DENY_SHORT_CIRCUIT"
+  ],
+  "quality": {
+    "missing_fields": [],
+    "stale_fields": [],
+    "unsupported_fields": []
+  },
+  "runtime": {
+    "duration_ms": 0.0,
+    "execution_mode": "FIXTURE"
+  }
+}

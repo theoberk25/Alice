@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "request": {
+    "request_id": "req-feature-005",
+    "request_sha256": "0000000000000000000000000000000000000000000000000000000000000032",
+    "agent_id": "diagnostic-agent-04",
+    "mission_id": "INC-291",
+    "action": "query_network",
+    "target": "Web-01",
+    "parameters": {}
+  },
+  "snapshot": {
+    "id": "snapshot-feature-005-0",
+    "sha256": "00000000000000000000000000000000000000000000000000000000000003ed",
+    "observed_at": "2026-09-05T15:05:00Z",
+    "subject": {
+      "agent_id": "diagnostic-agent-04",
+      "mission_id": "INC-291",
+      "role": "diagnostic",
+      "mission_type": "network_investigation"
+    },
+    "context_attempt": 0,
+    "history": {
+      "complete_since": "2026-09-05T15:00:00Z",
+      "incomplete_until": null,
+      "proposals": [],
+      "executions": []
+    }
+  }
+}
