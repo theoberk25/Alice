@@ -10,17 +10,19 @@ The current [parent PRD][prd], [architecture][architecture] and
 [developer handoff][handoff] define the product boundary. The external console's
 reported progress is documented separately in the [console integration note][console-integration];
 it does not change core task status without a working cross-system connection.
-The current increment adds a general contextual model interface; previous
-two-mode requirements still need their own runtime integrations.
+The current increment adds the [local Decision Evidence Ledger][audit-guide];
+two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
+
+Combined assessment + ledger verification: **253 tests passed, zero skips**.
 
 Latest decision-boundary increment: [Pi assessment](decision-assessment.md)
 combines trusted permission findings with contextual model evidence for the
 technician application's local LLM. Unusual PRE_ACTION observations explicitly
 require human approval. This emits no final decision or execution token; transport,
 audit, permission resolution and Pi model export remain separate work. The 17 new
-checks include real fitted-model integration; the full suite passes **165 tests**. Older architecture descriptions of
+checks include real fitted-model integration; the assessment-only checkpoint passed **165 tests**. Older architecture descriptions of
 Pi-owned final fusion need a coordinated application/enforcement contract update;
 this assessment is not silently substituted for `alice.decision`.
 
@@ -32,8 +34,8 @@ this assessment is not silently substituted for `alice.decision`.
 - **Planned** — the requested behavior is not implemented in this checkout.
   A PRD proposal or empty skeleton is not completion evidence.
 
-Current totals: **12 Done component, 26 Partial,
-80 Planned**. These are task-status counts, not a percentage of product
+Current totals: **12 Done component, 35 Partial,
+71 Planned**. These are task-status counts, not a percentage of product
 readiness or an estimate of remaining effort.
 
 The current model increment is a [general contextual Isolation Forest][context-guide]
@@ -45,11 +47,26 @@ untrained model produce UNKNOWN/null scores. Input/source validation, in-memory
 fitting and repeatable scoring are implemented; actual ESP extraction and data
 collection, artifact loading, fusion and deployment are not.
 
-The pre-assessment checkpoint passed **148 tests**, including 45 new parser/model checks;
+The pre-ledger checkpoint passed **148 tests**, including 45 parser/model checks;
 both existing cyber fixture replays still pass. New test data is unitless,
 synthetic and temporary, not a light/voltage operating baseline. New assessments
 retain training-range evidence independently of ML score and use a separate
 internal contract, pending the canonical anomaly/decision adapter.
+
+
+The [durable ledger slice][audit-guide] adds local SQLite recording, strict compact
+contracts, trusted Ed25519 checkpoints, bounded delivery bookkeeping and linked
+findings. Ledger checkpoint verification: **236 Python tests passed, zero skips**, plus both
+cyber replays (8 anomaly fixtures, 7 rank cases, 5 feature vectors) and the
+[model-to-ledger replay][context-ledger-replay] (6 synthetic assessment cases).
+That replay verifies real PRE/POST scoring and explicit failure outcomes through
+compact projection, exact retained evidence, sealing, anchored restart and duplicate
+retry; it does not establish live producer integration. Independent
+whole-branch review found a runtime metadata-validation gap; a two-line check and
+regression test now reject changed stored metadata before further writes. Rereview
+has no open material findings. No live producer, sender, admission gate, execution fence,
+sensor driver or Pi hardware acceptance is implied. Original history is retained;
+acknowledgement does not permit deletion or prove execution.
 
 The probable demo hardware is now an ESP with lights and a voltage sensor.
 The [enterprise simulation](enterprise-sim-handoff.md) now supplies Wazuh
@@ -80,7 +97,7 @@ The Technician Mac is not a manual relay. Returning ONLINE must fence local
 commands and approvals; a successful connection or upload does not itself grant
 execution authority or prove that the whole audit backlog was acknowledged.
 
-All current **Done component** statuses remain scoped to the cyber components
+All current **Done component** statuses remain scoped to the existing components
 below. The topology, authority transfer, live cache sync and motor path are not
 implemented here. See the supplemental planned requirements after the original
 118-task tables; they are deliberately excluded from the original status counts.
@@ -223,7 +240,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 006 | Define User Permissions Schema | Planned | No permissions-package or user-permissions schema is implemented. [Enterprise simulation](enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 007 | Define Local Telemetry Schema | Planned | Trusted history input is defined, but the general telemetry/sensor contract is not. |
 | 008 | Define Decision Output Schema | Partial | [Nested anomaly result][result-schema] and [validator][contract] exist; the [core complete decision record][decision-schema] is empty. The reported console `alice.decision` requires an agreed adapter, not a guessed payload. |
-| 009 | Define Reconciliation Event Schema | Planned | No core reconciliation-event producer/contract exists. The console reports later annotations against immutable decisions; direct Pi/enterprise integration remains. |
+| 009 | Define Reconciliation Event Schema | Partial | [Local ledger finding contract][audit-schema] binds an original event ID/hash and source metadata; [ledger tests][audit-outbox-tests] preserve originals. This is independent of the still-unimplemented public reconciliation wire contract, producer and enterprise comparison workflow. |
 
 ## Initial package loading and trust (010–014)
 
@@ -302,14 +319,14 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 058 | Generate Decision Provenance | Partial | [Immutable feature provenance][feature-types] and [anomaly provenance fields][result-schema] exist; final DCAMR decision provenance is not generated. |
-| 059 | Record Source of Every Decision Factor | Partial | [Builder][features] supplies a source for every feature. Policy, evidence and final fused decision factors are not yet produced. |
-| 060 | Record Model Metadata | Partial | [Mac report][training-report] records actual fit parameters, tree counts and runtime versions; [anomaly contract][result-schema] supports binding metadata. No persisted/signed model artifact or live decision metadata exists. |
-| 061 | Record Policy Metadata | Planned | No live authorized-permission result or source recorder exists in core. Original task label and existing policy keys remain unchanged. |
+| 058 | Generate Decision Provenance | Partial | [Immutable feature provenance][feature-types] and [anomaly provenance][result-schema] remain; the [local ledger][audit-guide] durably records supplied bounded provenance and exact bindings. Final authoritative decision generation and live adapters remain. |
+| 059 | Record Source of Every Decision Factor | Partial | [Builder][features] supplies feature sources. The [ledger][audit-guide] records compact evidence references and contextual source IDs; it does not produce or verify policy/evidence/fused factors. Numeric contextual factors remain referenced evidence. |
+| 060 | Record Model Metadata | Partial | [Mac report][training-report] records fitted metadata. [Compact ledger projection][audit-contract] preserves model ID, in-memory fingerprint, profile/input/calibration digests and independent dispatch binding without copying numeric scores/factors. Signed deployable artifacts and live inference integration remain. |
+| 061 | Record Policy Metadata | Partial | [Local ledger schema][audit-schema] persists supplied policy identity/digest or explicit absence; [contract tests][audit-contract-tests] cover it. Permissions evaluation, authenticated release loading and live recording remain absent. |
 | 062 | Record Baseline Metadata | Done component | [Baseline loader][baseline] records payload identity/version and verified expected byte digest; [FeatureBatch][feature-types] preserves them. Enclosing package identity stays separate. |
-| 063 | Record Evidence Metadata | Planned | No live evidence-verification result or evidence-metadata recorder exists. |
-| 064 | Record Connectivity State | Planned | No authoritative connectivity/authority state recorder exists. An ONLINE connection is not proof of endpoint control or completed synchronization. |
-| 065 | Write Tamper-Evident Audit Record | Planned | The core [audit writer][audit] is empty. Required ONLINE feed audit and every OFFLINE request/decision/attempt/result have no tamper-evident mission store yet; console-local audit is separate. |
+| 063 | Record Evidence Metadata | Partial | [Ledger contract][audit-schema] and [tests][audit-contract-tests] record bounded evidence references/digests, source identity, verification, freshness and availability. Evidence collection, authentication, retention and verification are not implemented. |
+| 064 | Record Connectivity State | Partial | [Ledger][audit-guide] captures supplied mode/connectivity/owner/interval/confirmation with events. [Tests][audit-contract-tests] enforce claim consistency; no live connectivity detector or endpoint authority transfer exists. |
+| 065 | Write Tamper-Evident Audit Record | Partial | [SQLite ledger][audit] implements canonical append-only history, hash validation, Ed25519 checkpoints, independent anchors, quotas/reserve and durable outbox metadata; [storage][audit-tests] and [integrity tests][audit-integrity-tests] cover failure/restart. Full live audit coverage, admission/enforcement and Pi acceptance remain absent. Tamper-evident under documented storage/key assumptions; whole-store rollback needs an independent anchor. |
 
 ## Dashboard, technician and execution (066–076)
 
@@ -321,8 +338,8 @@ workflows run with explicit no-unintended-execution assertions.
 | 069 | Receive Technician Decision | Planned | No real core technician-action receiver exists. The console reports local action construction/persistence; authenticated delivery and receipts remain. |
 | 070 | Require Technician Authentication for Approval | Planned | Console local ArcFace enrollment/login and approval grants are reported. Core-verifiable, fresh, one-use proof bound to current decision/request/authority remains; live approval camera acceptance is pending. |
 | 071 | Execute Approved Action | Planned | The [enforcement gateway][enforcement] is empty. OFFLINE local execution requires the endpoint fence; ONLINE enterprise control remains direct. |
-| 072 | Record Technician Decision | Planned | No core mission-audit technician-decision recorder exists. The external console reports local records; durable delivery/acknowledgement to core remains. |
-| 073 | Record Action Execution Result | Planned | The builder consumes supplied execution history; core does not execute or persist results. A console receipt currently reports NOT_EXECUTED and is not controller confirmation. |
+| 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
+| 073 | Record Action Execution Result | Partial | [Ledger][audit-guide] persists separate supplied execution attempts, controller receipts/results and sensor observations with identity/time/evidence binding. [Tests][audit-contract-tests] preserve UNKNOWN outcomes. No controller execution, authenticated result receiver or sensor driver is connected. |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |
 | 075 | Compare Expected vs Actual Result | Planned | No expected-versus-observed execution-outcome comparison exists. |
 | 076 | Flag Post-Execution Anomalies | Partial | [POST_ACTION scoring][context-model] requires a separately trained profile/context and at least one temporally valid resulting-state feature. [Tests][context-model-tests] cover post timing and scoring; real execution/sensor ingestion, outcome validation and response remain unimplemented. |
@@ -345,8 +362,8 @@ workflows run with explicit no-unintended-execution assertions.
 | 088 | Fetch Pending External Evidence | Planned | No direct Pi/enterprise pending-evidence fetch workflow exists; the technician is not the manual relay. |
 | 089 | Reconcile Local Evidence with Cloud Evidence | Planned | The core [reconciliation component][reconciliation] is empty. Direct Pi comparison/upload and append-only findings remain. |
 | 090 | Detect Evidence Discrepancies | Planned | No local/cloud evidence discrepancy detector exists. |
-| 091 | Append Reconciliation Results | Planned | No core reconciliation appender or persistent mission-audit integration exists. Console annotation display is reported; original decisions must remain intact. |
-| 092 | Preserve Original Decision History | Planned | Core feature/dispatch objects are immutable, but persistent mission-decision history is absent. The external console reports its own immutable cache/lineage; that does not complete core audit. |
+| 091 | Append Reconciliation Results | Partial | [Ledger finding append][audit] and [outbox tests][audit-outbox-tests] require original ID/hash and source attribution; reconciliation marker requires original ACK plus linked finding. Actual evidence fetching/comparison and enterprise reconciliation remain absent. |
+| 092 | Preserve Original Decision History | Partial | [Durable ledger][audit] retains original canonical events through restart, delivery and linked findings; [history tests][audit-tests] reject ordinary edits and verify tamper evidence. Public decision production/lineage and console integration remain separate. |
 
 ## Package updates and connected recovery (093–107)
 
@@ -458,3 +475,12 @@ Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 [training-report]: reports/anomaly-lab/candidate-002/training-report.json
 [training-calibration]: reports/anomaly-lab/candidate-002/calibration-reference.json
 [training-manifest]: reports/anomaly-lab/candidate-002/dataset-manifest.json
+
+[audit-guide]: decision-evidence-ledger.md
+[audit-schema]: ../common/schemas/audit_event.json
+[audit-contract]: ../dcamr/audit/event_contract.py
+[audit-contract-tests]: ../tests/test_audit_contract.py
+[audit-tests]: ../tests/test_audit_log.py
+[audit-outbox-tests]: ../tests/test_audit_outbox.py
+[audit-integrity-tests]: ../tests/test_audit_integrity.py
+[context-ledger-replay]: ../lab/replay_contextual_ledger.py

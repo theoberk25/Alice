@@ -29,13 +29,21 @@ Model training, the explanatory LLM and facial verification belong on the Mac.
 - [Mac synthetic training lab](docs/anomaly-training.md)
 - [General before/after behavior model](docs/contextual-behavior-model.md)
 - [Pi assessment for the technician application](docs/decision-assessment.md)
+- [Local Decision Evidence Ledger](docs/decision-evidence-ledger.md)
 - [Enterprise SIEM simulation and Wazuh setup](docs/enterprise-sim-handoff.md)
+- [WIP integration handoff for workflow development](docs/core-workflow-wip-handoff.md)
+
+**WIP integration checkpoint:** analysis, ledger, workstation and enterprise
+simulation components are available for team integration. This is not a complete
+live request-to-execution system. See the workflow handoff for existing entry points,
+contract differences and remaining work before adding parallel implementations.
 
 The anomaly contract, cyber feature builder, Mac training lab and general
-context-conditioned Isolation Forest interface are implemented components. The
+context-conditioned Isolation Forest interface and durable local ledger are
+implemented components. The
 new interface supports separate before/after assessments; real ESP operating data
 and its sensor/action adapter remain to be supplied. Permissions evaluation, decision fusion, package
-verification, enterprise synchronization, authority transfer, durable mission audit,
+verification, enterprise synchronization, authority transfer, live mission-audit coverage,
 motor execution and Pi deployment remain integration work. The separate console
 handoff reports real face enrollment/login with mock edge transport; it is not yet
 connected to this core. See the tracker for evidence and scope.
@@ -50,20 +58,28 @@ measurements, units and operating ranges still need agreement.
 remain unchanged until a coordinated contract migration.
 
 For contract and feature work, start from the repository root with Python 3.11+
-(tested with Python 3.12.6):
+(latest core suite tested with Python 3.13):
 
 ```sh
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements-anomaly.txt
+.venv/bin/python -m pip install -r requirements-audit.txt
 .venv/bin/python -m lab.replay_anomaly_fixtures
 .venv/bin/python -m lab.replay_feature_fixtures
 .venv/bin/python -m unittest discover -v
 ```
 
+The audit requirements include the contract/feature requirements and Ed25519
+dependency. For contract/feature work alone, `requirements-anomaly.txt` remains
+sufficient; running the full suite also requires the audit dependencies.
+
 For the Mac training lab and its real-estimator tests, also install
 `.venv/bin/python -m pip install -r requirements-anomaly-training.txt`.
 Those tests skip when training dependencies are absent. See the training guide
 for experiment commands and the [published experiment evidence](docs/reports/anomaly-lab/README.md).
+
+With both audit and training dependencies installed, run
+`.venv/bin/python -m lab.replay_contextual_ledger` to verify synthetic PRE/POST and
+failure assessments through ledger sealing, restart and duplicate retry.
 
 See the [demo runbook](docs/demo-runbook.md) for the distinction between runnable
 component checks and planned end-to-end acceptance, and the

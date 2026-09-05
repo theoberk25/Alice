@@ -4,6 +4,12 @@ This increment adds a general, context-conditioned Isolation Forest interface fo
 
 The existing [cyber feature builder](anomaly-features.md), [anomaly result contract](anomaly-contract.md), and published training experiments remain unchanged. This new interface has its own `context-behavior-assessment-v1` output; a DCAMR adapter and dashboard agreement remain pending.
 
+The [local model-to-ledger replay](decision-evidence-ledger.md#verification-scope)
+checks supplied assessments through compact projection, durable recording, sealing
+and restart. Run `.venv/bin/python -m lab.replay_contextual_ledger` with the audit
+and training dependencies installed. It uses synthetic fixtures and temporary
+evidence, and does not connect a live adapter or dashboard.
+
 ## What “context” means here
 
 A profile defines an ordered list of numeric features with explicit units and freshness limits, plus one to four categorical context keys. Each exact context tuple gets its **own forest and held-out normal calibration reference**. For example, two operating modes can have different normal distributions for the same measurement. The model never silently uses a different context when it lacks support for the requested one.
