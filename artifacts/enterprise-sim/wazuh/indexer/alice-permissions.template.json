@@ -1,0 +1,69 @@
+{
+  "index_patterns": [
+    "alice-permissions*"
+  ],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "refresh_interval": "5s"
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "bundle_id": {
+          "type": "keyword"
+        },
+        "generation": {
+          "type": "long"
+        },
+        "issuer_id": {
+          "type": "keyword"
+        },
+        "site_id": {
+          "type": "keyword"
+        },
+        "issued_at": {
+          "type": "date"
+        },
+        "not_before": {
+          "type": "date"
+        },
+        "not_after": {
+          "type": "date"
+        },
+        "revocation_epoch": {
+          "type": "long"
+        },
+        "status": {
+          "type": "keyword"
+        },
+        "release_note": {
+          "type": "text"
+        },
+        "manifest_sha256": {
+          "type": "keyword"
+        },
+        "manifest_b64": {
+          "type": "binary"
+        },
+        "signature_b64": {
+          "type": "binary"
+        },
+        "payload_b64": {
+          "type": "object",
+          "enabled": false
+        },
+        "compatibility": {
+          "type": "object",
+          "enabled": false
+        }
+      }
+    }
+  },
+  "priority": 500,
+  "_meta": {
+    "owner": "ALICE",
+    "note": "Wazuh distributes these releases; the issuer_id above is what authorizes their contents."
+  }
+}

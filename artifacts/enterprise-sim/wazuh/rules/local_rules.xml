@@ -1,0 +1,241 @@
+<!--
+  ALICE custom rules for the Sentinel AFB simulation.
+  Install as /var/ossec/etc/rules/local_rules.xml and restart wazuh-manager.
+
+  Custom rule IDs must be >= 100000. The 100100-100199 block is reserved here
+  for ALICE. Levels are a starting point for the demonstration and should be
+  agreed with whoever owns alerting before this reaches anything real.
+
+  These rules describe what ALICE reported. A Wazuh alert is downstream
+  evidence about a decision; it is not the decision, and it never becomes a
+  normal-behavior training label.
+-->
+<group name="alice,">
+
+  <!-- Parent: any well-formed ALICE audit event. Level 0 = no alert by itself. -->
+  <rule id="100100" level="0">
+    <decoded_as>json</decoded_as>
+    <field name="alice.schema_version">alice-audit-event-v1</field>
+    <description>ALICE audit event</description>
+  </rule>
+
+  <!-- ---------------- Offline machine decisions ---------------- -->
+  <rule id="100110" level="3">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">DECISION</field>
+    <field name="alice.decision">ALLOW</field>
+    <description>ALICE allowed $(alice.action) on $(alice.target) for $(alice.agent_id)</description>
+    <group>alice_decision,</group>
+  </rule>
+
+  <rule id="100111" level="5">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">DECISION</field>
+    <field name="alice.decision">REQUEST_CONTEXT</field>
+    <description>ALICE requested more context for $(alice.action) on $(alice.target)</description>
+    <group>alice_decision,</group>
+  </rule>
+
+  <rule id="100112" level="8">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">DECISION</field>
+    <field name="alice.decision">HOLD</field>
+    <description>ALICE held $(alice.action) on $(alice.target) for technician review</description>
+    <group>alice_decision,</group>
+  </rule>
+
+  <rule id="100113" level="10">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">DECISION</field>
+    <field name="alice.decision">DENY</field>
+    <description>ALICE denied $(alice.action) on $(alice.target) for $(alice.agent_id)</description>
+    <group>alice_decision,</group>
+  </rule>
+
+  <!-- A hard prohibition is a different event from an ordinary denial. -->
+  <rule id="100114" level="12">
+    <if_sid>100113</if_sid>
+    <field name="alice.prohibition_id">\.+</field>
+    <description>ALICE hard prohibition $(alice.prohibition_id) blocked $(alice.action) on $(alice.target)</description>
+    <group>alice_decision,alice_prohibition,</group>
+  </rule>
+
+  <!-- ---------------- Permissions synchronization ---------------- -->
+  <rule id="100120" level="5">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">PERMISSIONS_ACTIVATED</field>
+    <description>ALICE activated permissions generation $(alice.generation)</description>
+    <group>alice_permissions,</group>
+  </rule>
+
+  <rule id="100121" level="12">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">PERMISSIONS_REJECTED</field>
+    <description>ALICE rejected a permissions candidate: $(alice.reason_code)</description>
+    <group>alice_permissions,</group>
+  </rule>
+
+  <!-- Rollback attempt: a candidate older than what the Pi already accepted. -->
+  <rule id="100122" level="14">
+    <if_sid>100121</if_sid>
+    <field name="alice.reason_code">STALE_GENERATION</field>
+    <description>ALICE refused an older permissions generation; possible rollback attempt</description>
+    <group>alice_permissions,alice_rollback,</group>
+  </rule>
+
+  <rule id="100123" level="10">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">PERMISSIONS_EXPIRED</field>
+    <description>ALICE is deciding under an expired permissions generation $(alice.generation)</description>
+    <group>alice_permissions,</group>
+  </rule>
+
+  <rule id="100124" level="7">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">PERMISSIONS_DRIFT</field>
+    <description>ALICE found $(alice.affected_decisions) offline decisions made under a superseded generation</description>
+    <group>alice_permissions,alice_reconciliation,</group>
+  </rule>
+
+  <!-- ---------------- Authority and mode ---------------- -->
+  <rule id="100130" level="7">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">AUTHORITY_TRANSITION</field>
+    <description>ALICE authority transition: $(alice.from_mode) to $(alice.to_mode)</description>
+    <group>alice_authority,</group>
+  </rule>
+
+  <rule id="100131" level="13">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">AUTHORITY_UNCERTAIN</field>
+    <description>ALICE cannot identify the current execution authority; execution is blocked</description>
+    <group>alice_authority,</group>
+  </rule>
+
+  <!-- ---------------- Execution evidence ---------------- -->
+  <rule id="100140" level="5">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">EXECUTION_ATTEMPTED</field>
+    <description>ALICE forwarded $(alice.action) to $(alice.target)</description>
+    <group>alice_execution,</group>
+  </rule>
+
+  <rule id="100141" level="5">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">EXECUTION_RESULT</field>
+    <description>Controller reported $(alice.result) for $(alice.action) on $(alice.target)</description>
+    <group>alice_execution,</group>
+  </rule>
+
+  <!-- The commanded value and the measured value disagree. This is the case a
+       controller success receipt cannot tell you about. -->
+  <rule id="100142" level="12">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">EXECUTION_EFFECT_MISMATCH</field>
+    <description>Measured effect does not match the command on $(alice.target); observed $(alice.observed) against commanded $(alice.commanded)</description>
+    <group>alice_execution,alice_telemetry,</group>
+  </rule>
+
+  <rule id="100143" level="9">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">TELEMETRY_UNAVAILABLE</field>
+    <description>No independent measurement available for $(alice.action) on $(alice.target)</description>
+    <group>alice_execution,alice_telemetry,</group>
+  </rule>
+
+  <!-- ---------------- Technician review ---------------- -->
+  <rule id="100150" level="8">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">TECHNICIAN_APPROVAL_ACCEPTED</field>
+    <description>ALICE accepted an approval from $(alice.technician_id) for $(alice.action)</description>
+    <group>alice_review,</group>
+  </rule>
+
+  <rule id="100151" level="10">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">TECHNICIAN_APPROVAL_REJECTED</field>
+    <description>ALICE rejected a technician approval: $(alice.reason_code)</description>
+    <group>alice_review,</group>
+  </rule>
+
+  <rule id="100152" level="10">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">FACE_VERIFICATION_FAILED</field>
+    <description>Face verification failed for $(alice.technician_id); the approval path stays closed</description>
+    <group>alice_review,</group>
+  </rule>
+
+  <!-- ---------------- Anomaly assessments ---------------- -->
+  <rule id="100160" level="7">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">ANOMALY_ASSESSMENT</field>
+    <field name="alice.band">ELEVATED</field>
+    <description>Elevated $(alice.phase) anomaly for $(alice.agent_id) on $(alice.target)</description>
+    <group>alice_anomaly,</group>
+  </rule>
+
+  <rule id="100161" level="10">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">ANOMALY_ASSESSMENT</field>
+    <field name="alice.band">HIGH</field>
+    <description>High $(alice.phase) anomaly for $(alice.agent_id) on $(alice.target)</description>
+    <group>alice_anomaly,</group>
+  </rule>
+
+  <!-- An unsupported context is not a low score. It is a refusal to score. -->
+  <rule id="100162" level="6">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">ANOMALY_ASSESSMENT</field>
+    <field name="alice.status">UNKNOWN_CONTEXT</field>
+    <description>No fitted context for $(alice.context); ALICE returned a null score</description>
+    <group>alice_anomaly,</group>
+  </rule>
+
+  <rule id="100163" level="6">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">ANOMALY_ASSESSMENT</field>
+    <field name="alice.novelty">\.+</field>
+    <description>Novelty flag $(alice.novelty) retained for $(alice.agent_id)</description>
+    <group>alice_anomaly,</group>
+  </rule>
+
+  <!-- ---------------- Audit integrity ---------------- -->
+  <rule id="100170" level="14">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">AUDIT_CHAIN_GAP</field>
+    <description>Audit sequence gap against the last trusted checkpoint on $(alice.node_id)</description>
+    <group>alice_audit,alice_integrity,</group>
+  </rule>
+
+  <rule id="100171" level="12">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">AUDIT_CAPACITY_BLOCK</field>
+    <description>ALICE blocked consequential actions: audit storage below reserve</description>
+    <group>alice_audit,</group>
+  </rule>
+
+  <rule id="100172" level="3">
+    <if_sid>100100</if_sid>
+    <field name="alice.event_type">AUDIT_CHECKPOINT</field>
+    <description>ALICE audit checkpoint at sequence $(alice.sequence)</description>
+    <group>alice_audit,</group>
+  </rule>
+
+  <!-- ---------------- Correlation ---------------- -->
+  <!-- Repeated denials for one agent inside five minutes. -->
+  <rule id="100180" level="12" frequency="6" timeframe="300">
+    <if_matched_sid>100113</if_matched_sid>
+    <same_field>alice.agent_id</same_field>
+    <description>Repeated ALICE denials for $(alice.agent_id) within five minutes</description>
+    <group>alice_decision,alice_correlation,</group>
+  </rule>
+
+  <!-- Repeated setpoint changes: the rapid-cycling case the model also sees. -->
+  <rule id="100181" level="11" frequency="8" timeframe="600">
+    <if_matched_sid>100140</if_matched_sid>
+    <same_field>alice.target</same_field>
+    <description>Repeated command forwarding to $(alice.target) within ten minutes</description>
+    <group>alice_execution,alice_correlation,</group>
+  </rule>
+
+</group>

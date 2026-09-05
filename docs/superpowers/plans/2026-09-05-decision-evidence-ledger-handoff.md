@@ -1,5 +1,11 @@
 # Decision Evidence Ledger — session handoff
 
+**Publication update:** the user subsequently authorized merging Jared's latest
+`main` and publishing the tested components as WIP for Theo's workflow integration.
+See [the current workflow handoff](../../core-workflow-wip-handoff.md). The earlier
+local-only/no-push instructions below describe the historical checkpoint and are
+superseded for this publication. No deployment or teammate messages are authorized.
+
 **Current status:** final whole-branch review completed on 2026-09-05. One runtime
 metadata-validation gap was reproduced and fixed with a two-line stored-byte
 comparison plus a regression test. Independent rereview has no open material

@@ -1,0 +1,30 @@
+{
+  "cluster_permissions": [
+    "cluster_composite_ops_ro",
+    "indices:data/write/bulk"
+  ],
+  "index_permissions": [
+    {
+      "index_patterns": [
+        "alice-permissions*"
+      ],
+      "allowed_actions": [
+        "read",
+        "search",
+        "get"
+      ]
+    },
+    {
+      "index_patterns": [
+        "alice-audit-*"
+      ],
+      "allowed_actions": [
+        "create_index",
+        "write",
+        "index",
+        "indices:data/write/bulk*"
+      ]
+    }
+  ],
+  "tenant_permissions": []
+}
