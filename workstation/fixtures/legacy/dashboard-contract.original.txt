@@ -1,0 +1,284 @@
+The dashboard contract
+This is where I'd get very disciplined.
+Give your dashboard teammate one JSON object per decision.
+The dashboard should never need to understand Isolation Forest, OPA, Rego, etc.
+It receives:
+
+DCAMR Decision Record
+
+I'd give them this exact test payload.
+
+{
+  "schema_version": "1.0",
+  "event_type": "dcamr.decision",
+
+  "decision_id": "DEC-20260905-000184",
+  "timestamp": "2026-09-05T15:42:18.381Z",
+
+  "system": {
+    "dcamr_node": "DCAMR-PI-01",
+    "mode": "DDIL",
+    "cloud_connected": false,
+    "siem_connected": false,
+    "edr_cloud_connected": false,
+    "local_dashboard_connected": true
+  },
+
+  "request": {
+    "request_id": "REQ-88291",
+    "agent_id": "diagnostic-agent-04",
+    "agent_known": true,
+    "mission_id": "MISSION-291",
+    "mission_type": "network_investigation",
+    "action": "allow_outbound",
+    "target": "Web-01",
+    "parameters": {
+      "destination": "203.0.113.42",
+      "port": 443,
+      "protocol": "tcp"
+    },
+    "state_changing": true
+  },
+
+  "source_packages": {
+    "policy": {
+      "package_id": "POLICY-ANDREWS-DEMO",
+      "version": "18",
+      "signature_status": "VALID",
+      "source": "POLICY_SD"
+    },
+    "operations_baseline": {
+      "package_id": "OPS-WEB-01",
+      "version": "42",
+      "signature_status": "VALID",
+      "source": "OPS_SD"
+    }
+  },
+
+  "policy": {
+    "result": "REVIEW",
+    "rule_id": "NET-OUTBOUND-04",
+    "rule_description": "New outbound destinations require review.",
+    "policy_package": "POLICY-ANDREWS-DEMO",
+    "policy_version": "18"
+  },
+
+  "anomaly": {
+    "model": "IsolationForest",
+    "model_version": "IF-OPS-42",
+    "raw_score": -0.1842,
+    "baseline_percentile": 94.2,
+    "risk_score": 94,
+    "severity": "HIGH",
+
+    "factors": [
+      {
+        "id": "destination_novelty",
+        "label": "Destination has never been observed",
+        "severity": "HIGH",
+        "value": true,
+        "baseline_value": false,
+        "source": "OPS_BASELINE"
+      },
+      {
+        "id": "action_sequence",
+        "label": "Unusual transition from diagnostic to state-changing action",
+        "severity": "MEDIUM",
+        "value": 0.03,
+        "baseline_value": 0.64,
+        "source": "SEQUENCE_MODEL"
+      },
+      {
+        "id": "time_of_operation",
+        "label": "Action occurred outside normal operating window",
+        "severity": "LOW",
+        "value": "02:42",
+        "baseline_value": "08:00-20:00",
+        "source": "OPS_BASELINE"
+      }
+    ]
+  },
+
+  "evidence": {
+    "verified": 1,
+    "unverified": 2,
+    "pending_external_verification": 2,
+
+    "items": [
+      {
+        "evidence_id": "PROC-8821",
+        "claimed_by_agent": true,
+        "status": "VERIFIED_LOCAL",
+        "source": "LOCAL_TELEMETRY"
+      },
+      {
+        "evidence_id": "EDR-9921",
+        "claimed_by_agent": true,
+        "status": "PENDING_EXTERNAL_VERIFICATION",
+        "source": "EDR"
+      },
+      {
+        "evidence_id": "NETFLOW-8177",
+        "claimed_by_agent": true,
+        "status": "PENDING_EXTERNAL_VERIFICATION",
+        "source": "SIEM"
+      }
+    ]
+  },
+
+  "context_challenge": {
+    "required": true,
+    "challenge_id": "CTX-441",
+    "attempt": 1,
+    "status": "RECEIVED",
+
+    "requested_fields": [
+      "mission_justification",
+      "expected_effect",
+      "evidence_references",
+      "alternatives_considered"
+    ],
+
+    "agent_response": {
+      "mission_justification": "Suspected command-and-control traffic.",
+      "expected_effect": "Prevent additional outbound communication.",
+      "evidence_references": [
+        "PROC-8821",
+        "EDR-9921",
+        "NETFLOW-8177"
+      ],
+      "alternatives_considered": [
+        "isolate_process"
+      ]
+    }
+  },
+
+  "decision": {
+    "result": "HOLD",
+    "confidence": 0.93,
+    "reason_codes": [
+      "POLICY_REVIEW_REQUIRED",
+      "HIGH_BEHAVIORAL_ANOMALY",
+      "NOVEL_DESTINATION",
+      "PARTIAL_EVIDENCE_VERIFICATION",
+      "DDIL_EXTERNAL_EVIDENCE_UNAVAILABLE"
+    ],
+
+    "execution_status": "NOT_EXECUTED",
+    "technician_required": true,
+    "biometric_required_for_approval": true
+  },
+
+  "technician_actions": {
+    "available": [
+      "APPROVE",
+      "HOLD",
+      "RESEARCH",
+      "REJECT"
+    ]
+  }
+}
+
+I would send that to your dashboard guy now.
+He can build almost the entire dashboard before your Pi code exists.
+
+Also give him live status events
+Don't force everything into decision objects.
+Have a tiny second event type for infrastructure state:
+
+{
+  "schema_version": "1.0",
+  "event_type": "dcamr.status",
+  "timestamp": "2026-09-05T15:44:01Z",
+
+  "dcamr_node": "DCAMR-PI-01",
+
+  "mode": "DDIL",
+
+  "connections": {
+    "cloud": false,
+    "siem": false,
+    "edr": false,
+    "technician_workstation": true,
+    "protected_system": true
+  },
+
+  "packages": {
+    "policy": {
+      "loaded": true,
+      "version": "18",
+      "signature": "VALID"
+    },
+    "operations_baseline": {
+      "loaded": true,
+      "version": "42",
+      "signature": "VALID"
+    }
+  },
+
+  "decision_engine": {
+    "policy_engine": "READY",
+    "anomaly_engine": "READY",
+    "enforcement_gateway": "READY"
+  }
+}
+
+Now his top bar can show:
+
+DCAMR-PI-01
+
+● POLICY      READY
+● BASELINE    READY
+● MODEL       READY
+● ENDPOINT    CONNECTED
+● CLOUD       OFFLINE
+
+MODE: DDIL
+
+
+And one reconciliation event
+When cloud connectivity returns:
+
+{
+  "schema_version": "1.0",
+  "event_type": "dcamr.reconciliation",
+
+  "timestamp": "2026-09-05T18:47:11Z",
+  "original_decision_id": "DEC-20260905-000184",
+
+  "cloud_restored": true,
+
+  "evidence_results": [
+    {
+      "evidence_id": "EDR-9921",
+      "original_status": "PENDING_EXTERNAL_VERIFICATION",
+      "reconciled_status": "NOT_FOUND"
+    },
+    {
+      "evidence_id": "NETFLOW-8177",
+      "original_status": "PENDING_EXTERNAL_VERIFICATION",
+      "reconciled_status": "VERIFIED"
+    }
+  ],
+
+  "result": {
+    "status": "DISCREPANCY_FOUND",
+    "original_decision_changed": false,
+    "technician_review_recommended": true
+  }
+}
+
+That lets the dashboard display:
+⚠ Evidence discrepancy found after reconnection
+while preserving:
+
+Original decision:
+HOLD
+
+Original decision timestamp:
+15:42
+
+Cloud status at decision:
+OFFLINE
+
+Exactly the behavior we discussed.

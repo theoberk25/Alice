@@ -57,3 +57,11 @@ for experiment commands and the [published experiment evidence](docs/reports/ano
 See the [demo runbook](docs/demo-runbook.md) for the distinction between runnable
 component checks and planned end-to-end acceptance, and the
 [threat model](docs/threat-model.md) for trust boundaries that integration must enforce.
+
+## Technician Console
+
+The macOS ALICE Technician Console lives under [`workstation/`](workstation/README.md).
+Run `cd workstation && npm ci && npm run dev` for the independent mock dashboard.
+See its README for native Tauri operation, biometric setup, Ollama, tests and
+`ALICE.app` packaging, and the [repository integration guide](docs/workstation.md)
+for scope and shared-contract boundaries. Remote core transport remains fail-closed.
