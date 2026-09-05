@@ -290,6 +290,24 @@ os._exit(23)
         with self.assertRaises(audit_log.IntegrityError):
             self.ledger.append(payload)
 
+    def test_runtime_metadata_tamper_blocks_writes_without_changing_history(self):
+        self.ledger.append(self.event())
+        with closing(sqlite3.connect(self.path)) as db, db:
+            trigger = db.execute("SELECT sql FROM sqlite_master WHERE name='metadata_no_update'").fetchone()[0]
+            raw = db.execute('SELECT canonical FROM metadata WHERE id=1').fetchone()[0]
+            db.execute('DROP TRIGGER metadata_no_update')
+            db.execute('UPDATE metadata SET canonical=? WHERE id=1',
+                       (raw.replace(b'ledger-1', b'ledger-2'),))
+            db.execute(trigger)
+        with self.assertRaises(audit_log.IntegrityError):
+            self.ledger.append(self.event('event-2'))
+        self.assertFalse(self.ledger.readiness()['ready'])
+        with closing(sqlite3.connect(self.path)) as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM events').fetchone()[0], 1)
+            self.assertEqual(db.execute('SELECT count(*) FROM transitions').fetchone()[0], 1)
+        with self.assertRaises(audit_log.IntegrityError):
+            self.reopen()
+
     def test_crash_during_transaction_recovers_without_partial_row(self):
         self.ledger.close()
         code = '''

@@ -1,9 +1,15 @@
 # Decision Evidence Ledger — session handoff
 
-**Stopping point:** user requested a clean checkpoint and a new session for final
-review before context compaction. Implementation is present and tested; final
-whole-branch review is still required. Do not restart design approval or represent
-this checkpoint as completed live integration.
+**Current status:** final whole-branch review completed on 2026-09-05. One runtime
+metadata-validation gap was reproduced and fixed with a two-line stored-byte
+comparison plus a regression test. Independent rereview has no open material
+findings. Final verification passed 235 tests with zero skips and both replays
+(8 anomaly fixtures, 7 score cases, 5 feature vectors). Changes are local only;
+live integration and Pi acceptance remain pending.
+
+The checkpoint details and resume checklist below preserve the earlier handoff
+history; the final review above and plan Task 5 supersede their deferred status.
+Do not restart design approval or represent this as completed live integration.
 
 ## Location and authority
 

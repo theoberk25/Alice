@@ -25,6 +25,8 @@ def validate_store(db, metadata, trust, anchor):
     require(db.execute('PRAGMA quick_check').fetchone()[0] == 'ok')
     require(db.execute('PRAGMA foreign_key_check').fetchone() is None)
     require(db.execute('SELECT count(*) FROM metadata').fetchone()[0] == 1)
+    stored_metadata = db.execute('SELECT canonical FROM metadata WHERE id=1').fetchone()
+    require(stored_metadata is not None and stored_metadata[0] == canonical_bytes(metadata))
     for table in _IMMUTABLE:
         for operation in ('update', 'delete'):
             row = db.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name=?",

@@ -87,11 +87,11 @@ self.assertEqual(ledger.pending()[0]['state'], 'QUEUED')
 
 Files: docs/decision-evidence-ledger.md, docs/implementation-tracker.md, plan checkboxes.
 
-- [ ] Review requirement-to-test coverage and dispatch independent code review; fix material issues with regression tests first.
+- [x] Review requirement-to-test coverage and dispatch independent code review; fix material issues with regression tests first.
 - [x] Run `.venv/bin/python -m unittest discover -v`, `.venv/bin/python -m lab.replay_anomaly_fixtures`, `.venv/bin/python -m lab.replay_feature_fixtures`, and `git diff --check`. Require training dependencies for no skips.
 - [x] Document initialization/open, trust provisioning boundary, capacity formula/reserve limits, recovery, sealing failures, ACK trust prerequisite, anchored rollback limits and simulated failure scope. Provide runnable local example without provisioning production keys.
 - [x] Update only relevant tracker rows with component evidence; leave actual adapters/enforcement/hardware acceptance pending. Record measured test counts and preserve all original task labels.
-- [ ] Commit reviewed feature locally and report branch, tests and residual integration limits. Do not push, deploy or merge.
+- [x] Commit reviewed feature locally and report branch, tests and residual integration limits. Do not push, deploy or merge.
 
 ## Execution record
 
@@ -103,3 +103,15 @@ Files: docs/decision-evidence-ledger.md, docs/implementation-tracker.md, plan ch
 - Checkpoint at user request: implementation Tasks 1–4 are complete; 234 full-suite tests pass with zero skips and both cyber replays pass. Focused independent contract/signing/storage reviews are resolved. Final whole-branch review is deferred to the next session; do not imply finished feature acceptance.
 - Lean-code preference: preserve four focused modules, avoid speculative abstractions and unrelated changes. Deduplicated schema identifier/digest constraints reduced the schema from 1,799 to 596 lines without changing validation.
 - See `docs/superpowers/plans/2026-09-05-decision-evidence-ledger-handoff.md` for the exact resume checklist, review findings, commands, compatibility boundaries and original request path.
+
+- Final review completed against `b119637` on 2026-09-05. Independent whole-branch
+  review identified one material gap: runtime validation used cached metadata
+  without comparing the stored bytes. A regression failed before the two-line
+  validation fix and passed afterward; rereview has no open material findings.
+- Final verification: 235 tests passed with zero failures/errors/skips (8.427s),
+  both replays passed (8 anomaly fixtures, 7 score cases, 5 feature vectors), and
+  the usage example passed. Audit modules also parse as Python 3.11 syntax;
+  runtime tests used Python 3.13. Tracker totals remain 12/34/72 across 118 tasks.
+- Final changes are retained locally on `codex/decision-evidence-ledger-durable`.
+  Live integrations, production keys/evidence retention and Pi hardware acceptance
+  remain pending; no push, merge or deployment was performed.

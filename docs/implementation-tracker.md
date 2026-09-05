@@ -45,10 +45,11 @@ internal contract, pending the canonical anomaly/decision adapter.
 
 The [durable ledger slice][audit-guide] adds local SQLite recording, strict compact
 contracts, trusted Ed25519 checkpoints, bounded delivery bookkeeping and linked
-findings. Checkpoint verification: **234 Python tests passed, zero skips**, plus both
-cyber replays (8 anomaly fixtures, 7 rank cases, 5 feature vectors). Focused
-contract/signing/storage reviews have no open actionable findings; a fresh final
-whole-branch review is deferred to the next session at the user’s request. No live producer, sender, admission gate, execution fence,
+findings. Final verification: **235 Python tests passed, zero skips**, plus both
+cyber replays (8 anomaly fixtures, 7 rank cases, 5 feature vectors). Independent
+whole-branch review found a runtime metadata-validation gap; a two-line check and
+regression test now reject changed stored metadata before further writes. Rereview
+has no open material findings. No live producer, sender, admission gate, execution fence,
 sensor driver or Pi hardware acceptance is implied. Original history is retained;
 acknowledgement does not permit deletion or prove execution.
 
