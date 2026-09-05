@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-09-05T15:44:01Z",
+  "event_type": "alice.status",
+  "node": "ALICE-PI-01",
+  "mode": "DDIL",
+  "connections": {
+    "cloud": false,
+    "siem": false,
+    "edr": false,
+    "technician_workstation": true,
+    "protected_system": true
+  },
+  "packages": {
+    "policy": {
+      "loaded": true,
+      "version": "18",
+      "signature": "VALID"
+    },
+    "operations_baseline": {
+      "loaded": true,
+      "version": "42",
+      "signature": "VALID"
+    }
+  },
+  "decision_engine": {
+    "policy_engine": "READY",
+    "anomaly_engine": "READY",
+    "enforcement_gateway": "READY"
+  }
+}

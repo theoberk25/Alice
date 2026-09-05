@@ -1,0 +1,14 @@
+node_modules
+.tools
+**/target
+**/dist
+**/.venv
+**/models/models
+**/data
+**/gen
+fixtures/legacy
+services/biometrics/requirements-lock.txt
+test-results
+playwright-report
+package-lock.json
+artifacts

@@ -6,6 +6,11 @@ plain JSON reports. It does not save a deployable model or change the Pi runtime
 See the [implementation tracker](implementation-tracker.md) for system work and
 [updated data direction](data-direction-2026-09-05.md) for the motor/USB changes.
 
+A separate [general contextual model](contextual-behavior-model.md) now fits and
+scores supplied normal observations for exact contexts in separate PRE_ACTION
+and POST_ACTION profiles. It does not alter the historical cyber experiments
+below or invent an ESP baseline.
+
 ## System role and authority
 
 The [canonical architecture](architecture.md) assigns direct execution to enterprise

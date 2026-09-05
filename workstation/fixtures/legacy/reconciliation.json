@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "event_type": "dcamr.reconciliation",
+  "timestamp": "2026-09-05T18:47:11Z",
+  "original_decision_id": "DEC-20260905-000184",
+  "cloud_restored": true,
+  "evidence_results": [
+    {
+      "evidence_id": "EDR-9921",
+      "original_status": "PENDING_EXTERNAL_VERIFICATION",
+      "reconciled_status": "NOT_FOUND"
+    },
+    {
+      "evidence_id": "NETFLOW-8177",
+      "original_status": "PENDING_EXTERNAL_VERIFICATION",
+      "reconciled_status": "VERIFIED"
+    }
+  ],
+  "result": {
+    "status": "DISCREPANCY_FOUND",
+    "original_decision_changed": false,
+    "technician_review_recommended": true
+  }
+}

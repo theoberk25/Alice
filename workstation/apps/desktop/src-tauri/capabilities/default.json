@@ -1,0 +1,1 @@
+{"identifier":"main-capability","description":"Local ALICE window; no shell, filesystem or network plugins exposed to the renderer.","windows":["main"],"permissions":["core:default"]}

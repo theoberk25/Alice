@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+    },
+    "event_type": {
+      "type": "string",
+      "const": "alice.agent_status"
+    },
+    "agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "agent_type": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "STARTING",
+        "IDLE",
+        "RUNNING",
+        "WAITING_FOR_CONTEXT",
+        "VERIFYING_EVIDENCE",
+        "AWAITING_REVIEW",
+        "COMPLETED",
+        "FAILED",
+        "TERMINATED",
+        "OFFLINE"
+      ]
+    },
+    "mission_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "current_activity": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": ["type", "label"],
+      "additionalProperties": false
+    },
+    "health": {
+      "type": "string",
+      "enum": ["HEALTHY", "DEGRADED", "FAILED", "UNKNOWN"]
+    }
+  },
+  "required": [
+    "schema_version",
+    "timestamp",
+    "event_type",
+    "agent_id",
+    "agent_type",
+    "model",
+    "status",
+    "mission_id",
+    "current_activity",
+    "health"
+  ],
+  "additionalProperties": false
+}

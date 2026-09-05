@@ -56,14 +56,15 @@ authority. This is a required property, not an implemented automatic failover.
 | Enterprise context adapters | Fetch authorized permissions, normal-behavior releases, mission context and relevant SIEM/EDR records; upload audit/findings. | A SIEM may aggregate these sources. Its transport alone does not make every event a permission or a trusted normal training sample. |
 | ALICE Pi | Synchronization/cache manager and audit participant online; local decision authority offline. | Protect credentials, accepted caches, model, local history and durable audit from agent modification. |
 | Agent Mac / local agents | Propose requests and supply bounded supporting context. | During OFFLINE, no direct protected-control bypass. Claimed user/mission/identity must be checked against trusted mappings. |
-| Protected motor/system controller | Execute a valid current-authority command once; report actual execution and available telemetry. | Enforce control ownership and idempotency at the execution boundary, including stale enterprise and stale ALICE commands. |
+| Protected device/system controller | Execute a valid current-authority command once; report actual execution and available telemetry. | Enforce control ownership and idempotency at the execution boundary, including stale enterprise and stale ALICE commands. |
 | Technician Mac | Display supplied state and provenance; explain it with a local LLM; authenticate technicians; submit exact-request review actions. | Does not run the Pi's anomaly/permissions/fusion logic or claim that a submitted approval executed a command. |
 | Removable USB and local storage | Persist accepted context and locally generated audit/outbox state. | Trusted inputs and generated outputs have separate permissions, validation and retention rules. |
 
 The physical LAN uses a switch connecting the Pi, Agent Mac, Technician Mac and
 protected controller. The router uplink supplies enterprise/cloud connectivity.
 The confirmed decision node is a **Raspberry Pi 4 Model B with 2 GB RAM and OS
-Lite**. The motor controller is still a second Pi or ESP choice; no GPIO or
+Lite**. The latest likely demo uses an ESP with lights and a voltage sensor; exact
+hardware, action/sensor semantics and data are still pending. No GPIO or
 controller protocol is implemented in this repository.
 
 ## 3. Data flow in each mode
@@ -223,7 +224,8 @@ retention quotas and removal/fallback details are open implementation decisions.
 
 ## 7. Local anomaly model and limits
 
-The current model is **scikit-learn Isolation Forest**, trained on the Mac with
+The model family is **scikit-learn Isolation Forest**. The original cyber
+experiment is trained on the Mac with
 64 trees, 256 samples per tree, 11 float32 cyber features, seed 1729, one worker and
 numerical-library threads limited to one. It is not an LLM. The current corpus is
 synthetic Web-01 activity; fitting uses 3,600 normal requests, with separate normal
@@ -241,6 +243,22 @@ bands on fresh synthetic requests (32/68 elevated/high → 2/68), but all 20 uns
 endpoints still received low conditional ML bands. Explicit novelty cannot be
 suppressed by a low score. The percentile is not a compromise probability or
 permission; failed/unavailable evaluations have null scores.
+
+A separate [general contextual interface](../contextual-behavior-model.md) now
+supports supplied numeric features with explicit units, freshness and timing.
+Jared selected both PRE_ACTION and POST_ACTION assessments. Each phase/profile
+uses separate forests and normal references for exact supported contexts; an
+unseen context or missing required telemetry yields UNKNOWN/null scores.
+Post-action profiles require at least one measurement taken at/after execution,
+while preserving separately labelled request-time context. This enforces temporal
+consistency, not proof of causality or actuator success.
+
+The contextual trainer accepts approved normal training/calibration collections,
+checks session/source separation and fits bounded models in memory. The actual
+ESP data will be supplied later. Raw voltage conversion, history aggregation,
+Wazuh enrichment and a canonical decision-output adapter are not implemented.
+Per-context models are a general interface, not a universal model already trained
+for lights, motors or arbitrary enterprise behavior.
 
 No deployable model is saved, no model boots on the Pi, and no actual Pi resource
 acceptance has run. Motor requests need a separately versioned feature/profile
@@ -385,7 +403,11 @@ Separate audit upload acknowledgement, evidence reconciliation completion, cache
 activation and execution ownership in status. A retry must not reexecute a command
 or turn an old technician approval into a new authorization. Connector schemas,
 credentials, acknowledgements, retention and delivery guarantees remain to be
-implemented and tested; no specific enterprise vendor is integrated today.
+implemented and tested. Wazuh is now the planned integration for permissions-
+related context and some auditing. The agent, ALICE action-permissions mapping,
+cache adapter and audit/reconciliation connection are not integrated here. A
+future Wazuh agent shares the Pi's total resource budget; its manager/indexer
+services remain outside this small node.
 
 ## 12. Pi resource and offline-readiness requirements
 
@@ -411,8 +433,8 @@ approval path. Cloning code does not provision model weights or local identities
 | Area | Evidence at this revision |
 | --- | --- |
 | Core anomaly contract/features | Implemented schemas, strict validation/binding, fixed cyber features, source provenance and replay fixtures. |
-| Mac model experiments | Implemented synthetic fitting and global/conditional calibration comparisons; published JSON reports. |
-| Core validation | 103 tests and both fixture replays passed on the previously published implementation. This revision changes documentation only. |
+| Mac model experiments | Historical cyber fitting/comparisons have published reports. General PRE/POST contextual fitting/scoring now works with supplied normal sources; test-only synthetic inputs establish code behavior, not an ESP baseline. |
+| Core validation | The original cyber publication passed 103 tests and both replays. Current contextual parser/model coverage and full-suite counts are recorded in the [tracker](../implementation-tracker.md). These are component results, not Pi acceptance. |
 | Core lifecycle/execution | ONLINE/OFFLINE control, synchronization/connectors, durable mission audit, permissions/fusion/context orchestration, controller execution and Pi deployment remain unimplemented. |
 | Technician console | Status above is reported by supplied `HANDOFF.md`, dated 2026-09-05, for a separate repository; not independently tested in this checkout. |
 | Cross-repository integration | Event adapter, source authentication, remote proof, durable delivery/receipts, execution results and mode/authority changes remain open. |
