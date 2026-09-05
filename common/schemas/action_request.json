@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "alice-action-request-v1",
+  "title": "First-light terminal action request (strict, test-scoped)",
+  "description": "Exact contract for the first integration test only. Enums are deliberately narrowed to the agreed set_light_state action; widening them is a coordinated contract change per AGENTS.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*(?![\\s\\S])"
+    },
+    "agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*(?![\\s\\S])"
+    },
+    "action": {"enum": ["set_light_state"]},
+    "target": {"enum": ["ESP-LIGHT-01"]},
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": {"enum": ["on", "off"]}
+      },
+      "required": ["state"]
+    },
+    "issued_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time",
+      "pattern": "Z(?![\\s\\S])"
+    }
+  },
+  "required": ["schema_version", "request_id", "agent_id", "action", "target", "parameters", "issued_at"]
+}

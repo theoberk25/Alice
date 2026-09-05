@@ -85,6 +85,36 @@ class PermissionFinding:
             raise ValueError('permission reason required')
 
 
+@dataclass(frozen=True, slots=True)
+class Decision:
+    """First-light terminal decision: ALLOW or DENY, emitted once per request.
+
+    Additive slice for the first integration test (see AGENTS.md working
+    agreements); it reuses PermissionFinding above and does not alter the
+    technician assessment boundary. No HOLD/REQUEST_CONTEXT states here.
+    """
+    outcome: str
+    reason_code: str
+
+    def __post_init__(self):
+        if self.outcome not in ('ALLOW', 'DENY'):
+            raise ValueError('invalid decision outcome')
+        _check(self.reason_code, _ID)
+
+
+def decide(auth_ok: bool, finding: PermissionFinding, assessment_status: str) -> Decision:
+    """ALLOW only for verified identity + PERMITTED (no approval) + OK assessment."""
+    if type(auth_ok) is not bool or type(finding) is not PermissionFinding:
+        raise ValueError('trusted typed inputs required')
+    if not auth_ok:
+        return Decision('DENY', 'IDENTITY_UNVERIFIED')
+    if finding.outcome != 'PERMITTED':
+        return Decision('DENY', 'PERMISSION_' + finding.outcome)
+    if assessment_status != 'OK':
+        return Decision('DENY', 'ASSESSMENT_UNAVAILABLE')
+    return Decision('ALLOW', 'PERMITTED_NORMAL_AUTO')
+
+
 class Scorer(Protocol):
     def assess(self, input_bytes: bytes, *, expected_sha256: str) -> ContextAssessment: ...
 
