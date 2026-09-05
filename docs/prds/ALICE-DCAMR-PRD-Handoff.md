@@ -15,6 +15,26 @@ console `HANDOFF.md` describes the separate `ALICE_TechnicalReview` repository,
 audited September 5, 2026. It is implementation evidence for that subsystem;
 its older upstream assumptions do not redefine the current product modes.
 
+
+## Current decision boundary — technician application
+
+The [Pi assessment contract](../decision-assessment.md) supersedes earlier
+Pi-owned final-fusion descriptions for the current increment. The Pi supplies
+permission findings, contextual Isolation Forest scores, source provenance,
+review signals and approval blockers. The technician application's local LLM
+interprets those facts and explains Approve/Hold/Reject handling. **Unusual
+actions require human technician approval**; neither LLM prose nor a facial
+match overrides a hard prohibition or missing execution prerequisites.
+
+`alice-decision-assessment-v1` is implemented, with decision and explanation null
+and execution_authorized false. It is not a drop-in `alice.decision` event or an
+execution token. The app must enforce the structured blockers outside the LLM
+prompt. Transport/response binding, permission resolution and lightweight Pi
+forest loading remain integrations. Existing historical decisions and scores
+remain immutable; reassessments and subsequent app decisions are new records.
+Automatic context push-back is not implemented by this slice.
+
+
 ## 1. Product boundary: exactly two modes
 
 | Product mode | Execution authority | ALICE responsibility |

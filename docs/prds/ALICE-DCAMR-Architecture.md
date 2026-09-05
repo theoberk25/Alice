@@ -18,6 +18,26 @@ Read with the [product PRD](ALICE-DCAMR-PRD.md),
 [console integration guide](../technician-console-integration.md), and
 [implementation tracker](../implementation-tracker.md).
 
+
+## Current decision boundary — technician application
+
+The [Pi assessment contract](../decision-assessment.md) supersedes earlier
+Pi-owned final-fusion descriptions for the current increment. The Pi supplies
+permission findings, contextual Isolation Forest scores, source provenance,
+review signals and approval blockers. The technician application's local LLM
+interprets those facts and explains Approve/Hold/Reject handling. **Unusual
+actions require human technician approval**; neither LLM prose nor a facial
+match overrides a hard prohibition or missing execution prerequisites.
+
+`alice-decision-assessment-v1` is implemented, with decision and explanation null
+and execution_authorized false. It is not a drop-in `alice.decision` event or an
+execution token. The app must enforce the structured blockers outside the LLM
+prompt. Transport/response binding, permission resolution and lightweight Pi
+forest loading remain integrations. Existing historical decisions and scores
+remain immutable; reassessments and subsequent app decisions are new records.
+Automatic context push-back is not implemented by this slice.
+
+
 ## 1. Product names, modes and authority
 
 ALICE names the whole product. DCAMR remains a legacy name for the Pi runtime and
@@ -57,7 +77,7 @@ authority. This is a required property, not an implemented automatic failover.
 | ALICE Pi | Synchronization/cache manager and audit participant online; local decision authority offline. | Protect credentials, accepted caches, model, local history and durable audit from agent modification. |
 | Agent Mac / local agents | Propose requests and supply bounded supporting context. | During OFFLINE, no direct protected-control bypass. Claimed user/mission/identity must be checked against trusted mappings. |
 | Protected device/system controller | Execute a valid current-authority command once; report actual execution and available telemetry. | Enforce control ownership and idempotency at the execution boundary, including stale enterprise and stale ALICE commands. |
-| Technician Mac | Display supplied state and provenance; explain it with a local LLM; authenticate technicians; submit exact-request review actions. | Does not run the Pi's anomaly/permissions/fusion logic or claim that a submitted approval executed a command. |
+| Technician Mac | Interpret Pi assessments with the local LLM, explain decision handling, authenticate technicians and require human approval for unusual actions. | Does not alter Pi numerical scores or hard permissions; submitted approval is not proof of execution. |
 | Removable USB and local storage | Persist accepted context and locally generated audit/outbox state. | Trusted inputs and generated outputs have separate permissions, validation and retention rules. |
 
 The physical LAN uses a switch connecting the Pi, Agent Mac, Technician Mac and
@@ -123,8 +143,9 @@ For each admitted local request, the Pi must:
    cannot create an allow path.
 5. Build bounded behavioral features and combine anomaly observations with
    required evidence, mission context and available telemetry.
-6. Produce `ALLOW`, `REQUEST_CONTEXT`, `HOLD` or `DENY`, recording the sources and
-   information available at that time.
+6. Produce the structured assessment for the technician application. Its local
+   LLM interprets the evidence; unusual actions require human approval. Persist
+   the resulting app decision separately, bound to the original assessment.
 7. Forward only a currently authorized exact request, using idempotent execution
    binding. Record controller receipt, completion and observed effect separately.
 
@@ -301,7 +322,8 @@ context-only retry.
 
 After accepted new context/evidence, the authoritative offline core issues a new
 immutable assessment linked to the same request. Preserve the original and all
-successors; never let the console/LLM calculate a replacement decision.
+successors. The application may produce a subsequent bound decision, but must
+never replace the original assessment, numerical scores or historical decision.
 
 The console handoff reports `REASSESSMENT_PENDING` after an agent response until a
 new `alice.decision` arrives. Its optional lineage uses `previous_decision_id`,
@@ -319,8 +341,10 @@ service using `buffalo_l` ONNX assets on CPU, and local Ollama with `llama3.1:8b
 These workloads stay on the Technician Mac. They do not belong on the 2 GB Pi.
 
 The console displays supplied decisions, evidence, provenance, activity, package
-and service state, immutable history and research explanations. Its LLM has no
-authorization tools and cannot invent readiness, verification or execution facts.
+and service state, immutable history and explanations. Its local LLM interprets
+assessments for decision handling. Structured application controls require human
+approval for unusual actions and preserve hard blockers. The LLM cannot invoke
+protected tools or invent readiness, verification or execution facts.
 
 "Face ID" in the product discussion means **local facial identity verification**
 in this implementation. It is not Apple's Face ID. ArcFace matching does not

@@ -15,6 +15,15 @@ two-mode requirements still need their own runtime integrations.
 
 ## Status and current checkpoint
 
+Latest decision-boundary increment: [Pi assessment](decision-assessment.md)
+combines trusted permission findings with contextual model evidence for the
+technician application's local LLM. Unusual PRE_ACTION observations explicitly
+require human approval. This emits no final decision or execution token; transport,
+audit, permission resolution and Pi model export remain separate work. The 17 new
+checks include real fitted-model integration; the full suite passes **165 tests**. Older architecture descriptions of
+Pi-owned final fusion need a coordinated application/enforcement contract update;
+this assessment is not silently substituted for `alice.decision`.
+
 - **Done component** — the named local computation or record structure is
   implemented and has component-test evidence. It does not imply that admission,
   policy, fusion, transport, enforcement, or Pi deployment is complete.
@@ -23,8 +32,8 @@ two-mode requirements still need their own runtime integrations.
 - **Planned** — the requested behavior is not implemented in this checkout.
   A PRD proposal or empty skeleton is not completion evidence.
 
-Current totals: **12 Done component, 25 Partial,
-81 Planned**. These are task-status counts, not a percentage of product
+Current totals: **12 Done component, 26 Partial,
+80 Planned**. These are task-status counts, not a percentage of product
 readiness or an estimate of remaining effort.
 
 The current model increment is a [general contextual Isolation Forest][context-guide]
@@ -36,7 +45,7 @@ untrained model produce UNKNOWN/null scores. Input/source validation, in-memory
 fitting and repeatable scoring are implemented; actual ESP extraction and data
 collection, artifact loading, fusion and deployment are not.
 
-The current suite passes **148 tests**, including 45 new parser/model checks;
+The pre-assessment checkpoint passed **148 tests**, including 45 new parser/model checks;
 both existing cyber fixture replays still pass. New test data is unitless,
 synthetic and temporary, not a light/voltage operating baseline. New assessments
 retain training-range evidence independently of ML score and use a separate
@@ -275,7 +284,7 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 045 | Combine Policy and Anomaly Results | Planned | The [decision-model skeleton][fusion] is empty; no OFFLINE permissions/anomaly fusion runs. ONLINE enterprise actions do not require a Pi authorization decision. |
+| 045 | Combine Policy and Anomaly Results | Partial | [Assessment boundary](decision-assessment.md) combines trusted permission outcomes and contextual scores, preserves blockers and requires human approval for unusual actions. Permission resolution and final technician-application decision/enforcement integration remain pending. |
 | 046 | Define ALLOW Logic | Planned | [Current PRD][prd] defines the OFFLINE authority boundary; executable ALLOW logic and endpoint binding remain. |
 | 047 | Define REQUEST_CONTEXT Logic | Planned | [Current PRD][prd] defines OFFLINE context escalation; executable core push-back/fusion, one challenge authority and bounded attempts remain. |
 | 048 | Define HOLD Logic | Planned | [Current PRD][prd] defines OFFLINE blocking/review; high-anomaly context-versus-hold specifics and executable fusion remain. |

@@ -213,10 +213,14 @@ not tamper-evident mission audit; its current display limit does not bound stora
 
 ## Language, transport and recovery requirements
 
-The Mac LLM explains supplied facts and read-only informational intent. It cannot
-authorize, invoke protected actions, alter numerical facts or infer verification,
-readiness or execution from prose. Build its context from the immutable decision
-plus separately labelled latest response/reconciliation. Agent claims are data,
+The Mac LLM now interprets the [Pi assessment](decision-assessment.md) and
+explains decision handling. Unusual actions require human approval enforced by
+application code; LLM output alone cannot clear that requirement, hard permission
+prohibitions or missing prerequisites. It cannot invoke protected actions, alter
+numerical facts or infer verification, readiness or execution from prose. Build
+its context from the immutable assessment and bound request plus separately
+labelled latest response/reconciliation. The new assessment is not yet an
+`alice.decision` transport event; the application/transport adapter remains work. Agent claims are data,
 not instructions to the console or evidence of permission.
 
 The handoff reports remaining stale-context/readiness retry gaps. LLM outage or

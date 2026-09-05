@@ -6,6 +6,26 @@
 **Date:** 2026-09-05  
 **Proposed anomaly schema:** `1.0.0-draft.1`
 
+
+## Current decision boundary — technician application
+
+The [Pi assessment contract](../decision-assessment.md) supersedes earlier
+Pi-owned final-fusion descriptions for the current increment. The Pi supplies
+permission findings, contextual Isolation Forest scores, source provenance,
+review signals and approval blockers. The technician application's local LLM
+interprets those facts and explains Approve/Hold/Reject handling. **Unusual
+actions require human technician approval**; neither LLM prose nor a facial
+match overrides a hard prohibition or missing execution prerequisites.
+
+`alice-decision-assessment-v1` is implemented, with decision and explanation null
+and execution_authorized false. It is not a drop-in `alice.decision` event or an
+execution token. The app must enforce the structured blockers outside the LLM
+prompt. Transport/response binding, permission resolution and lightweight Pi
+forest loading remain integrations. Existing historical decisions and scores
+remain immutable; reassessments and subsequent app decisions are new records.
+Automatic context push-back is not implemented by this slice.
+
+
 ## 1. Purpose and this increment
 
 Define the anomaly result that the Raspberry Pi produces for DCAMR, its provenance, and reproducible fixtures that the integration team can consume before a trained model exists. Keep the runtime small enough to share a Raspberry Pi 4 Model B with the rest of DCAMR.

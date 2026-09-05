@@ -28,6 +28,7 @@ Model training, the explanatory LLM and facial verification belong on the Mac.
 - [Web-01 feature builder](docs/anomaly-features.md)
 - [Mac synthetic training lab](docs/anomaly-training.md)
 - [General before/after behavior model](docs/contextual-behavior-model.md)
+- [Pi assessment for the technician application](docs/decision-assessment.md)
 - [Enterprise SIEM simulation and Wazuh setup](docs/enterprise-sim-handoff.md)
 
 The anomaly contract, cyber feature builder, Mac training lab and general

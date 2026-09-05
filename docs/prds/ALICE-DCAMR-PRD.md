@@ -7,6 +7,26 @@
 **Audience:** Product, Pi/runtime, anomaly, hardware, and technician-console contributors
 **Scope:** Controlled demonstration of accountable agent operations across connected and disconnected conditions
 
+
+## Current decision boundary — technician application
+
+The [Pi assessment contract](../decision-assessment.md) supersedes earlier
+Pi-owned final-fusion descriptions for the current increment. The Pi supplies
+permission findings, contextual Isolation Forest scores, source provenance,
+review signals and approval blockers. The technician application's local LLM
+interprets those facts and explains Approve/Hold/Reject handling. **Unusual
+actions require human technician approval**; neither LLM prose nor a facial
+match overrides a hard prohibition or missing execution prerequisites.
+
+`alice-decision-assessment-v1` is implemented, with decision and explanation null
+and execution_authorized false. It is not a drop-in `alice.decision` event or an
+execution token. The app must enforce the structured blockers outside the LLM
+prompt. Transport/response binding, permission resolution and lightweight Pi
+forest loading remain integrations. Existing historical decisions and scores
+remain immutable; reassessments and subsequent app decisions are new records.
+Automatic context push-back is not implemented by this slice.
+
+
 ## 1. Product purpose
 
 ALICE — Authenticated Local Identity & Cyber Enforcement — is the complete product.
@@ -93,8 +113,8 @@ Transition/readiness details are operational status within the two modes, not ad
 | Enterprise/controller | Control online execution and supply trusted data and activity. | Direct online authority; participates in the single-owner handover contract. |
 | ALICE Pi runtime | Govern offline requests and produce authoritative local records. | Offline authority after handover; no permission increase caused by an outage. |
 | IT technician | Inspect evidence and take an eligible review action. | Scoped approval; no hard-denial override or permanent privilege increase. |
-| Technician console | Display immutable supplied facts, collect review actions, verify local identity. | Does not own permissions, anomaly training, fusion, or protected execution. |
-| Workstation LLM | Explain facts and informational intent. | Cannot fabricate evidence, change decisions, approve, or execute tools. |
+| Technician console | Display immutable supplied facts, collect review actions, verify local identity. | Does not own permission rules, anomaly training or protected execution; enforces review controls around app decision handling. |
+| Workstation LLM | Interpret Pi assessments and explain decision handling. | Cannot fabricate evidence, rewrite historical decisions, clear hard blockers, approve unusual actions without a human, or execute tools. |
 
 The user responsible for an agent and the technician reviewing a request are separate accountability fields, even if the same person fills both roles.
 Unknown or stale ownership must be labelled and handled through the agreed identity/permissions rule rather than filled in from prose.
