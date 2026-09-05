@@ -93,7 +93,7 @@ The technician console is the human review and local identity subsystem. It is n
 11. Keep credentials, face images, embeddings, and enrollment keys out of Git, LLM prompts, Pi decision records, and enterprise audit exports.
 12. Keep mock transport, biometric provider choice, network connectivity, and execution authority as distinct concepts.
 
-Sources: [architecture](../prds/ALICE-DCAMR-Architecture.md), [PRD](../prds/ALICE-DCAMR-PRD.md), [threat model](../architecture/threat-model.md), [migration assessment](../../workstation/docs/integration/main-repository-migration.md).
+Sources: [architecture](../prds/ALICE-DCAMR-Architecture.md), [PRD](../prds/ALICE-DCAMR-PRD.md), [threat model](../architecture/threat-model.md), [migration assessment](../integration/main-repository-migration.md).
 
 ## 3. Repository and delivery state
 
@@ -133,10 +133,10 @@ At the last read-only review, both GitHub repositories' `main` refs matched this
 | `packages/mission_policy/`, `packages/ops_baseline/`, `packages/tooling/` | Trusted package and signing-tool placeholders. Distinct from npm packages. |
 | `lab/` | Working anomaly replay, synthetic data, training/comparison and contextual fitting modules; other scenario/orchestration files are placeholders. |
 | `tests/` | Core component tests and fixtures; some full-system test filenames are empty skeletons. |
-| `workstation/apps/desktop/` | Implemented native Mac console and renderer. |
-| `workstation/packages/contracts/`, `domain/`, `ui/` | Implemented console-local schemas, domain invariants, interfaces, and presentation primitives. |
-| `workstation/services/biometrics/` | Implemented local FastAPI identity service, image checks, encrypted storage, and tests. |
-| `workstation/backend/`, `dashboard/`, `face_verification/` | Retained empty legacy placeholders. Do not build a second console here by mistake. |
+| `apps/desktop/` | Implemented native Mac console and renderer. |
+| `packages/contracts/`, `domain/`, `ui/` | Implemented console-local schemas, domain invariants, interfaces, and presentation primitives. |
+| `services/biometrics/` | Implemented local FastAPI identity service, image checks, encrypted storage, and tests. |
+| `services/backend/`, `dashboard/`, `face_verification/` | Retained empty legacy placeholders. Do not build a second console here by mistake. |
 | `docs/`, `workstation/docs/` | Product requirements, component contracts, migration evidence, setup, and future work. |
 
 The main repository is not a root npm workspace. Run console npm commands from `workstation/`. Root Python anomaly dependencies and the biometric Python environment are separate.
@@ -267,18 +267,18 @@ Primary source map:
 
 | Source | Responsibility |
 | --- | --- |
-| `workstation/apps/desktop/src/app/App.tsx` | Main application composition and console views. |
-| `workstation/apps/desktop/src/state/console.ts` | Event ingestion, selected/current decisions, workflow, persistence interaction, status, errors. |
-| `workstation/apps/desktop/src/lib/transport.ts` | Mock transport and explicit unavailable remote skeleton. |
-| `workstation/apps/desktop/src/lib/native.ts` | Native invocation boundary. |
-| `workstation/apps/desktop/src/lib/llm.ts` | Language provider adapter. |
-| `workstation/packages/domain/src/hold.ts`, `lineage.ts` | Review transition and immutable lineage rules. |
-| `workstation/packages/contracts/src/alice/events.ts`, `commands.ts` | Executable event/command/result schemas. |
-| `workstation/apps/desktop/src-tauri/src/lib.rs` | Native initialization, managed session/grant state, command registration. |
-| `workstation/apps/desktop/src-tauri/src/commands.rs` | Native admin/technician actions, cache/history, biometric and language gateways. |
-| `workstation/apps/desktop/src-tauri/src/security.rs` | Native sessions, verification grants, action validation. |
-| `workstation/apps/desktop/src-tauri/src/db.rs` | Schema creation, bootstrap admin hashing, local audit writes. |
-| `workstation/apps/desktop/src-tauri/src/config.rs` | Runtime mode, local service URL validation, database configuration. |
+| `apps/desktop/src/app/App.tsx` | Main application composition and console views. |
+| `apps/desktop/src/state/console.ts` | Event ingestion, selected/current decisions, workflow, persistence interaction, status, errors. |
+| `apps/desktop/src/lib/transport.ts` | Mock transport and explicit unavailable remote skeleton. |
+| `apps/desktop/src/lib/native.ts` | Native invocation boundary. |
+| `apps/desktop/src/lib/llm.ts` | Language provider adapter. |
+| `packages/domain/src/hold.ts`, `lineage.ts` | Review transition and immutable lineage rules. |
+| `packages/contracts/src/alice/events.ts`, `commands.ts` | Executable event/command/result schemas. |
+| `apps/desktop/src-tauri/src/lib.rs` | Native initialization, managed session/grant state, command registration. |
+| `apps/desktop/src-tauri/src/commands.rs` | Native admin/technician actions, cache/history, biometric and language gateways. |
+| `apps/desktop/src-tauri/src/security.rs` | Native sessions, verification grants, action validation. |
+| `apps/desktop/src-tauri/src/db.rs` | Schema creation, bootstrap admin hashing, local audit writes. |
+| `apps/desktop/src-tauri/src/config.rs` | Runtime mode, local service URL validation, database configuration. |
 
 ### 6.2 Operator-facing functionality
 
@@ -389,7 +389,7 @@ Raw frames remain in memory in the intended normal path and are not persisted as
 
 The service requires a bearer token of at least 32 characters and is launched on loopback. Do not expose the current API on a LAN. The token authenticates the native local client; it does not authenticate a human face.
 
-Model files are provisioned explicitly with `scripts/setup-model.py`; they are not downloaded during login or an outage. The service loads models at startup and must restart after provisioning missing weights. Python/weights/Ollama are not bundled into the current `.app`. Existing documentation notes separate pretrained model usage terms; future distribution/model selection must verify applicable rights without assuming code licensing covers assets.
+Model files are provisioned explicitly with `scripts/biometrics/setup_model.py`; they are not downloaded during login or an outage. The service loads models at startup and must restart after provisioning missing weights. Python/weights/Ollama are not bundled into the current `.app`. Existing documentation notes separate pretrained model usage terms; future distribution/model selection must verify applicable rights without assuming code licensing covers assets.
 
 ### 7.4 What it does not establish
 
@@ -608,7 +608,7 @@ npm run demo
 
 `npm run demo` invokes the `.env`-aware desktop launcher. `npm run dev` is a browser preview and does not establish native admin login, database access, or real biometric IPC. The current development launcher may reuse any responding server on port 1420; ensure it belongs to this checkout.
 
-The bundle is `workstation/apps/desktop/src-tauri/target/release/bundle/macos/ALICE.app`, identifier `org.alice.technician-console`. Finder launch does not automatically load the repository `.env`. Native defaults without environment configuration select remote transport and ArcFace identity, whereas the desktop development launcher supplies a mock transport default.
+The bundle is `apps/desktop/src-tauri/target/release/bundle/macos/ALICE.app`, identifier `org.alice.technician-console`. Finder launch does not automatically load the repository `.env`. Native defaults without environment configuration select remote transport and ArcFace identity, whereas the desktop development launcher supplies a mock transport default.
 
 ### 12.3 Confirmed admin-login diagnosis in this session
 
@@ -658,8 +658,8 @@ npm run check
 npm run test:rust
 npm run test:python
 npm run test:e2e
-services/biometrics/.venv/bin/python scripts/smoke-arcface.py
-services/biometrics/.venv/bin/python scripts/smoke-native-identity.py
+services/biometrics/.venv/bin/python scripts/biometrics/smoke_arcface.py
+services/biometrics/.venv/bin/python scripts/biometrics/smoke_native_identity.py
 npm run build:app
 ```
 
@@ -932,109 +932,109 @@ All 37 tracked Markdown sources were included in the source inventory. Descripti
 - **Snapshot:** 4,059 bytes; SHA-256 `c2191e5d5e26c340`.
 - **Coverage:** Feature order; Cases; Baseline meaning and limits.
 
-#### [workstation/CONTRIBUTING.md](../../workstation/CONTRIBUTING.md)
+#### [workstation/CONTRIBUTING.md](../guides/console-contributing.md)
 
 - **Title:** Contributing
 - **Snapshot:** 1,549 bytes; SHA-256 `944e9ba851d5c75c`.
 - **Coverage:** single-section reference; consult the source for its exact scope.
 
-#### [workstation/HANDOFF.md](../../workstation/HANDOFF.md)
+#### [workstation/HANDOFF.md](2026-09-05-console-handoff.md)
 
 - **Title:** ALICE Technician Console — complete implementation handoff
 - **Snapshot:** 66,302 bytes; SHA-256 `715bf64f87080b21`.
 - **Coverage:** 1. Current position; Historical standalone snapshot, not a portable installation guarantee; 2. Scope and authority to preserve; Supplied-data ambiguities already documented; 3. Repository inventory; 4. Implemented behavior and its limits; HOLD flow in this build; 5. Contracts and integration points; 6. Identity, configuration and data; Historical standalone identity status; Configuration reference; Storage inventory; Local files excluded from source control; 7. Existing demo scenarios; 8. Historical standalone verification; 9. Functional work to finish next; F1 — Finish live approval and negative-case acceptance (enrollment/login complete); F2 — Finish workflow correlation and recovery; F3 — Complete language-context and status behavior; F4 — Finish native operator operations; 10. Upstream integration still to implement; I1 — Real authenticated native transport; I2 — Durable delivery and reconciliation; I3 — Remote biometric approval proof; I4 — Contract completion; 11. Reliability, security and distribution work; R1 — Biometric hardening and separate liveness; R2 — Identity storage and credential lifecycle; R3 — Database and audit lifecycle; R4 — Managed service startup and distributable packaging; R5 — Expand repeatable validation; 12. Deferred full visual and animation update; 13. Recommended execution order and completion evidence; 14. Reading order for the next contributor; 15. Reassessment implementation file map.
 
-#### [workstation/PROMPT_CONTEXT.md](../../workstation/PROMPT_CONTEXT.md)
+#### [workstation/PROMPT_CONTEXT.md](../guides/console/prompt-context.md)
 
 - **Title:** Context for a separate ALICE prompt-writing chat
 - **Snapshot:** 12,691 bytes; SHA-256 `e9e7b7376b6f11c9`.
 - **Coverage:** Paste this as the opening message; Required attachments and why they matter; Authority and conflict handling; Non-negotiable technical boundaries; What to supply when requesting the next prompt; Suggested prompt output structure.
 
-#### [workstation/README.md](../../workstation/README.md)
+#### [workstation/README.md](../guides/technician-console.md)
 
 - **Title:** ALICE — Technician Console
 - **Snapshot:** 9,929 bytes; SHA-256 `88aed1c71dcbb6e3`.
 - **Coverage:** Quick start; Real identity with a simulated edge; Moving from an existing standalone installation; Local language assistance; Checks and packaging; Repository map; Reassessment demo.
 
-#### [workstation/docs/architecture/biometrics.md](../../workstation/docs/architecture/biometrics.md)
+#### [workstation/docs/architecture/biometrics.md](../architecture/biometrics.md)
 
 - **Title:** Facial identity and future liveness
 - **Snapshot:** 2,857 bytes; SHA-256 `1dc1a8c4eb8430d5`.
 - **Coverage:** single-section reference; consult the source for its exact scope.
 
-#### [workstation/docs/architecture/hold-workflow.md](../../workstation/docs/architecture/hold-workflow.md)
+#### [workstation/docs/architecture/hold-workflow.md](../architecture/hold-workflow.md)
 
 - **Title:** Deterministic HOLD workflow and reassessment lineage
 - **Snapshot:** 6,213 bytes; SHA-256 `9ba32581cb7b952e`.
 - **Coverage:** Immutable lineage and current assessment; Approval and race handling; Persistence and operational record.
 
-#### [workstation/docs/architecture/llm-boundary.md](../../workstation/docs/architecture/llm-boundary.md)
+#### [workstation/docs/architecture/llm-boundary.md](../architecture/llm-boundary.md)
 
 - **Title:** Local semantic gateway
 - **Snapshot:** 2,591 bytes; SHA-256 `a194b1d4e83dfe33`.
 - **Coverage:** Ollama grammar compatibility.
 
-#### [workstation/docs/architecture/overview.md](../../workstation/docs/architecture/overview.md)
+#### [workstation/docs/architecture/overview.md](../architecture/overview.md)
 
 - **Title:** Console architecture
 - **Snapshot:** 4,164 bytes; SHA-256 `45b182483851fff3`.
 - **Coverage:** Contract ambiguities retained.
 
-#### [workstation/docs/contracts/agent-status.md](../../workstation/docs/contracts/agent-status.md)
+#### [workstation/docs/contracts/agent-status.md](../contracts/agent-status.md)
 
 - **Title:** Agent and service status
 - **Snapshot:** 1,206 bytes; SHA-256 `ad8dbe1ddd7cae10`.
 - **Coverage:** single-section reference; consult the source for its exact scope.
 
-#### [workstation/docs/contracts/alice-events.md](../../workstation/docs/contracts/alice-events.md)
+#### [workstation/docs/contracts/alice-events.md](../contracts/alice-events.md)
 
 - **Title:** ALICE-native events
 - **Snapshot:** 4,553 bytes; SHA-256 `a2b2bdfb0e8e1b60`.
 - **Coverage:** Decision reassessment contract.
 
-#### [workstation/docs/contracts/legacy-dashboard-contract.md](../../workstation/docs/contracts/legacy-dashboard-contract.md)
+#### [workstation/docs/contracts/legacy-dashboard-contract.md](../contracts/legacy-dashboard-contract.md)
 
 - **Title:** Legacy dashboard compatibility
 - **Snapshot:** 1,758 bytes; SHA-256 `229f9b656bd939fd`.
 - **Coverage:** single-section reference; consult the source for its exact scope.
 
-#### [workstation/docs/development/facial-verification-quickstart.md](../../workstation/docs/development/facial-verification-quickstart.md)
+#### [workstation/docs/development/facial-verification-quickstart.md](../guides/console/facial-verification-quickstart.md)
 
 - **Title:** Set up and test local facial verification
 - **Snapshot:** 15,614 bytes; SHA-256 `b648541a7159fc02`.
 - **Coverage:** Implemented behavior and historical evidence; Fastest check without using the camera; Configure the real camera test once; Set a user's face through Administration; Test actual face login; Test fresh face verification before approval; Troubleshooting; On a new teammate's Mac; Reassessment demo and face binding.
 
-#### [workstation/docs/development/mac-setup.md](../../workstation/docs/development/mac-setup.md)
+#### [workstation/docs/development/mac-setup.md](../guides/console/mac-setup.md)
 
 - **Title:** macOS setup and packaging
 - **Snapshot:** 4,361 bytes; SHA-256 `623a40c530a87277`.
 - **Coverage:** Runtime setup; Camera; One-command demo; Bundle.
 
-#### [workstation/docs/development/mock-scenarios.md](../../workstation/docs/development/mock-scenarios.md)
+#### [workstation/docs/development/mock-scenarios.md](../guides/console/mock-scenarios.md)
 
 - **Title:** Mock scenarios
 - **Snapshot:** 5,467 bytes; SHA-256 `be5f9bb25a819a8e`.
 - **Coverage:** Primary reassessment demonstration: scenario 04.
 
-#### [workstation/docs/development/verification.md](../../workstation/docs/development/verification.md)
+#### [workstation/docs/development/verification.md](../guides/console/verification.md)
 
 - **Title:** Historical standalone console implementation verification
 - **Snapshot:** 26,691 bytes; SHA-256 `3cba11a3d5eb32ee`.
 - **Coverage:** Executed checks; Operator-confirmed live results; Operator and upstream checks still required; Reassessment-specific coverage and assumptions; Main repository migration verification; Source preservation and environment; Launch and functional evidence; Failures, warnings and limits; Security and remaining integration; Follow-up: local demo toolchain setup; Follow-up: real-service readiness and functionality.
 
-#### [workstation/docs/integration/main-repository-migration.md](../../workstation/docs/integration/main-repository-migration.md)
+#### [workstation/docs/integration/main-repository-migration.md](../integration/main-repository-migration.md)
 
 - **Title:** Main repository migration and contract assessment
 - **Snapshot:** 13,106 bytes; SHA-256 `256989927e030d81`.
 - **Coverage:** Provenance and scope; Migration map; Current authority and historical conflicts; Contract classification; A. Console-local contracts; B. Candidate cross-system contracts retained locally; C. Concepts already represented under common; D. Version, vocabulary and semantic conflicts; Preserved safety and implementation boundaries.
 
-#### [workstation/docs/integration/upstream-alice.md](../../workstation/docs/integration/upstream-alice.md)
+#### [workstation/docs/integration/upstream-alice.md](../integration/upstream-alice.md)
 
 - **Title:** Console contract reference for upstream ALICE
 - **Snapshot:** 13,122 bytes; SHA-256 `7cc2459cd197d0d0`.
 - **Coverage:** Current product authority and legacy compatibility; Inbound events; Outbound automatic clarification; Outbound technician action; Transport integration; What is implemented and what is mocked; Reassessment exchange and delivery constraints.
 
-#### [workstation/services/biometrics/README.md](../../workstation/services/biometrics/README.md)
+#### [workstation/services/biometrics/README.md](../../services/biometrics/README.md)
 
 - **Title:** ALICE face identity service
 - **Snapshot:** 1,860 bytes; SHA-256 `24698700faad1335`.
@@ -1104,10 +1104,10 @@ Copied from [implementation-tracker.md](../implementation-tracker.md) at this sn
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 037 | Train Isolation Forest | Done component | [Mac training pipeline](../../lab/anomaly_training.py) and [actual-fit tests](../../tests/test_anomaly_training.py) fit a bounded Isolation Forest on synthetic normal sessions; [candidate-002](../reports/anomaly-lab/candidate-002/training-report.json) is an in-memory lab fit, not an accepted deployment model. |
+| 037 | Train Isolation Forest | Done component | [Mac training pipeline](../../scripts/lab/anomaly_training.py) and [actual-fit tests](../../tests/test_anomaly_training.py) fit a bounded Isolation Forest on synthetic normal sessions; [candidate-002](../reports/anomaly-lab/candidate-002/training-report.json) is an in-memory lab fit, not an accepted deployment model. |
 | 038 | Save Isolation Forest Model | Planned | A real model was fitted in memory, but no fitted artifact was persisted. [JSON run outputs](../reports/anomaly-lab/candidate-002/training-report.json) are not a deployable model; format and trusted loading remain pending. |
 | 039 | Load Isolation Forest Model on Boot | Planned | No trusted artifact loader, boot integration or model worker exists. |
-| 040 | Score Incoming Requests | Partial | [Contextual scorer](../../dcamr/anomaly_engine/contextual_model.py) now assesses captured PRE/POST observations using exact-context forests and frozen references; [cyber lab](../../lab/anomaly_training.py) remains. Live request transport, supervised Pi worker and canonical result adapter remain. |
+| 040 | Score Incoming Requests | Partial | [Contextual scorer](../../dcamr/anomaly_engine/contextual_model.py) now assesses captured PRE/POST observations using exact-context forests and frozen references; [cyber lab](../../scripts/lab/anomaly_training.py) remains. Live request transport, supervised Pi worker and canonical result adapter remain. |
 | 041 | Calculate Anomaly Percentile | Done component | [Rank mapper](../../dcamr/anomaly_engine/scoring.py) and [tests](../../tests/test_anomaly_training.py) map cyber scores against 1,200 frozen normal calibration scores. The [completed separate-reference experiment](../guides/anomaly-training.md) used 1,000 distinct normal source requests per family; within-session correlation remains, and no reference is accepted for deployment. |
 | 042 | Calculate Individual Anomaly Factors | Partial | [Cyber comparisons](../../dcamr/anomaly_engine/features.py) and [contextual training-range factors](../../dcamr/anomaly_engine/contextual_model.py) retain source/timing and deviations, including changed constant features with LOW ML bands. These are observations, not learned attribution; final fusion remains. |
 | 043 | Build Action-Sequence Model | Partial | [Validated transition-count tables](../../dcamr/anomaly_engine/baseline.py) and [synthetic rows](../../tests/fixtures/features/README.md) exist; no sequence-training pipeline or learned sequence artifact exists. |
@@ -1148,7 +1148,7 @@ Copied from [implementation-tracker.md](../implementation-tracker.md) at this sn
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 066 | Export Raw Decision Data to Dashboard | Partial | [Serializable anomaly contract](../../dcamr/anomaly_engine/contract.py) and [mock replay](../../lab/replay_anomaly_fixtures.py) exist. The external console renders supplied fixtures, but no complete live core decision/event transport is connected. |
+| 066 | Export Raw Decision Data to Dashboard | Partial | [Serializable anomaly contract](../../dcamr/anomaly_engine/contract.py) and [mock replay](../../scripts/lab/replay_anomaly_fixtures.py) exist. The external console renders supplied fixtures, but no complete live core decision/event transport is connected. |
 | 067 | Export Live Pi Status to Dashboard | Planned | No actual Pi status endpoint or authenticated telemetry transport is connected to the console; reported console status views currently consume fixtures. |
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | No real core technician-action receiver exists. The console reports local action construction/persistence; authenticated delivery and receipts remain. |
@@ -1167,7 +1167,7 @@ Copied from [implementation-tracker.md](../implementation-tracker.md) at this sn
 | 077 | Detect Cloud Connectivity Loss | Planned | No cloud connectivity detector exists. |
 | 078 | Enter DDIL Mode | Planned | No automatic failover/state machine or endpoint authority transfer exists; loss of cloud reachability cannot by itself authorize local control. |
 | 079 | Continue Local Policy Enforcement | Planned | OFFLINE authorized-permission enforcement remains unimplemented. ONLINE enterprise direct control is intentionally not replaced by a Pi policy gate. |
-| 080 | Continue Local Anomaly Scoring | Partial | [Local lab scoring](../../lab/anomaly_training.py) runs real Isolation Forest offline, alongside [feature checks](../../tests/test_feature_builder.py). Live Pi inference for OFFLINE governance and authority-mode orchestration remain unimplemented. |
+| 080 | Continue Local Anomaly Scoring | Partial | [Local lab scoring](../../scripts/lab/anomaly_training.py) runs real Isolation Forest offline, alongside [feature checks](../../tests/test_feature_builder.py). Live Pi inference for OFFLINE governance and authority-mode orchestration remain unimplemented. |
 | 081 | Continue Local Context Push-Back | Planned | No real OFFLINE core context exchange runs. Console fixture automation does not establish agent routing, bounded retries or a single authoritative challenge loop. |
 | 082 | Continue Local Dashboard Output | Planned | No real core/console event transport exists in either product mode. The external console reports local UI and DDIL fixture behavior separately. |
 | 083 | Cache Unverified External Evidence Requests | Planned | No bounded persistent external-evidence request cache exists. |
@@ -1317,23 +1317,23 @@ The following zero-byte files identify unfinished boundaries. Empty `__init__.py
 - [tests/test_package_verifier.py](../../tests/test_package_verifier.py)
 - [tests/test_policy_engine.py](../../tests/test_policy_engine.py)
 - [tests/test_reconciliation.py](../../tests/test_reconciliation.py)
-- [workstation/backend/dcamr_gateway.py](../../workstation/backend/dcamr_gateway.py)
-- [workstation/backend/llm_explainer.py](../../workstation/backend/llm_explainer.py)
-- [workstation/backend/server.py](../../workstation/backend/server.py)
-- [workstation/dashboard/index.html](../../workstation/dashboard/index.html)
-- [workstation/dashboard/package.json](../../workstation/dashboard/package.json)
-- [workstation/dashboard/src/App.jsx](../../workstation/dashboard/src/App.jsx)
-- [workstation/dashboard/src/DecisionView.jsx](../../workstation/dashboard/src/DecisionView.jsx)
-- [workstation/dashboard/src/ProvenanceTable.jsx](../../workstation/dashboard/src/ProvenanceTable.jsx)
-- [workstation/dashboard/src/RawDecisionViewer.jsx](../../workstation/dashboard/src/RawDecisionViewer.jsx)
-- [workstation/dashboard/src/SwarmView.jsx](../../workstation/dashboard/src/SwarmView.jsx)
-- [workstation/dashboard/src/TechnicianControls.jsx](../../workstation/dashboard/src/TechnicianControls.jsx)
-- [workstation/dashboard/src/api.js](../../workstation/dashboard/src/api.js)
-- [workstation/face_verification/arcface.py](../../workstation/face_verification/arcface.py)
-- [workstation/face_verification/camera.py](../../workstation/face_verification/camera.py)
-- [workstation/face_verification/enroll.py](../../workstation/face_verification/enroll.py)
-- [workstation/face_verification/face_detect.py](../../workstation/face_verification/face_detect.py)
-- [workstation/face_verification/verify.py](../../workstation/face_verification/verify.py)
+- [workstation/backend/dcamr_gateway.py](../../services/backend/dcamr_gateway.py)
+- [workstation/backend/llm_explainer.py](../../services/backend/llm_explainer.py)
+- [workstation/backend/server.py](../../services/backend/server.py)
+- [workstation/dashboard/index.html](../../apps/dashboard/index.html)
+- [workstation/dashboard/package.json](../../apps/dashboard/package.json)
+- [workstation/dashboard/src/App.jsx](../../apps/dashboard/src/App.jsx)
+- [workstation/dashboard/src/DecisionView.jsx](../../apps/dashboard/src/DecisionView.jsx)
+- [workstation/dashboard/src/ProvenanceTable.jsx](../../apps/dashboard/src/ProvenanceTable.jsx)
+- [workstation/dashboard/src/RawDecisionViewer.jsx](../../apps/dashboard/src/RawDecisionViewer.jsx)
+- [workstation/dashboard/src/SwarmView.jsx](../../apps/dashboard/src/SwarmView.jsx)
+- [workstation/dashboard/src/TechnicianControls.jsx](../../apps/dashboard/src/TechnicianControls.jsx)
+- [workstation/dashboard/src/api.js](../../apps/dashboard/src/api.js)
+- [workstation/face_verification/arcface.py](../../services/face_verification/arcface.py)
+- [workstation/face_verification/camera.py](../../services/face_verification/camera.py)
+- [workstation/face_verification/enroll.py](../../services/face_verification/enroll.py)
+- [workstation/face_verification/face_detect.py](../../services/face_verification/face_detect.py)
+- [workstation/face_verification/verify.py](../../services/face_verification/verify.py)
 
 ### Appendix D. Refresh procedure for the next upgrade prompt
 

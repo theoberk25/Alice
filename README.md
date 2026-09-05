@@ -90,9 +90,10 @@ component checks and planned end-to-end acceptance, and the
 
 ## Technician Console
 
-The macOS ALICE Technician Console lives under [`workstation/`](workstation/README.md).
-Run `cd workstation && npm ci && npm run dev` for the independent mock dashboard.
-See its README for native Tauri operation, biometric setup, Ollama, tests and
+The macOS [ALICE Technician Console](docs/guides/technician-console.md) uses
+`apps/desktop`, `packages`, `services/biometrics` and `scripts/console`.
+Run `npm ci` then `npm run dev` from the repository root for the mock dashboard.
+See the console guide for native Tauri operation, biometric setup, Ollama, tests and
 `ALICE.app` packaging, and the [repository integration guide](docs/guides/workstation.md)
 for scope and shared-contract boundaries. Remote core transport remains fail-closed.
 

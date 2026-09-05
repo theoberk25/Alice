@@ -1,14 +1,20 @@
 # Biometrics scripts
 
-Working directory: workstation/. Existing source:
+Use Python 3.11 and the environment at services/biometrics/.venv. Install the
+pinned services/biometrics/requirements-lock.txt dependencies. These scripts can
+be invoked by absolute path from any working directory. Paths are resolved from
+the checkout package manifest, not the current directory or a fixed parent count.
 
-- [setup-model.py](../../workstation/scripts/setup-model.py): explicit model provisioning.
-- [smoke-arcface.py](../../workstation/scripts/smoke-arcface.py): real inference smoke check.
-- [smoke-native-identity.py](../../workstation/scripts/smoke-native-identity.py): isolated native identity check.
-- [biometrics.mjs](../../workstation/scripts/biometrics.mjs): local service launcher.
+| Tool | Purpose |
+| --- | --- |
+| [biometrics.mjs](biometrics.mjs) | `npm run biometrics` from root; loads .env and starts the local service |
+| [setup_model.py](setup_model.py) | Explicit InsightFace model provisioning; never runs implicitly during login |
+| [smoke_arcface.py](smoke_arcface.py) | Public-image inference check using a temporary encrypted store |
+| [smoke_native_identity.py](smoke_native_identity.py) | Isolated public-image Rust/service identity integration |
 
-Use the commands and prerequisites in the [quick start](../../workstation/docs/development/facial-verification-quickstart.md)
-and [workstation README](../../workstation/README.md). These tools derive service,
-model and environment paths from their source location; retain their current paths.
-New independent biometric helpers belong here; reusable service code belongs in
-workstation/services/biometrics/.
+The launcher keeps models under services/biometrics/models and private enrollment
+data under services/biometrics/data by default. ALICE_INSIGHTFACE_ROOT and
+ALICE_BIOMETRIC_DATA_DIR overrides are retained. Reusable service code stays in
+services/biometrics/app. These checks do not establish live camera acceptance.
+See the [quick start](../../docs/guides/console/facial-verification-quickstart.md)
+and [console guide](../../docs/guides/technician-console.md).
