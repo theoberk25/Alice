@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BorderTrail, CommandButton, Tooltip } from '@alice/ui';
 import { ArrowUp, Terminal, LoaderCircle } from 'lucide-react';
 import { useConsole } from '../../state/console';
 export function CommandPanel() {
@@ -22,12 +23,13 @@ export function CommandPanel() {
   }
   return (
     <section className="command-panel">
+      <BorderTrail active={busy} />
       <div className="command-label">
         <span>
-          <Terminal size={14} /> ALICE COMMAND
+          <Terminal size={14} /> ALICE assistance
         </span>
         <span className="muted">
-          {llm.status === 'READY' ? 'LOCAL LANGUAGE GATEWAY' : 'STRUCTURED FALLBACK'} <i>·</i> TEXT
+          {llm.status === 'READY' ? 'Local language gateway' : 'Structured fallback'} <i>·</i> TEXT
           ONLY
         </span>
       </div>
@@ -50,15 +52,19 @@ export function CommandPanel() {
           placeholder="Ask about this decision, evidence, or agent justification…"
           maxLength={2000}
         />
-        <button aria-label="Send question" disabled={busy || !input.trim()}>
-          {busy ? <LoaderCircle className="spin" size={17} /> : <ArrowUp size={17} />}
-        </button>
+        <Tooltip content="Send question">
+          <CommandButton aria-label="Send question" disabled={busy || !input.trim()}>
+            {busy ? <LoaderCircle className="spin" size={17} /> : <ArrowUp size={17} />}
+          </CommandButton>
+        </Tooltip>
       </form>
       <div className="command-suggestions">
-        <button onClick={() => void send('Why was this held?')}>Why was this held?</button>
-        <button onClick={() => void send('What evidence is still unverified?')}>
+        <CommandButton onClick={() => void send('Why was this held?')}>
+          Why was this held?
+        </CommandButton>
+        <CommandButton onClick={() => void send('What evidence is still unverified?')}>
           Unverified evidence
-        </button>
+        </CommandButton>
         <span>Assistance cannot authorize actions.</span>
       </div>
     </section>

@@ -13,7 +13,16 @@ import {
   AlertTriangle,
   ChevronDown,
 } from 'lucide-react';
-import { Badge, Empty } from '@alice/ui';
+import {
+  Badge,
+  Empty,
+  AnimatedSelection,
+  AnimatedCounter,
+  CommandButton,
+  Tooltip,
+  motionTokens,
+} from '@alice/ui';
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'motion/react';
 import { canReview } from '@alice/domain';
 import { useConsole } from '../state/console';
 import { Header } from '../components/layout/Header';
@@ -42,6 +51,8 @@ type View = 'overview' | 'history' | 'audit' | 'admin';
 type Overlay = 'approval' | 'research' | 'identity' | 'settings' | undefined;
 export default function App() {
   const s = useConsole();
+  const reducedMotion = useReducedMotion();
+  const [hoveredTab, setHoveredTab] = useState<View>();
   const [view, setView] = useState<View>('overview'),
     [approvalId, setApprovalId] = useState<string>(),
     [overlay, setOverlay] = useState<Overlay>(),
@@ -98,29 +109,48 @@ export default function App() {
     <div className="alice-app">
       <Header onIdentity={() => setOverlay('identity')} onSettings={() => setOverlay('settings')} />
       <nav className="main-nav" aria-label="Console navigation">
-        <div className="nav-tabs">
-          {(
-            [
-              { id: 'overview', label: 'Operations', icon: LayoutDashboard },
-              { id: 'history', label: 'Decision history', icon: ListFilter },
-              { id: 'audit', label: 'Audit trail', icon: FileClock },
-              { id: 'admin', label: 'Administration', icon: UsersRound },
-            ] as const
-          ).map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              className={view === id ? 'active' : ''}
-              onClick={() => setView(id)}
-              disabled={locked && id !== 'admin'}
-            >
-              <Icon size={15} />
-              {label}
-              {id === 'history' && !locked && (
-                <span>{remote ? runtimeRequests.length : s.order.length}</span>
-              )}
-            </button>
-          ))}
-        </div>
+        <LayoutGroup id="console-navigation">
+          <div className="nav-tabs" onMouseLeave={() => setHoveredTab(undefined)}>
+            {(
+              [
+                { id: 'overview', label: 'Operations', icon: LayoutDashboard },
+                { id: 'history', label: 'Decision history', icon: ListFilter },
+                { id: 'audit', label: 'Audit trail', icon: FileClock },
+                { id: 'admin', label: 'Administration', icon: UsersRound },
+              ] as const
+            ).map(({ id, label, icon: Icon }) => (
+              <CommandButton
+                key={id}
+                className={view === id ? 'active' : ''}
+                aria-label={label}
+                aria-current={view === id ? 'page' : undefined}
+                onMouseEnter={() => setHoveredTab(id)}
+                onFocus={() => setHoveredTab(id)}
+                onBlur={() => setHoveredTab(undefined)}
+                onClick={() => setView(id)}
+                disabled={locked && id !== 'admin'}
+              >
+                <AnimatedSelection
+                  active={hoveredTab === id}
+                  layoutId="nav-hover"
+                  className="nav-hover-surface"
+                />
+                <AnimatedSelection
+                  active={view === id}
+                  layoutId="nav-active"
+                  className="nav-active-surface"
+                />
+                <Icon size={15} />
+                <span className="nav-label">{label}</span>
+                {id === 'history' && !locked && (
+                  <span className="nav-count">
+                    <AnimatedCounter value={remote ? runtimeRequests.length : s.order.length} />
+                  </span>
+                )}
+              </CommandButton>
+            ))}
+          </div>
+        </LayoutGroup>
         <div className="nav-status">
           {s.mode === 'mock' && (
             <Badge tone="warning" dot={false}>
@@ -136,13 +166,15 @@ export default function App() {
                 : 'INITIALIZING'}
           </span>
           {import.meta.env.DEV && (
-            <button
-              className="icon-button"
-              aria-label="Development scenarios"
-              onClick={() => setDeveloper(!developer)}
-            >
-              <SlidersHorizontal size={15} />
-            </button>
+            <Tooltip content="Development scenarios">
+              <CommandButton
+                className="icon-button"
+                aria-label="Development scenarios"
+                onClick={() => setDeveloper(!developer)}
+              >
+                <SlidersHorizontal size={15} />
+              </CommandButton>
+            </Tooltip>
           )}
         </div>
       </nav>
@@ -163,12 +195,12 @@ export default function App() {
               ))}
             </select>
           </label>
-          <button
+          <CommandButton
             className="small-button"
             onClick={() => void s.start(s.scenario).catch((err) => s.error(String(err)))}
           >
             Reset scenario
-          </button>
+          </CommandButton>
           <span>Deterministic fixtures · no protected system execution</span>
         </div>
       )}
@@ -180,9 +212,13 @@ export default function App() {
               <p key={i}>{error}</p>
             ))}
           </div>
-          <button className="icon-button" aria-label="Dismiss errors" onClick={s.dismissError}>
+          <CommandButton
+            className="icon-button"
+            aria-label="Dismiss errors"
+            onClick={s.dismissError}
+          >
             <X size={16} />
-          </button>
+          </CommandButton>
         </div>
       )}
       {locked && view !== 'admin' && (
@@ -193,99 +229,129 @@ export default function App() {
             Sign in with your username and local facial verification, or open Administration to
             enroll.
           </p>
-          <button className="primary-button" onClick={() => setOverlay('identity')}>
+          <CommandButton
+            className="primary-button"
+            data-morph-id="technician-identity"
+            onClick={() => setOverlay('identity')}
+          >
             Technician sign in
-          </button>
+          </CommandButton>
         </div>
       )}
-      {(!locked || view === 'admin') &&
-        (view === 'overview' ? (
-          <main className="dashboard">
-            <aside className="left-column">
-              <div className="section-kicker">
-                01 <span>OPERATIONS NETWORK</span>
-              </div>
-              {remote ? <RuntimeAgents /> : <AgentsPanel />}
-              {remote ? <RuntimeHistory /> : <History />}
-              <div className="mission-card">
-                <span className="eyebrow">CURRENT MISSION</span>
-                <h3>
-                  {remote ? 'Mission unavailable' : (d?.request.mission_id ?? 'No active mission')}
-                </h3>
-                <p>
-                  {remote
-                    ? 'Mission metadata is not supplied by the runtime feed'
-                    : (d?.request.mission_type.replaceAll('_', ' ') ?? 'Awaiting an ALICE event')}
-                </p>
-                <div>
-                  <ShieldCheck size={14} />{' '}
-                  {remote ? 'Target unavailable' : (d?.request.target ?? 'No target')}{' '}
-                  <span>PROTECTED ASSET</span>
-                </div>
-              </div>
-            </aside>
-            <section className="center-column">
-              <div className="workspace-title">
-                <div className="section-kicker">
-                  02 <span>DECISION WORKSPACE</span>
-                </div>
-                <div className="decision-counts">
-                  <span className="tone-healthy">{allowCount} ALLOWED</span>
-                  <i />
-                  <span className="tone-warning">{holdCount} HELD</span>
-                  <i />
-                  <span className="tone-danger">{denyCount} DENIED</span>
-                </div>
-              </div>
-              {remote ? (
-                <RuntimeWorkspace />
-              ) : d ? (
-                <DecisionWorkspace decision={d} onResearch={() => setOverlay('research')} />
-              ) : (
-                <Empty>
-                  {s.mode === 'remote'
-                    ? 'Awaiting an authenticated connection to the ALICE edge node.'
-                    : 'Loading decision fixtures…'}
-                </Empty>
-              )}
-              {!remote && <CommandPanel />}
-            </section>
-            <aside className="right-column">
-              <div className="section-kicker">
-                03 <span>TRUST & VERIFICATION</span>
-              </div>
-              {remote ? <RuntimeSystem /> : <SystemPanel />}
-              {remote ? (
-                <RuntimeEvidence />
-              ) : (
-                d && <EvidencePanel decision={d} onResearch={() => setOverlay('research')} />
-              )}
-            </aside>
-          </main>
-        ) : (
-          <main className="secondary-view">
-            {view === 'history' ? (
-              <>
-                {remote ? <RuntimeHistory /> : <History expanded />}
-                {remote ? (
-                  <RuntimeWorkspace />
-                ) : (
-                  d && <DecisionWorkspace decision={d} onResearch={() => setOverlay('research')} />
-                )}
-              </>
-            ) : view === 'audit' ? (
-              remote ? (
-                <RuntimeAudit />
-              ) : (
-                <AuditLog />
-              )
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={view}
+          className="page-surface"
+          initial={{ opacity: 0, y: reducedMotion ? 0 : 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reducedMotion ? 0 : 0.22, ease: motionTokens.ease }}
+        >
+          {(!locked || view === 'admin') &&
+            (view === 'overview' ? (
+              <main className="dashboard">
+                <aside className="left-column">
+                  <div className="section-kicker">
+                    <span>Operations network</span>
+                  </div>
+                  {remote ? <RuntimeAgents /> : <AgentsPanel />}
+                  {remote ? <RuntimeHistory /> : <History />}
+                  <div className="mission-card">
+                    <span className="eyebrow">Current mission</span>
+                    <h3>
+                      {remote
+                        ? 'Mission unavailable'
+                        : (d?.request.mission_id ?? 'No active mission')}
+                    </h3>
+                    <p>
+                      {remote
+                        ? 'Mission metadata is not supplied by the runtime feed'
+                        : (d?.request.mission_type.replaceAll('_', ' ') ??
+                          'Awaiting an ALICE event')}
+                    </p>
+                    <div>
+                      <ShieldCheck size={14} />{' '}
+                      {remote ? 'Target unavailable' : (d?.request.target ?? 'No target')}{' '}
+                      <span>PROTECTED ASSET</span>
+                    </div>
+                  </div>
+                </aside>
+                <section className="center-column">
+                  <div className="workspace-title">
+                    <div className="section-kicker">
+                      <span>Decision workspace</span>
+                    </div>
+                    <div className="decision-counts">
+                      <span className="tone-healthy">
+                        <AnimatedCounter value={allowCount} /> <span>Allowed</span>
+                      </span>
+                      <i />
+                      <span className="tone-warning">
+                        <AnimatedCounter value={holdCount} /> <span>Held</span>
+                      </span>
+                      <i />
+                      <span className="tone-danger">
+                        <AnimatedCounter value={denyCount} /> <span>Denied</span>
+                      </span>
+                    </div>
+                  </div>
+                  {remote ? (
+                    <RuntimeWorkspace />
+                  ) : d ? (
+                    <DecisionWorkspace decision={d} onResearch={() => setOverlay('research')} />
+                  ) : (
+                    <Empty>
+                      {s.mode === 'remote'
+                        ? 'Awaiting an authenticated connection to the ALICE edge node.'
+                        : 'Loading decision fixtures…'}
+                    </Empty>
+                  )}
+                  {!remote && <CommandPanel />}
+                </section>
+                <aside className="right-column">
+                  <div className="section-kicker">
+                    <span>Trust & verification</span>
+                  </div>
+                  {remote ? <RuntimeSystem /> : <SystemPanel />}
+                  {remote ? (
+                    <RuntimeEvidence />
+                  ) : (
+                    d && <EvidencePanel decision={d} onResearch={() => setOverlay('research')} />
+                  )}
+                </aside>
+              </main>
             ) : (
-              <AdminPanel />
-            )}
-          </main>
-        ))}
+              <main className={`secondary-view view-${view}`}>
+                {view === 'history' ? (
+                  <>
+                    {remote ? <RuntimeHistory /> : <History expanded />}
+                    {remote ? (
+                      <RuntimeWorkspace />
+                    ) : (
+                      d && (
+                        <DecisionWorkspace decision={d} onResearch={() => setOverlay('research')} />
+                      )
+                    )}
+                  </>
+                ) : view === 'audit' ? (
+                  remote ? (
+                    <RuntimeAudit />
+                  ) : (
+                    <AuditLog />
+                  )
+                ) : (
+                  <AdminPanel />
+                )}
+              </main>
+            ))}
+        </motion.div>
+      </AnimatePresence>
       {!locked && (
-        <footer className="action-bar">
+        <motion.footer
+          className="action-bar"
+          initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={motionTokens.panel}
+        >
           <div className="action-bar-status">
             <span
               className={`bar-status-icon ${d?.decision.result === 'HOLD' ? 'tone-warning' : 'tone-healthy'}`}
@@ -314,34 +380,35 @@ export default function App() {
             </div>
           </div>
           <div className="action-buttons">
-            <button
+            <CommandButton
               className="reject-button"
               disabled={!available || busy || !d?.technician_actions.available.includes('REJECT')}
               onClick={() => void act('REJECT')}
             >
               <X size={16} /> Reject
-            </button>
-            <button
+            </CommandButton>
+            <CommandButton
               disabled={!available || busy || !d?.technician_actions.available.includes('RESEARCH')}
               onClick={() => void act('RESEARCH')}
             >
               <Search size={16} /> Research
-            </button>
-            <button
+            </CommandButton>
+            <CommandButton
               disabled={!available || busy || !d?.technician_actions.available.includes('HOLD')}
               onClick={() => void act('HOLD')}
             >
               <Pause size={15} /> Hold
-            </button>
-            <button
+            </CommandButton>
+            <CommandButton
               className="approve-button"
+              data-morph-id="approval"
               disabled={!available || busy || !d?.technician_actions.available.includes('APPROVE')}
               onClick={approve}
             >
               <Fingerprint size={18} /> Approve once <ChevronDown size={13} />
-            </button>
+            </CommandButton>
           </div>
-        </footer>
+        </motion.footer>
       )}
       {!locked && overlay === 'approval' && approvalId && (
         <ApprovalModal
