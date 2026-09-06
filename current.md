@@ -21,6 +21,7 @@ execution and observation. No deepfake work or device-output adjustments.
   bridge, Pi ledger and execution path, with durable uncertain-delivery reconciliation.
 - The built app is open for a local personal rehearsal with the existing enrollment;
   real facial service is ready. Controller/assessment are labeled mock/fixture.
+  Dock/Finder launches now use the same saved remote settings; sign-in starts the feed.
   `npm run demo:hold -- --session /private/tmp/alice-native-personal-20260906-01/session.json`
   sends another signed, unexecuted test HOLD; final helper checks: 12 passed.
 - Working scope is first-light `set_light_state`, fixed OFFLINE ALICE authority.

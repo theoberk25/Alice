@@ -62,7 +62,23 @@ The rehearsal terminal accepts `hold`, `status` and `stop`. It remains running
 for the personal test, alongside the facial service. `stop` shuts down the app
 and local mock/runtime/bridge; the data remains private. A later session can use
 the guide to start a new directory. The private `session.json` includes a bearer
-and must not be shared. Root `.env` was not modified.
+and must not be shared. Root `.env` was not modified during initial delivery.
+
+### Dock/Finder launch follow-up
+
+On the user's subsequent request, the Dock entry was verified to point to this
+checkout's exact built `ALICE.app`. Its different behavior came from `.env` still
+selecting mock transport, while the initial rehearsal used process overrides.
+The original `.env` was preserved byte-for-byte in private recovery storage as
+`env-before-dock-live-015407.env`. The same active rehearsal feed, enrolled database,
+console key and remote/ArcFace settings are now saved privately in `.env`.
+No credentials were added to the app bundle or committed documentation.
+
+A fresh direct app launch was verified to open remote mode rather than the
+fixture console. The feed waits for technician sign-in. The configured backend
+is still the local mock-Pi rehearsal and must remain running; a stopped backend
+shows unavailable rather than falling back to fixtures. Physical Pi communication
+uses the existing authenticated bridge and a separately established SSH tunnel.
 
 ## Latest upstream retained
 

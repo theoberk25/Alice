@@ -23,6 +23,9 @@ Native request visibility and signed review are locally implemented with exact
 bindings, durable one-use admission and reconciliation. [Parity](plans/native-live-backend-parity.md)
 and [current validation](reports/2026-09-06-native-live-backend-validation.md) distinguish
 local automated evidence from unperformed real camera/physical-Pi acceptance.
+Dock/Finder launch follow-up: existing private settings now select the same remote
+rehearsal as the tested launch; original settings are backed up and direct launch
+was verified. This does not provision a physical Pi or change execution authority.
 
 
 Historical September 6 biometric delivery: `codex/live-face-upstream-integration` starts from
