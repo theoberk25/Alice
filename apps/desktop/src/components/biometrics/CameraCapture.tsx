@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, ScanFace, VideoOff } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
+import { BorderTrail, CommandButton, TransitionPanel, motionTokens } from '@alice/ui';
+import { BiometricScan } from './BiometricScan';
 import type { BiometricIntent, LiveBiometricSession } from '@alice/contracts';
 import {
   beginBiometricSession,
@@ -18,22 +21,6 @@ const angleLabels = {
   UP_LEFT: 'Upper left',
   UP_RIGHT: 'Upper right',
 };
-// Positions follow the mirrored preview: the person's left is the left side of the guide.
-const coverageArcs = [
-  { region: 'UP', start: 250, end: 290 },
-  { region: 'UP_RIGHT', start: 295, end: 335 },
-  { region: 'RIGHT', start: 340, end: 380 },
-  { region: 'DOWN', start: 25, end: 155 },
-  { region: 'LEFT', start: 160, end: 200 },
-  { region: 'UP_LEFT', start: 205, end: 245 },
-] as const;
-function arcPath(start: number, end: number) {
-  const point = (angle: number) => {
-    const radians = (angle * Math.PI) / 180;
-    return `${120 + 108 * Math.cos(radians)} ${120 + 108 * Math.sin(radians)}`;
-  };
-  return `M ${point(start)} A 108 108 0 0 1 ${point(end)}`;
-}
 const terminal = new Set(['SUCCEEDED', 'FAILED', 'CANCELLED', 'EXPIRED']);
 const successAcknowledgementMs = 450;
 const qualityGuidance: Record<string, string> = {
@@ -279,6 +266,7 @@ export function CameraCapture({
       void stop();
     };
   }, [intentKey, attempt]);
+  const reducedMotion = useReducedMotion();
   const enrollment = intent.purpose === 'ENROLLMENT';
   const covered = Object.values(session?.coverage ?? {}).filter((n) => n === 2).length;
   const accepted = Object.values(session?.coverage ?? {}).reduce((sum, n) => sum + (n ?? 0), 0);
@@ -312,35 +300,25 @@ export function CameraCapture({
           : 'Keep your head comfortably centered for a moment. Then you can look around in any order.'
         : 'Keep your face visible. No head turns needed.';
   return (
-    <section
+    <motion.section
+      layout={!reducedMotion}
+      transition={reducedMotion ? { duration: 0 } : motionTokens.panel}
       className={`biometric-session ${complete ? 'biometric-session-complete' : ''}`}
       aria-label="Automatic facial verification"
       aria-busy={!!action}
     >
-      <div
+      <motion.div
+        layout={!reducedMotion}
+        transition={reducedMotion ? { duration: 0 } : motionTokens.panel}
         className={`biometric-preview ${complete ? 'biometric-complete' : ''} ${error ? 'biometric-paused' : ''}`}
       >
         <div className="biometric-placeholder" aria-hidden="true">
-          {complete ? (
-            // Circle/check geometry and 400ms reveal adapted from pqoqubbw/icons (MIT),
-            // commit 072c38b1b04ea738d90a084485ccaad4b890ddca. See docs/guides/live-face-third-party-notices.md.
-            <svg
-              className="biometric-success-mark"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="m9 12 2 2 4-4" pathLength="1" />
-            </svg>
-          ) : error ? (
-            <VideoOff size={58} strokeWidth={1} />
-          ) : (
-            <ScanFace size={80} strokeWidth={0.8} />
-          )}
+          {!complete &&
+            (error ? (
+              <VideoOff size={36} strokeWidth={1.25} />
+            ) : (
+              <ScanFace size={52} strokeWidth={1} />
+            ))}
         </div>
         <img
           ref={preview}
@@ -357,47 +335,20 @@ export function CameraCapture({
             }
           }}
         />
-        <svg className="biometric-face-guide" viewBox="0 0 240 240" aria-hidden="true">
-          {enrollment ? (
-            <>
-              {coverageArcs.map(({ region, start, end }) => {
-                const count = session?.coverage[region] ?? 0;
-                const path = arcPath(start, end);
-                return (
-                  <g
-                    key={region}
-                    className="biometric-coverage-arc"
-                    data-region={region}
-                    data-accepted={count}
-                  >
-                    <path className="biometric-guide-track" d={path} />
-                    <path
-                      className="biometric-arc-progress"
-                      d={path}
-                      pathLength="100"
-                      strokeDasharray={`${(count / 2) * 100} 100`}
-                    />
-                  </g>
-                );
-              })}
-              {!centerReady && (
-                <circle className="biometric-center-guide" cx="120" cy="120" r="98" />
-              )}
-            </>
-          ) : (
-            <>
-              <circle className="biometric-guide-track" cx="120" cy="120" r="108" />
-              <circle
-                className="biometric-guide-progress"
-                cx="120"
-                cy="120"
-                r="108"
-                pathLength="100"
-                strokeDasharray={`${complete ? 100 : 0} 100`}
-              />
-            </>
-          )}
-        </svg>
+        <BiometricScan
+          enrollment={enrollment}
+          coverage={session?.coverage}
+          centerReady={centerReady}
+          complete={complete}
+          failed={!!error}
+        />
+        <BorderTrail
+          active={
+            !error &&
+            !complete &&
+            (!session || session.state === 'EVALUATING' || action === 'COMPLETING')
+          }
+        />
         {enrollment && !error && (
           <span className={`biometric-center-status ${centerReady ? 'center-ready' : ''}`}>
             {centerReady && <Check size={12} />}
@@ -415,47 +366,54 @@ export function CameraCapture({
                   : 'Live Face ID'
                 : 'Connecting'}
         </span>
-      </div>
+      </motion.div>
       {!error && (
         <p className="biometric-frame-guidance">
           Keep your whole head visible in the camera view.
           {enrollment && ' The ring shows scan progress.'}
         </p>
       )}
-      <div
-        className="biometric-guidance"
-        role={error ? 'alert' : 'status'}
-        aria-live={error ? 'assertive' : 'polite'}
-        aria-atomic="true"
+      <TransitionPanel
+        stage={
+          error ? 'FAILED' : complete ? 'COMPLETE' : `${session?.state ?? 'CREATED'}:${guidance}`
+        }
+        className="biometric-stage"
       >
-        <strong>
-          {action === 'CANCELLING'
-            ? 'Closing camera…'
-            : error
-              ? errorTitle(error)
+        <div
+          className="biometric-guidance"
+          role={error ? 'alert' : 'status'}
+          aria-live={error ? 'assertive' : 'polite'}
+          aria-atomic="true"
+        >
+          <strong>
+            {action === 'CANCELLING'
+              ? 'Closing camera…'
+              : error
+                ? errorTitle(error)
+                : complete
+                  ? enrollment
+                    ? 'Face saved'
+                    : 'Face ID verified'
+                  : guidance}
+          </strong>
+          <p>
+            {error
+              ? explainError(error)
               : complete
                 ? enrollment
-                  ? 'Face saved'
-                  : 'Face ID verified'
-                : guidance}
-        </strong>
-        <p>
-          {error
-            ? explainError(error)
-            : complete
-              ? enrollment
-                ? 'Your face is ready to use.'
-                : intent.purpose === 'LOGIN'
-                  ? 'Opening your dashboard…'
-                  : 'Continuing to your approval…'
-              : detail}
-        </p>
-        {error && (
-          <p className="biometric-error-reason">
-            Reason: <code>{error}</code>
+                  ? 'Your face is ready to use.'
+                  : intent.purpose === 'LOGIN'
+                    ? 'Opening your dashboard…'
+                    : 'Continuing to your approval…'
+                : detail}
           </p>
-        )}
-      </div>
+          {error && (
+            <p className="biometric-error-reason">
+              Reason: <code>{error}</code>
+            </p>
+          )}
+        </div>
+      </TransitionPanel>
       {enrollment && (
         <>
           <div
@@ -510,7 +468,7 @@ export function CameraCapture({
       </p>
       <div className="biometric-actions">
         {enrollment && /ACTIVATION[_ ]RECOVERY[_ ]REQUIRED/.test(error) && onRecovered && (
-          <button
+          <CommandButton
             type="button"
             className="primary-button"
             disabled={!!action}
@@ -530,10 +488,10 @@ export function CameraCapture({
             }}
           >
             {action === 'RECOVERING' ? 'Recovering enrollment…' : 'Recover pending enrollment'}
-          </button>
+          </CommandButton>
         )}
         {error && (
-          <button
+          <CommandButton
             type="button"
             className="primary-button"
             disabled={!!action}
@@ -545,9 +503,9 @@ export function CameraCapture({
             }}
           >
             Retry with new session
-          </button>
+          </CommandButton>
         )}
-        <button
+        <CommandButton
           type="button"
           className="text-button"
           disabled={!!action}
@@ -560,8 +518,8 @@ export function CameraCapture({
           }}
         >
           {action === 'CANCELLING' ? 'Closing…' : action === 'COMPLETING' ? 'Finishing…' : 'Cancel'}
-        </button>
+        </CommandButton>
       </div>
-    </section>
+    </motion.section>
   );
 }

@@ -1,4 +1,4 @@
-import { Badge, Modal, human } from '@alice/ui';
+import { Badge, Modal, human, toneFor } from '@alice/ui';
 import { useConsole } from '../../state/console';
 export function ResearchModal({ onClose }: { onClose: () => void }) {
   const { decisions, selectedId, responses } = useConsole();
@@ -6,7 +6,7 @@ export function ResearchModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal title="Evidence & context workspace" onClose={onClose} wide>
       <div className="research-summary">
-        <Badge tone="warning">{d.decision.result}</Badge>
+        <Badge tone={toneFor(d.decision.result)}>{d.decision.result}</Badge>
         <strong>
           {d.request.action} → {d.request.target}
         </strong>
@@ -57,7 +57,7 @@ export function ResearchModal({ onClose }: { onClose: () => void }) {
           {d.evidence.items.map((e) => (
             <div className="research-evidence" key={e.evidence_id}>
               <strong>{e.evidence_id}</strong>
-              <span>{human(e.status)}</span>
+              <span className={`tone-${toneFor(e.status)}`}>{human(e.status)}</span>
               <small>
                 {e.source} · {e.claimed_by_agent ? 'Agent-referenced' : 'Local observation'}
               </small>

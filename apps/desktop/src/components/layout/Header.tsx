@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ShieldCheck, Radio, WifiOff, UserRound, Settings2 } from 'lucide-react';
-import { Badge } from '@alice/ui';
+import { Badge, AnimatedCounter, CommandButton, Tooltip } from '@alice/ui';
 import { useConsole } from '../../state/console';
 export function Header({
   onIdentity,
@@ -24,14 +24,14 @@ export function Header({
         <div>
           <div className="brand-name">
             ALICE
-            <span className="brand-divider" /> <span>TECHNICIAN CONSOLE</span>
+            <span className="brand-divider" /> <span>Technician console</span>
           </div>
-          <p>AUTHENTICATED LOCAL IDENTITY & CYBER ENFORCEMENT</p>
+          <p>Authenticated local identity & cyber enforcement</p>
           {mode === 'mock' && <span className="mobile-simulation">SIMULATION</span>}
         </div>
       </div>
       <div className="topbar-node">
-        <span className="eyebrow">ENFORCEMENT NODE</span>
+        <span className="eyebrow">Enforcement node</span>
         <strong>
           <Radio size={12} />
           {mode === 'remote'
@@ -49,7 +49,9 @@ export function Header({
         </span>
       </div>
       <div className="clock">
-        <strong>{now.toLocaleTimeString('en-GB', { timeZone: 'UTC' })}</strong>
+        <strong>
+          <AnimatedCounter value={now.toLocaleTimeString('en-GB', { timeZone: 'UTC' })} />
+        </strong>
         <span>
           UTC /{' '}
           {now
@@ -57,7 +59,11 @@ export function Header({
             .toUpperCase()}
         </span>
       </div>
-      <button className="identity-button" onClick={onIdentity}>
+      <CommandButton
+        data-morph-id="technician-identity"
+        className="identity-button"
+        onClick={onIdentity}
+      >
         <span className="avatar">
           <UserRound size={17} />
         </span>
@@ -71,15 +77,16 @@ export function Header({
                 : (technician?.role ?? 'IDENTITY REQUIRED')}
           </small>
         </span>
-      </button>
-      <button
-        className="icon-button"
-        title={`Local gateway: ${llm.status}`}
-        aria-label="Connection settings"
-        onClick={onSettings}
-      >
-        <Settings2 size={18} />
-      </button>
+      </CommandButton>
+      <Tooltip align="end" content={`Connection settings · Local gateway: ${llm.status}`}>
+        <CommandButton
+          className="icon-button"
+          aria-label="Connection settings"
+          onClick={onSettings}
+        >
+          <Settings2 size={18} />
+        </CommandButton>
+      </Tooltip>
     </header>
   );
 }

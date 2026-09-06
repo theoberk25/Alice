@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Modal, Badge } from '@alice/ui';
+import { Modal, Badge, BorderTrail, CommandButton } from '@alice/ui';
 import { matchesRuntimeRequest, runtimeReviewBinding } from '@alice/domain';
 import type {
   RuntimeReview,
@@ -215,7 +215,8 @@ export function RuntimeReviewPanel() {
     );
   return (
     <section className="panel runtime-review-panel">
-      <div className="section-kicker">REQUEST DETAILS & TECHNICIAN REVIEW</div>
+      <BorderTrail active={loading || sending || reconciling} />
+      <div className="section-kicker">Request details & technician review</div>
       {loading && <p role="status">Loading current request…</p>}
       {snapshot?.request && (
         <dl className="request-context">
@@ -278,25 +279,26 @@ export function RuntimeReviewPanel() {
           )}
           {submission.error && <p>{submission.error}</p>}
           {submission.state !== 'ACCEPTED' && (
-            <button
+            <CommandButton
               disabled={sending || reconciling || feed.state !== 'live'}
               onClick={() => void reconcile()}
             >
               {reconciling ? 'Checking recorded outcome…' : 'Check recorded outcome'}
-            </button>
+            </CommandButton>
           )}
         </div>
       )}
       <div className="action-buttons">
-        <button
+        <CommandButton
           disabled={loading || !!attempt || sending || reconciling || feed.state !== 'live'}
           onClick={() => setRevision((v) => v + 1)}
         >
           Refresh request
-        </button>
+        </CommandButton>
         {(['REJECT', 'APPROVE_ONCE'] as const).map((action) => (
-          <button
+          <CommandButton
             key={action}
+            data-morph-id={`runtime-review-${action}`}
             className={action === 'REJECT' ? 'reject-button' : 'approve-button'}
             disabled={!eligible || loading || !!attempt || !!submission || sending}
             onClick={() => {
@@ -305,7 +307,7 @@ export function RuntimeReviewPanel() {
             }}
           >
             {action === 'REJECT' ? 'Verify to reject' : 'Verify to approve once'}
-          </button>
+          </CommandButton>
         ))}
       </div>
       <p className="panel-footnote">
@@ -321,6 +323,8 @@ export function RuntimeReviewPanel() {
           }
           onClose={cancel}
           closeDisabled={sending}
+          morphId={`runtime-review-${attempt.action}`}
+          className="runtime-verification-dialog"
         >
           <Badge tone="information">FRESH REQUEST VERIFICATION</Badge>
           <h3>
@@ -332,7 +336,7 @@ export function RuntimeReviewPanel() {
           {submission?.state === 'ACCEPTED' && acknowledged ? (
             <div role="status">
               <p>The Pi accepted your response. Execution and observed state remain separate.</p>
-              <button onClick={cancel}>Done</button>
+              <CommandButton onClick={cancel}>Done</CommandButton>
             </div>
           ) : (attemptCurrent && !submission) ||
             sending ||
