@@ -14,11 +14,11 @@ This is discovery-verified as of 2026-09-06; do not assume, re-check each ✓ be
 A single `set_demo_fan_pct` action, signed by the cloud agent's
 provisioned key, is:
 
-1. POSTed to the enterprise ingress at `http://192.168.50.50:8790/request`,
+1. POSTed to the current enterprise ingress at `http://192.168.50.150:8790/request`,
 2. verified there and written to Wazuh as an **enterprise receipt** (`verified:true`),
 3. forwarded unchanged through the enterprise host's SSH tunnel to the Pi thermal
    `/request`, which returns the model-backed decision and application state,
-4. visible with the **same request_id** in the enterprise SIEM console (`.50:8787`)
+4. visible with the **same request_id** in the enterprise SIEM console (`.150:8786`)
    and in the technician console, with the Pi USB ledger holding the event chain.
 
 Never resubmit the same request_id; a repeat returns the stored outcome.
@@ -28,17 +28,21 @@ Never resubmit the same request_id; a repeat returns the stored outcome.
 | Host | Address | Role | State |
 | --- | --- | --- | --- |
 | This Mac | `192.168.50.10` | runs the cloud agent (`adk web` / CLI) | on LAN ✓ |
-| Enterprise/SIEM Mac (Jared) | `192.168.50.50` | ingress `:8790`, SIEM console `:8787`, Wazuh | ingress `/health`=200 ✓ |
+| Enterprise/SIEM Mac (Jared) | `192.168.50.150` | ingress `:8790`, SIEM console `:8786`, Wazuh | ingress `/health`=200 ✓ |
 | Pi | `192.168.50.20` | `alice-thermal-demo.service` `:8080` (loopback), decides | active ✓ |
+
+`.150` is the address currently assigned to the enterprise Mac on ALICE-NETWORK;
+the earlier `.50` reservation is not assigned. Re-run the health check and update
+the client environment if the router later assigns a different address.
 
 The Pi runtime binds loopback. The ingress therefore forwards to the enterprise
 host's `127.0.0.1:18080` SSH tunnel, never a broadly exposed Pi listener.
 
 ## Preconditions to confirm (do not skip)
 
-- [ ] Ingress healthy: `curl -s http://192.168.50.50:8790/health` → 200.
+- [ ] Ingress healthy: `curl -s http://192.168.50.150:8790/health` → 200.
 - [ ] Pi thermal runtime up: `ssh pi@192.168.50.20 'systemctl is-active alice-thermal-demo.service'` → `active`.
-- [ ] SIEM console reachable: `curl -s -o /dev/null -w '%{http_code}\n' http://192.168.50.50:8787/` (expect a page/redirect, not a refusal). Wazuh is seeded with the DN-Hacks scenario (Jared `87fe559`).
+- [ ] SIEM console reachable: `curl -s -o /dev/null -w '%{http_code}\n' http://192.168.50.150:8786/` (expect 200). Wazuh is seeded with the DN-Hacks scenario (Jared `87fe559`).
 - [ ] Pi SSH host key matches `SHA256:uFZ6XoYVJ6PevSXSi2kyGQeM9XV/P6pks125tDddPEY`.
 
 ## Blockers this plan resolves
@@ -67,7 +71,7 @@ The `submit_governed_fan_request` tool attaches only when
 Edit `cloud/adk_light_agent/.env` (gitignored) to add:
 
 ```dotenv
-ALICE_THERMAL_REQUEST_URL=http://192.168.50.50:8790
+ALICE_THERMAL_REQUEST_URL=http://192.168.50.150:8790
 ALICE_AGENT_ID=cooling-agent-01
 ALICE_AGENT_KEY_FILE=<absolute path to the private Ed25519 seed hex>
 ```
@@ -94,7 +98,7 @@ adk web --host 127.0.0.1 --port 8000
 
   ```bash
   .venv/bin/python -m cloud.thermal_governed_client \
-    --url http://192.168.50.50:8790 --fan-pct 70 \
+    --url http://192.168.50.150:8790 --fan-pct 70 \
     --run-id <current-run-id> --expected-revision <current-revision>
   # expect an enterprise receipt plus the Pi decision/application
   ```
@@ -110,7 +114,7 @@ the non-dry-run submit.
 ## Verify correlation
 
 - [ ] Capture the `request_id` from the submit output.
-- [ ] Enterprise SIEM (`http://192.168.50.50:8787`): the enterprise receipt for
+- [ ] Enterprise SIEM (`http://192.168.50.150:8786`): the enterprise receipt for
       that request_id appears (verified), correlated with the Pi decision.
 - [ ] Technician surface shows the same request_id + decision.
 - [ ] Pi ledger holds the chain (read-only check on the Pi):
