@@ -1,0 +1,11 @@
+# Light-Control MCP server deps. See docs/agent-build/03-light-mcp.md.
+#
+# Pin the MCP SDK to v1: `pip install mcp` now resolves to 2.x, where FastMCP
+# was renamed to MCPServer and server.py's `mcp.server.fastmcp.FastMCP` import
+# no longer exists. v1 1.29.x serves Streamable HTTP at /mcp by default
+# (settings.streamable_http_path) and runs on Python 3.14. Verified: mcp==1.29.1.
+mcp<2
+pyyaml>=6
+
+# SerialDriver only (real PCB, later). Not needed for LIGHT_DRIVER=mock.
+# pyserial>=3.5

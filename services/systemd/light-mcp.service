@@ -1,0 +1,23 @@
+[Unit]
+Description=ALICE Light-Control MCP server (Streamable HTTP, mock driver)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+# Adjust User/Group/WorkingDirectory for the target host.
+WorkingDirectory=/home/pi/Alice
+Environment=PYTHONUNBUFFERED=1
+Environment=LIGHT_MCP_HOST=127.0.0.1
+Environment=LIGHT_MCP_PORT=8790
+Environment=LIGHT_DRIVER=mock
+ExecStart=/home/pi/Alice/.venv/bin/python -m services.light_mcp.server
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=15
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

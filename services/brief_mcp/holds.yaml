@@ -1,0 +1,103 @@
+# Fixture held decisions for the Decision-Brief MCP (BRIEF_SOURCE=mock).
+#
+# These stand in for authoritative, immutable `alice.decision` records that the
+# Pi emits for actions it puts on HOLD (awaiting a human technician). They are
+# ILLUSTRATIVE but faithful to the repo's real contracts:
+#   * action/target/parameters follow common/schemas/action_request.json
+#     (action=set_light_state, target=ESP-LIGHT-01..08, state=on|off)
+#   * anomaly.band is one of LOW | ELEVATED | HIGH (dcamr/anomaly_engine/scoring.py)
+#     with score in [0,1]
+#   * permission.outcome is categorical (PERMITTED | REVIEW_REQUIRED | UNRESOLVED ...)
+#     per dcamr/decision_model.py — never a probability
+#
+# The brief agent READS these and writes a technician-facing brief. It must not
+# recompute the decision or invent a verdict. Rename/extend freely — the mock
+# source is config-driven so fixtures can be remapped without touching code.
+holds:
+  - request_id: req-2026-0906-0001
+    agent_id: elec-agent-01
+    action: set_light_state
+    target: ESP-LIGHT-03            # Red 1 — Cooling plant supply
+    parameters: {state: "off"}
+    outcome: HOLD
+    reason_code: APPROVAL_REQUIRED
+    status: HELD
+    created_at: "2026-09-06T13:42:07Z"
+    biometric_required: true
+    context_challenge: {required: false}
+    permission:
+      outcome: REVIEW_REQUIRED
+      rule_ids: [grant-elec-lights-offpeak]
+      reason_codes: [APPROVAL_REQUIRED]
+      package_generation: 44
+      package_sha256: "3b1f9c6a4e2d8b70c1a5f4e9d2c7b6a0f3e8d1c4b7a0e3d6c9b2f5a8e1d4c7b0a"
+    anomaly:
+      status: OK
+      band: ELEVATED
+      score: 0.61
+      model: isolation-forest
+      factors:
+        - "off-hours request (13:42, outside this agent's usual 08:00-11:00 window)"
+        - "de-energizing a cooling-plant feed is rare for this agent"
+    evidence:
+      - {source: "enterprise-permissions-cache", detail: "generation 44", observed_at: "2026-09-06T13:12:00Z", freshness: "30m old"}
+      - {source: "esp-readback", detail: "ESP-LIGHT-03 currently on", observed_at: "2026-09-06T13:42:00Z", freshness: "live"}
+    note: "Agent requested to cut the cooling-plant feed off-peak; grant permits it but requires human approval."
+
+  - request_id: req-2026-0906-0002
+    agent_id: diagnostic-agent-04
+    action: set_light_state
+    target: ESP-LIGHT-06            # Blue 2 — Server rack B supply
+    parameters: {state: "off"}
+    outcome: HOLD
+    reason_code: ANOMALY_CONTEXT_REQUIRED
+    status: AWAITING_AGENT_RESPONSE
+    created_at: "2026-09-06T14:05:33Z"
+    biometric_required: true
+    context_challenge: {required: true, question: "Why de-energize rack B supply now?"}
+    permission:
+      outcome: PERMITTED
+      rule_ids: [grant-diag-lights-rw]
+      reason_codes: [EXACT_GRANT_MATCH]
+      package_generation: 44
+      package_sha256: "3b1f9c6a4e2d8b70c1a5f4e9d2c7b6a0f3e8d1c4b7a0e3d6c9b2f5a8e1d4c7b0a"
+    anomaly:
+      status: OK
+      band: HIGH
+      score: 0.88
+      model: isolation-forest
+      factors:
+        - "target not in this agent's normal interaction set (usually ESP-LIGHT-02)"
+        - "action-frequency spike: 4 light changes in 90s"
+    evidence:
+      - {source: "enterprise-permissions-cache", detail: "generation 44", observed_at: "2026-09-06T13:12:00Z", freshness: "53m old"}
+      - {source: "esp-readback", detail: "ESP-LIGHT-06 currently on", observed_at: "2026-09-06T14:05:30Z", freshness: "live"}
+    note: "Permission is clean, but behavior is anomalous; automatic context challenge issued, awaiting agent justification."
+
+  - request_id: req-2026-0906-0003
+    agent_id: elec-agent-01
+    action: set_light_state
+    target: ESP-LIGHT-05            # Yellow 2 — Backup generator feed
+    parameters: {state: "on"}
+    outcome: HOLD
+    reason_code: EVIDENCE_STALE
+    status: REASSESSMENT_PENDING
+    created_at: "2026-09-06T14:20:10Z"
+    biometric_required: true
+    context_challenge: {required: false}
+    permission:
+      outcome: PERMITTED
+      rule_ids: [grant-elec-lights-offpeak]
+      reason_codes: [EXACT_GRANT_MATCH]
+      package_generation: 44
+      package_sha256: "3b1f9c6a4e2d8b70c1a5f4e9d2c7b6a0f3e8d1c4b7a0e3d6c9b2f5a8e1d4c7b0a"
+    anomaly:
+      status: OK
+      band: LOW
+      score: 0.12
+      model: isolation-forest
+      factors:
+        - "in-window, on this agent's usual target set"
+    evidence:
+      - {source: "esp-readback", detail: "ESP-LIGHT-05 last observed off", observed_at: "2026-09-06T12:05:00Z", freshness: "2h15m old — STALE"}
+    note: "Behavior is normal but the generator-feed telemetry is stale; held until fresh evidence confirms current state."

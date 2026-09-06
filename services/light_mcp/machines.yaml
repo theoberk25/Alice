@@ -1,0 +1,19 @@
+# Eight-light XIAO ESP32-S3 mapping. Source of truth: Jared's ESP handoff
+# (docs/integration/esp-handoff.md) — verified pin/GPIO/color, channel order.
+#
+#   id      : how agents/tools address the light (rename freely to asset names later)
+#   target  : the STABLE signed target ESP-LIGHT-01..08 — keep pinned to preserve
+#             the channel/pin/color identity even if you rename `id`
+#   label   : verified LED color (identifies the LED, NOT alarm severity)
+#   role    : suggested simulated grid role — a PROPOSAL only, not wiring/permissions
+#
+# States: on = simulated circuit energized, off = disconnected. All boot LOW.
+machines:
+  - {id: ESP-LIGHT-01, target: ESP-LIGHT-01, label: "Yellow 1", role: "Primary utility feed",          allowed_states: [on, off], default: off}
+  - {id: ESP-LIGHT-02, target: ESP-LIGHT-02, label: "Blue 1",   role: "Server rack A supply",           allowed_states: [on, off], default: off}
+  - {id: ESP-LIGHT-03, target: ESP-LIGHT-03, label: "Red 1",    role: "Cooling plant supply",           allowed_states: [on, off], default: off}
+  - {id: ESP-LIGHT-04, target: ESP-LIGHT-04, label: "White 1",  role: "Communications rack supply",     allowed_states: [on, off], default: off}
+  - {id: ESP-LIGHT-05, target: ESP-LIGHT-05, label: "Yellow 2", role: "Backup generator feed",          allowed_states: [on, off], default: off}
+  - {id: ESP-LIGHT-06, target: ESP-LIGHT-06, label: "Blue 2",   role: "Server rack B supply",           allowed_states: [on, off], default: off}
+  - {id: ESP-LIGHT-07, target: ESP-LIGHT-07, label: "Red 2",    role: "Auxiliary maintenance load",     allowed_states: [on, off], default: off}
+  - {id: ESP-LIGHT-08, target: ESP-LIGHT-08, label: "White 2",  role: "Security monitoring rack supply", allowed_states: [on, off], default: off}

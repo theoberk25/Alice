@@ -1,0 +1,3 @@
+# Light-Control MCP server (services/light_mcp/). Root-discoverable entry point;
+# the canonical pinned list lives with the service. See docs/agent-build/03-light-mcp.md.
+-r services/light_mcp/requirements.txt

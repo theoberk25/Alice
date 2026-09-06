@@ -25,9 +25,8 @@ physical first-light runtime through a validated read-only bridge. See the
 
 | Component | Role in the intended system | Team coordination |
 | --- | --- | --- |
-| Enterprise permissions service | Publish signed, versioned permissions and compatible release inputs. Enterprise systems retain direct ONLINE execution control. | Endpoint, issuer and cache contracts need agreement. |
-| Enterprise SIEM/EDR | Supply activity and evidence; receive audit/findings. An evidence feed is not permission authority even when hosted alongside the permissions endpoint. | Backend integration must preserve this separation. |
-| Agent host | Submit actions and bounded supporting context through Generic, MCP or A2A adapters into one normalized request. | Generic/MCP/A2A breadth remains planned; the current terminal test is narrower. |
+| Enterprise plane (permissions + SIEM/EDR) | One online plane that publishes signed, versioned permissions and release inputs, supplies activity/evidence, and receives audit/findings. Enterprise systems retain direct ONLINE execution control. The SIEM (Wazuh) is co-hosted here, but an evidence feed is not a permission authority. | Endpoint, issuer, cache and audit contracts need agreement; backend integration must preserve the feed-is-not-authority separation. |
+| Agent host | Submit actions and bounded supporting context (Generic/MCP/A2A) as one normalized request. ONLINE, agent-driven action-events are recorded via the enterprise plane; OFFLINE, requests are submitted to the Pi, which records and validates them. | Generic/MCP/A2A breadth remains planned; the current terminal test is narrower. |
 | ALICE Pi | Verify accepted inputs, attribute requests, apply permissions/readiness checks, assess behavior, coordinate review/execution and record evidence. | Theo and Jared: Pi configuration underway. |
 | Protected hardware/controller | Receive a currently authorized command and report receipt, completion and available observed state separately. | Xavi: hardware work underway; interface/measurements need coordination. |
 | Technician workstation | Present Pi classifications/evidence, authenticate the reviewer biometrically and resolve held actions to accept or deny; submit the bound result. | Alex: adapt active workstation scripts and dashboard after the data contract is available. |
@@ -45,44 +44,52 @@ complete or accept, not a claim that the full system is connected today.
 “Backend integration” is a responsibility across these boundaries; its deployment
 host, transport and service split have not been selected by this document.
 
+The enterprise permissions service and the SIEM/EDR (Wazuh) are drawn as one
+**enterprise plane**. Agent routing is mode-aware: ONLINE, ALICE only records
+agent-driven action-events while enterprise systems act directly; OFFLINE/DDIL,
+ALICE records and validates, triaging risky actions before enforcement. The plane
+being co-hosted or reachable over the LAN never makes its feed an execution authority.
+
 ```mermaid
 flowchart LR
-    Permission["Enterprise permissions service"]
-    Enterprise["Enterprise control and SIEM/EDR"]
+    Enterprise["Enterprise plane: permissions service + SIEM / EDR (Wazuh)"]
     Agent["Agent: Generic / MCP / A2A"]
     Pi["Pi runtime: normalize, permissions, ML classification and enforcement"]
-    Storage["Accepted releases and durable evidence"]
+    Storage["Accepted release + durable ledger / evidence (USB)"]
     Backend["Backend integration: validated feed and bound responses"]
     Dashboard["Local Mac: live dashboard, biometric verification, accept / deny"]
     Device["Protected hardware / controller"]
     Lab["Mac model training and export"]
-    Permission -. "ONLINE signed-release pull" .-> Pi
+    Agent -. "ONLINE action-events (recorded, log-only)" .-> Enterprise
+    Agent -. "OFFLINE request and context" .-> Pi
+    Enterprise -. "ONLINE signed-release pull" .-> Storage
     Enterprise -. "ONLINE activity / evidence" .-> Pi
     Enterprise -. "ONLINE direct control" .-> Device
-    Agent -. "OFFLINE request and context" .-> Pi
     Lab -. "approved model / profile / calibration" .-> Pi
-    Storage -. "accepted snapshots" .-> Pi
+    Storage -. "accepted release / snapshot" .-> Pi
     Pi -. "durable event append" .-> Storage
+    Pi -- "auto audit upload + reconciliation" --> Enterprise
     Pi -. "requests, assessments, status and results" .-> Backend
     Backend -. "validated live events / replay" .-> Dashboard
     Dashboard -. "biometrically verified held-action response / context request" .-> Backend
     Backend -. "authenticated response for Pi revalidation" .-> Pi
     Pi -. "OFFLINE authorized exact command" .-> Device
     Device -. "receipt / completion / observation" .-> Pi
-    Pi -. "audit upload and reconciliation" .-> Enterprise
 ```
 
-A shared LAN is connectivity, not execution authority. The protected endpoint must
-accept one current controller. Neither a network outage, face match, dashboard
-button nor an LLM response can establish that ownership.
+The single solid edge is the one enterprise link implemented today: the Pi's
+automatic audit upload to the SIEM (Wazuh `alice-ledger-v1`). Every dashed edge is
+still to complete or accept. A shared LAN is connectivity, not execution authority.
+The protected endpoint must accept one current controller. Neither a network outage,
+face match, dashboard button nor an LLM response can establish that ownership.
 
 ## Operating modes
 
 | Mode/workflow | Pi behavior | Execution owner |
 | --- | --- | --- |
-| ONLINE | Pull and verify signed permissions into the cache; ingest authenticated activity/evidence; append and upload audit. No local action evaluation/authorization in Theo's log-only path. | Enterprise systems control actions directly. |
+| ONLINE | Record agent-driven action-events (log-only) via the enterprise plane; pull and verify signed permissions into the cache; ingest authenticated activity/evidence; append and upload audit. No local action evaluation or authorization. | Enterprise systems control actions directly. |
 | Enter OFFLINE / DDIL | Verify local readiness and complete an explicit transfer/fence. Ambiguous ownership or missing prerequisites blocks consequential work. | ALICE only after a confirmed transfer; a simulated lease is demo evidence only. |
-| OFFLINE / DDIL | Run the local pipeline from accepted cached permissions/model/context, obtain review as required, record attempts/results and preserve evidence. | The current ALICE authority, enforced at the endpoint. |
+| OFFLINE / DDIL | Record and validate agent actions, triaging risky actions to review; run the local pipeline from accepted cached permissions/model/context, obtain review as required, record attempts/results and preserve evidence. | The current ALICE authority, enforced at the endpoint. |
 | Reconnect | Reauthenticate services, resume delivery, append reconciliation, verify/activate updates and perform fenced handback. Backlog, freshness and ownership remain separate status facts. | Transfer back to enterprise control through the agreed protocol. |
 
 Reconnection is a workflow between two product modes, not a third mode. The Pi's
