@@ -1,0 +1,895 @@
+<title>ALICE / DCAMR</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,700;0,850;1,300;1,700;1,850&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+
+  /* Deliberately single-theme: the subject is a blackout. Everything painted explicitly. */
+  :root {
+    --bg: #0B0B0A;
+    --bg-2: #101010;
+    --ink: #EDEAE4;
+    --ink-60: #97948E;
+    --ink-35: #55534F;
+    --ink-15: #262524;
+    --hair: #232220;
+    --accent: #FF4D00;
+    --accent-dim: #A33A0C;
+    --ok: #B8B5AE;
+    --serif-fallback: Georgia, serif;
+    --ease: cubic-bezier(0.19, 1, 0.22, 1);
+    --ease-io: cubic-bezier(0.83, 0, 0.17, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Archivo", "Helvetica Neue", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .mono { font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; }
+  ::selection { background: var(--accent); color: var(--bg); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+  /* ---------- grain + progress ---------- */
+  .grain {
+    position: fixed; inset: -50%; z-index: 40; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.05;
+    animation: grain-shift 0.9s steps(3) infinite;
+  }
+  @keyframes grain-shift {
+    0% { transform: translate(0,0); }
+    33% { transform: translate(-2%,1%); }
+    66% { transform: translate(1%,-2%); }
+    100% { transform: translate(0,0); }
+  }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 2px; width: 100%;
+    z-index: 50; pointer-events: none;
+    background: transparent;
+  }
+  .progress b {
+    display: block; height: 100%; width: 100%;
+    background: var(--accent);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+  }
+
+  .rail {
+    position: fixed; left: clamp(0.7rem, 2vw, 1.6rem); bottom: clamp(1rem, 3vh, 2rem);
+    z-index: 45;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    color: var(--ink-35);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    user-select: none;
+    pointer-events: none;
+  }
+  .rail em { font-style: normal; color: var(--accent); }
+  @media (max-width: 860px) { .rail { display: none; } }
+
+  /* ---------- shell ---------- */
+  .shell { position: relative; z-index: 1; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: clamp(0.8rem, 1.8vw, 1.6rem);
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 clamp(1.4rem, 5vw, 4.5rem);
+  }
+
+  /* ---------- top bar ---------- */
+  .top {
+    padding-top: clamp(1.4rem, 3.5vw, 2.6rem);
+    align-items: start;
+  }
+  .top .meta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+    line-height: 2;
+  }
+  .top .m1 { grid-column: 1 / 5; }
+  .top .m2 { grid-column: 5 / 9; text-align: center; }
+  .top .m3 { grid-column: 9 / 13; text-align: right; }
+  .top .m2 .pulse-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); margin-right: 0.5em; vertical-align: 1px;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+  @media (max-width: 700px) {
+    .top .m1 { grid-column: 1 / 7; }
+    .top .m3 { grid-column: 7 / 13; }
+    .top .m2 { display: none; }
+  }
+
+  /* ---------- hero ---------- */
+  .hero { padding-top: clamp(4rem, 12vh, 9rem); padding-bottom: clamp(4rem, 12vh, 8rem); }
+  .hero-head { grid-column: 1 / 13; }
+  h1 {
+    font-weight: 850;
+    font-size: clamp(3.4rem, 11.5vw, 10.2rem);
+    line-height: 0.94;
+    letter-spacing: -0.045em;
+    text-transform: none;
+  }
+  h1 .row { display: block; overflow: hidden; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+  h1 .row > span {
+    display: block;
+    transform: translateY(110%) rotate(1.2deg);
+    transform-origin: 0 100%;
+    transition: transform 1.15s var(--ease);
+  }
+  .loaded h1 .row:nth-child(1) > span { transition-delay: 0.10s; }
+  .loaded h1 .row:nth-child(2) > span { transition-delay: 0.22s; }
+  .loaded h1 .row > span, .in h1 .row > span { }
+  .loaded h1 .row > span { transform: translateY(0) rotate(0); }
+  h1 .dark-word {
+    font-style: italic;
+    font-weight: 850;
+    color: var(--accent);
+    letter-spacing: -0.03em;
+    padding-right: 0.06em; /* italic overhang clip guard */
+  }
+  h1 .idx {
+    display: inline-block;
+    vertical-align: super;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 400;
+    font-size: 0.14em;
+    letter-spacing: 0.1em;
+    color: var(--ink-35);
+    transform: translateY(-1.2em);
+  }
+
+  .hero-sub {
+    grid-column: 7 / 13;
+    margin-top: clamp(2rem, 5vh, 3.6rem);
+    font-size: clamp(1rem, 1.45vw, 1.22rem);
+    font-weight: 300;
+    color: var(--ink-60);
+    max-width: 34ch;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 1s var(--ease) 0.55s, transform 1s var(--ease) 0.55s;
+  }
+  .loaded .hero-sub { opacity: 1; transform: none; }
+  .hero-sub strong { color: var(--ink); font-weight: 500; }
+  @media (max-width: 700px) { .hero-sub { grid-column: 1 / 13; } }
+
+  .hero-status {
+    grid-column: 1 / 7;
+    margin-top: clamp(2rem, 5vh, 3.6rem);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: var(--ink-35);
+    align-self: end;
+  }
+  .hero-status .line { display: block; min-height: 1.6em; }
+  .hero-status .ok { color: var(--ok); }
+  .caret {
+    display: inline-block; width: 0.55em; height: 1em;
+    background: var(--accent);
+    vertical-align: -0.15em;
+    animation: caret 1.1s steps(1) infinite;
+  }
+  @keyframes caret { 50% { opacity: 0; } }
+  @media (max-width: 700px) { .hero-status { grid-column: 1 / 13; margin-top: 2.4rem; } }
+
+  /* ---------- acts ---------- */
+  .act {
+    position: relative;
+    padding: clamp(4.5rem, 13vh, 9rem) 0;
+    border-top: 1px solid var(--hair);
+  }
+  .act-num {
+    position: absolute;
+    top: clamp(1.2rem, 3vh, 2.4rem);
+    right: clamp(1rem, 3vw, 3rem);
+    font-weight: 850;
+    font-size: clamp(5rem, 14vw, 12rem);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--ink-15);
+    letter-spacing: -0.03em;
+    user-select: none;
+    pointer-events: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .act h2 {
+    font-weight: 700;
+    font-size: clamp(1.9rem, 4.6vw, 3.9rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+  }
+  .act h2 .row { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+  .act h2 .row > span {
+    display: block;
+    transform: translateY(112%);
+    transition: transform 0.95s var(--ease);
+  }
+  .act.in h2 .row > span { transform: translateY(0); }
+  .act.in h2 .row:nth-child(2) > span { transition-delay: 0.09s; }
+  .act.in h2 .row:nth-child(3) > span { transition-delay: 0.18s; }
+
+  .act .kicker {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.3rem;
+    opacity: 0;
+    transition: opacity 0.9s var(--ease) 0.1s;
+  }
+  .act.in .kicker { opacity: 1; }
+
+  .act .body {
+    font-weight: 300;
+    font-size: clamp(0.98rem, 1.3vw, 1.12rem);
+    color: var(--ink-60);
+    max-width: 44ch;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.9s var(--ease) 0.25s, transform 0.9s var(--ease) 0.25s;
+  }
+  .act.in .body { opacity: 1; transform: none; }
+  .act .body strong { color: var(--ink); font-weight: 500; }
+
+  /* asymmetric placements */
+  .place-a .head { grid-column: 1 / 9; }
+  .place-a .body { grid-column: 1 / 7; margin-top: 2rem; }
+  .place-b .head { grid-column: 3 / 13; }
+  .place-b .body { grid-column: 7 / 13; margin-top: 2rem; }
+  @media (max-width: 860px) {
+    .place-a .head, .place-b .head { grid-column: 1 / 13; }
+    .place-a .body, .place-b .body { grid-column: 1 / 13; }
+  }
+
+  /* ---------- blackout (03) full-bleed moment ---------- */
+  .blackout {
+    border-top: 1px solid var(--hair);
+    background: #070706;
+    padding: clamp(5rem, 16vh, 11rem) 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .blackout .clock-line { grid-column: 1 / 13; }
+  .blackout .clock {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 500;
+    font-size: clamp(5.5rem, 21vw, 19rem);
+    line-height: 0.9;
+    letter-spacing: -0.06em;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    display: inline-block;
+  }
+  .blackout.in .clock { animation: flicker 3.2s linear 0.4s 1; }
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    3% { opacity: 0.35; } 5% { opacity: 1; }
+    9% { opacity: 0.6; } 10% { opacity: 1; }
+    46% { opacity: 1; } 47% { opacity: 0.4; } 49% { opacity: 1; }
+  }
+  .blackout .lost {
+    display: inline-block;
+    margin-left: clamp(0.8rem, 2.5vw, 2rem);
+    vertical-align: super;
+    font-family: "JetBrains Mono", monospace;
+    font-size: clamp(0.62rem, 1.1vw, 0.8rem);
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 0.5em 0.9em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.4s steps(2) 1.15s;
+  }
+  .blackout.in .lost { opacity: 1; }
+  .blackout .after {
+    grid-column: 7 / 13;
+    margin-top: clamp(2.4rem, 6vh, 4rem);
+    font-weight: 300;
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
+    color: var(--ink-60);
+    max-width: 36ch;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.9s var(--ease) 1.35s, transform 0.9s var(--ease) 1.35s;
+  }
+  .blackout.in .after { opacity: 1; transform: none; }
+  .blackout .after strong { color: var(--ink); font-weight: 500; }
+  @media (max-width: 860px) { .blackout .after { grid-column: 1 / 13; } }
+
+  /* ---------- sequence ledger rows ---------- */
+  .seq {
+    grid-column: 1 / 13;
+    margin-top: clamp(2.5rem, 6vh, 4rem);
+    border-top: 1px solid var(--hair);
+  }
+  .srow {
+    display: grid;
+    grid-template-columns: 3.4rem minmax(9rem, 16rem) 1fr auto;
+    align-items: baseline;
+    gap: clamp(0.8rem, 2.5vw, 2.4rem);
+    padding: clamp(0.9rem, 2vh, 1.3rem) 0;
+    border-bottom: 1px solid var(--hair);
+    font-variant-numeric: tabular-nums;
+    opacity: 0;
+    transform: translateX(-14px);
+    transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+  }
+  .act.in .srow:nth-child(1) { transition-delay: 0.30s; }
+  .act.in .srow:nth-child(2) { transition-delay: 0.42s; }
+  .act.in .srow:nth-child(3) { transition-delay: 0.54s; }
+  .act.in .srow:nth-child(4) { transition-delay: 0.66s; }
+  .act.in .srow { opacity: 1; transform: none; }
+
+  .srow .n {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    color: var(--ink-35);
+  }
+  .srow .who {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-60);
+  }
+  .srow .what {
+    font-weight: 400;
+    font-size: clamp(1.05rem, 2.1vw, 1.6rem);
+    letter-spacing: -0.01em;
+  }
+  .srow .what b { font-weight: 700; }
+  .srow .verdict {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+    justify-self: end;
+  }
+  .srow.hold-row { position: relative; }
+  .srow.hold-row::before {
+    content: "";
+    position: absolute; left: -1.2rem; top: 12%; bottom: 12%;
+    width: 2px; background: var(--accent);
+    transform: scaleY(0); transform-origin: top;
+    transition: transform 0.8s var(--ease-io) 0.8s;
+  }
+  .act.in .srow.hold-row::before { transform: scaleY(1); }
+  .srow.hold-row .what b { color: var(--accent); }
+  .srow.hold-row .verdict { color: var(--accent); }
+  @media (max-width: 700px) {
+    .srow { grid-template-columns: 2.2rem 1fr auto; }
+    .srow .who { display: none; }
+  }
+
+  .seq-note {
+    grid-column: 1 / 8;
+    margin-top: 1.6rem;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-35);
+    opacity: 0;
+    transition: opacity 0.9s var(--ease) 0.8s;
+  }
+  .act.in .seq-note { opacity: 1; }
+  @media (max-width: 860px) { .seq-note { grid-column: 1 / 13; } }
+
+  /* ---------- verdict flow (06) ---------- */
+  .flow {
+    grid-column: 1 / 13;
+    margin-top: clamp(2.6rem, 6vh, 4.2rem);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 1.2rem;
+  }
+  .flow .fnode {
+    font-family: "JetBrains Mono", monospace;
+    font-size: clamp(0.72rem, 1.2vw, 0.86rem);
+    letter-spacing: 0.06em;
+    padding: 0.7em 1.1em;
+    border: 1px solid var(--ink-15);
+    color: var(--ink-60);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s var(--ease), transform 0.6s var(--ease), border-color 0.6s;
+  }
+  .flow .fjoin {
+    flex: 0 0 clamp(1.2rem, 4vw, 3.4rem);
+    height: 1px;
+    background: var(--ink-15);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.5s var(--ease-io);
+  }
+  .flow .fnode.hold {
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.24em;
+  }
+  .act.in .flow .fnode { opacity: 1; transform: none; }
+  .act.in .flow .fjoin { transform: scaleX(1); }
+  .act.in .flow > *:nth-child(1) { transition-delay: 0.30s; }
+  .act.in .flow > *:nth-child(2) { transition-delay: 0.44s; }
+  .act.in .flow > *:nth-child(3) { transition-delay: 0.52s; }
+  .act.in .flow > *:nth-child(4) { transition-delay: 0.66s; }
+  .act.in .flow > *:nth-child(5) { transition-delay: 0.74s; }
+  .act.in .flow > *:nth-child(6) { transition-delay: 0.88s; }
+  .act.in .flow > *:nth-child(7) { transition-delay: 0.96s; }
+
+  .offline-tag {
+    grid-column: 1 / 13;
+    margin-top: 1.8rem;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-35);
+    opacity: 0;
+    transition: opacity 0.8s var(--ease) 1.1s;
+  }
+  .act.in .offline-tag { opacity: 1; }
+  .offline-tag i { font-style: normal; color: var(--accent); }
+
+  /* ---------- quote (07) ---------- */
+  .quote {
+    grid-column: 2 / 12;
+    margin-top: clamp(2.6rem, 7vh, 4.6rem);
+  }
+  .quote blockquote {
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.8rem, 4.6vw, 4rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    text-indent: -0.42em;
+    max-width: 22ch;
+  }
+  .quote blockquote em { font-weight: 700; font-style: italic; color: var(--accent); }
+  .quote .attr {
+    margin-top: 1.6rem;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-35);
+  }
+  @media (max-width: 860px) { .quote { grid-column: 1 / 13; } }
+
+  /* ---------- ledger split (08) ---------- */
+  .ledger {
+    grid-column: 1 / 13;
+    margin-top: clamp(2.6rem, 6vh, 4.4rem);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1.6rem, 4vw, 4rem);
+  }
+  @media (max-width: 760px) { .ledger { grid-template-columns: 1fr; } }
+  .lcol .ltag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--hair);
+  }
+  .lcol.appended .ltag { color: var(--accent); border-color: var(--accent-dim); }
+  .lrow {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--hair);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.78rem;
+    color: var(--ink-60);
+    font-variant-numeric: tabular-nums;
+    opacity: 0;
+    transition: opacity 0.5s var(--ease);
+  }
+  .lcol.appended .lrow { color: var(--ink); }
+  .lcol.appended .lrow .t { color: var(--accent); }
+  .act.in .lrow { opacity: 1; }
+  .act.in .lcol:nth-child(1) .lrow:nth-child(2) { transition-delay: 0.3s; }
+  .act.in .lcol:nth-child(1) .lrow:nth-child(3) { transition-delay: 0.45s; }
+  .act.in .lcol:nth-child(1) .lrow:nth-child(4) { transition-delay: 0.6s; }
+  .act.in .lcol:nth-child(1) .lrow:nth-child(5) { transition-delay: 0.75s; }
+  .act.in .lcol:nth-child(2) .lrow:nth-child(2) { transition-delay: 1.05s; }
+  .act.in .lcol:nth-child(2) .lrow:nth-child(3) { transition-delay: 1.2s; }
+  .act.in .lcol:nth-child(2) .lrow:nth-child(4) { transition-delay: 1.35s; }
+
+  /* ---------- close ---------- */
+  .close { border-top: 1px solid var(--hair); padding: clamp(5rem, 15vh, 10rem) 0 0; }
+  .close .head { grid-column: 1 / 11; }
+  .close .body { grid-column: 1 / 7; margin-top: 2rem; }
+  .close .cta {
+    grid-column: 1 / 13;
+    margin-top: clamp(2.6rem, 7vh, 4.5rem);
+    display: flex; flex-wrap: wrap; gap: 1rem 2.8rem; align-items: baseline;
+  }
+  .cta a, .cta span {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    padding-bottom: 0.35em;
+    border-bottom: 1px solid var(--ink-35);
+    transition: border-color 0.3s;
+  }
+  .cta .primary { color: var(--accent); border-color: var(--accent); }
+  @media (max-width: 860px) { .close .head, .close .body { grid-column: 1 / 13; } }
+
+  /* marquee */
+  .marquee {
+    margin-top: clamp(4rem, 10vh, 7rem);
+    border-top: 1px solid var(--hair);
+    overflow: hidden;
+    padding: 1.1rem 0;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .marquee .track {
+    display: inline-block;
+    animation: marquee 36s linear infinite;
+  }
+  .marquee span {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--ink-35);
+    margin-right: 4.5rem;
+  }
+  .marquee span i { font-style: normal; color: var(--accent); }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  footer.grid {
+    padding-top: 1.4rem; padding-bottom: 2.2rem;
+    border-top: 1px solid var(--hair);
+    max-width: none;
+  }
+  footer .f1 { grid-column: 1 / 7; }
+  footer .f2 { grid-column: 7 / 13; text-align: right; }
+  footer div {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-35);
+  }
+  @media (max-width: 700px) {
+    footer .f1, footer .f2 { grid-column: 1 / 13; text-align: left; }
+  }
+
+  /* ---------- reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .grain { animation: none; }
+    h1 .row > span, .act h2 .row > span { transform: none !important; transition: none !important; }
+    .hero-sub, .act .kicker, .act .body, .srow, .seq-note,
+    .flow .fnode, .offline-tag, .lrow, .blackout .lost, .blackout .after {
+      opacity: 1 !important; transform: none !important; transition: none !important;
+    }
+    .flow .fjoin { transform: none !important; }
+    .srow.hold-row::before { transform: none !important; }
+    .blackout .clock { animation: none !important; }
+    .marquee .track { animation: none; }
+    .caret { animation: none; }
+  }
+</style>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="progress" aria-hidden="true"><b id="pbar"></b></div>
+<div class="rail" id="rail" aria-hidden="true">ALICE / DCAMR&nbsp;&nbsp;&nbsp;<em id="rail-act">ACT 00</em> / 07</div>
+
+<div class="shell" id="shell">
+
+  <header class="grid top">
+    <div class="meta m1">DN Hacks '26<br>Defense Track / Second Front</div>
+    <div class="meta m2"><span class="pulse-dot"></span>local decisioning: active</div>
+    <div class="meta m3">Station DC<br>38.9072&deg; N, 77.0369&deg; W</div>
+  </header>
+
+  <section class="grid hero">
+    <div class="hero-head">
+      <h1 id="h1">
+        <span class="row"><span>When the cloud</span></span>
+        <span class="row"><span>goes <span class="dark-word">dark.</span><span class="idx">DDIL</span></span></span>
+      </h1>
+    </div>
+    <div class="hero-status" aria-hidden="true">
+      <span class="line" id="type-line"></span>
+      <span class="line" id="type-line2"></span>
+    </div>
+    <p class="hero-sub">Every rule an autonomous agent follows today lives in the cloud. <strong>DCAMR is what's left standing</strong> when that connection isn't there.</p>
+  </section>
+
+  <section class="act place-a" data-act="01">
+    <div class="act-num" aria-hidden="true">01</div>
+    <div class="grid">
+      <div class="head">
+        <div class="kicker">The shift</div>
+        <h2>
+          <span class="row"><span>Agents are already</span></span>
+          <span class="row"><span>inside the base.</span></span>
+        </h2>
+      </div>
+      <p class="body">Autonomous agents already triage alerts, respond to incidents, and act on <strong>physical systems</strong>, on the same local networks that run critical infrastructure.</p>
+    </div>
+  </section>
+
+  <section class="act place-b" data-act="02">
+    <div class="act-num" aria-hidden="true">02</div>
+    <div class="grid">
+      <div class="head">
+        <div class="kicker">The assumption</div>
+        <h2>
+          <span class="row"><span>Every rule they follow</span></span>
+          <span class="row"><span>lives in the cloud.</span></span>
+        </h2>
+      </div>
+      <p class="body">Policy servers. SIEM. EDR. Oversight dashboards. The entire governance layer assumes one thing: <strong>a live connection back.</strong></p>
+    </div>
+  </section>
+
+  <section class="blackout" data-act="03" id="blackout">
+    <div class="grid">
+      <div class="clock-line">
+        <span class="clock">03:14</span><span class="lost">link lost</span>
+      </div>
+      <p class="after">The base loses connectivity. No SIEM. No policy server. No oversight reaches the local network. <strong>The agents on it do not stop.</strong></p>
+    </div>
+  </section>
+
+  <section class="act place-a" data-act="04">
+    <div class="act-num" aria-hidden="true">04</div>
+    <div class="grid">
+      <div class="head">
+        <div class="kicker">The pattern</div>
+        <h2>
+          <span class="row"><span>The system does exactly</span></span>
+          <span class="row"><span>what it learned.</span></span>
+        </h2>
+      </div>
+      <p class="body">Temperature climbs in a facility bay. The cooling agent responds the way it was trained to: <strong>small, measured steps.</strong></p>
+      <div class="seq">
+        <div class="srow">
+          <span class="n">01</span>
+          <span class="who">cooling-agent-01</span>
+          <span class="what">fan_speed <b>+10%</b></span>
+          <span class="verdict">allow</span>
+        </div>
+        <div class="srow">
+          <span class="n">02</span>
+          <span class="who">cooling-agent-01</span>
+          <span class="what">fan_speed <b>+10%</b></span>
+          <span class="verdict">allow</span>
+        </div>
+        <div class="srow">
+          <span class="n">03</span>
+          <span class="who">cooling-agent-01</span>
+          <span class="what">fan_speed <b>+10%</b></span>
+          <span class="verdict">allow</span>
+        </div>
+      </div>
+      <div class="seq-note">three requests / three approvals / this is what normal looks like here</div>
+    </div>
+  </section>
+
+  <section class="act place-b" data-act="05">
+    <div class="act-num" aria-hidden="true">05</div>
+    <div class="grid">
+      <div class="head">
+        <div class="kicker">The anomaly</div>
+        <h2>
+          <span class="row"><span>Then one request</span></span>
+          <span class="row"><span>breaks the pattern.</span></span>
+        </h2>
+      </div>
+      <p class="body">Rising fan speed pushes power draw over a threshold. A different agent, <strong>also authorized</strong> to control the fan, asks for a full shutdown, while the room is still overheating.</p>
+      <div class="seq">
+        <div class="srow hold-row">
+          <span class="n">04</span>
+          <span class="who">power-agent-01</span>
+          <span class="what">fan_speed <b>0%</b></span>
+          <span class="verdict">hold</span>
+        </div>
+      </div>
+      <div class="seq-note">no rule was broken / the danger is in what normal was, not in what is technically allowed</div>
+    </div>
+  </section>
+
+  <section class="act place-a" data-act="06">
+    <div class="act-num" aria-hidden="true">06</div>
+    <div class="grid">
+      <div class="head">
+        <div class="kicker">The arbiter</div>
+        <h2>
+          <span class="row"><span>DCAMR watches the pattern,</span></span>
+          <span class="row"><span>not just the rule.</span></span>
+        </h2>
+      </div>
+      <p class="body">A local behavioral baseline runs on the same disconnected network, scoring each request against <strong>what has actually been happening</strong>. Zero cloud dependency.</p>
+      <div class="flow" aria-label="decision flow">
+        <span class="fnode">history: 3 &times; +10%</span>
+        <span class="fjoin"></span>
+        <span class="fnode">power-agent-01: 0%</span>
+        <span class="fjoin"></span>
+        <span class="fnode hold">HOLD</span>
+        <span class="fjoin"></span>
+        <span class="fnode">technician</span>
+      </div>
+      <div class="offline-tag">everything above happens with the network <i>still down</i></div>
+    </div>
+  </section>
+
+  <section class="act place-b" data-act="07">
+    <div class="act-num" aria-hidden="true">07</div>
+    <div class="grid">
+      <div class="head">
+        <div class="kicker">The human</div>
+        <h2>
+          <span class="row"><span>A human</span></span>
+          <span class="row"><span>makes the call.</span></span>
+        </h2>
+      </div>
+      <p class="body">Identity-verified through ALICE, the technician sees the flagged request, the temperature trend, and the last three approvals, and decides in seconds.</p>
+      <div class="quote">
+        <blockquote>&ldquo;<em>Reject.</em> It's still too hot to cut the fan.&rdquo;</blockquote>
+        <div class="attr">recorded a41f&hellip;9c02 / ed25519 / hash-chained / offline</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="act place-a" data-act="08">
+    <div class="act-num" aria-hidden="true">08</div>
+    <div class="grid">
+      <div class="head">
+        <div class="kicker">The record</div>
+        <h2>
+          <span class="row"><span>The blackout leaves a record,</span></span>
+          <span class="row"><span>not a blind spot.</span></span>
+        </h2>
+      </div>
+      <p class="body">When connectivity returns, verified cloud evidence <strong>appends</strong> to the log. The original decision is never rewritten.</p>
+      <div class="ledger">
+        <div class="lcol">
+          <div class="ltag">recorded while offline</div>
+          <div class="lrow"><span class="t">03:14:02</span><span>link_lost</span></div>
+          <div class="lrow"><span class="t">03:15:40</span><span>cooling-agent-01 &times;3, allow</span></div>
+          <div class="lrow"><span class="t">03:16:12</span><span>power-agent-01, hold</span></div>
+          <div class="lrow"><span class="t">03:16:19</span><span>technician: reject</span></div>
+        </div>
+        <div class="lcol appended">
+          <div class="ltag">appended on reconnect</div>
+          <div class="lrow"><span class="t">03:22:10</span><span>link_restored</span></div>
+          <div class="lrow"><span class="t">03:22:11</span><span>evidence reconciled</span></div>
+          <div class="lrow"><span class="t">&mdash;&mdash;:&mdash;&mdash;</span><span>original decisions unchanged</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="close act place-a" data-act="09">
+    <div class="grid">
+      <div class="head">
+        <div class="kicker">Why it fits</div>
+        <h2>
+          <span class="row"><span>Built for the environment</span></span>
+          <span class="row"><span>defense actually operates in.</span></span>
+        </h2>
+      </div>
+      <p class="body">Second Front's Game Warden accredits containerized, offline-capable services. DCAMR is architected that way from the start: <strong>local-first, zero cloud dependency</strong> in its core decision loop.</p>
+      <div class="cta">
+        <span class="primary">Live demo at our table</span>
+        <span>allow / request_context / hold / deny</span>
+      </div>
+    </div>
+    <div class="marquee" aria-hidden="true">
+      <div class="track" id="marquee-track">
+        <span>allow</span><span>request_context</span><span><i>hold</i></span><span>deny</span><span>offline-first</span><span>append-only</span><span>ed25519</span><span>human-in-the-loop</span>
+        <span>allow</span><span>request_context</span><span><i>hold</i></span><span>deny</span><span>offline-first</span><span>append-only</span><span>ed25519</span><span>human-in-the-loop</span>
+      </div>
+    </div>
+    <footer class="grid">
+      <div class="f1">ALICE / DCAMR &mdash; DN Hacks 2026</div>
+      <div class="f2">Merek Soriano / Theo / Alex / Jared / Xavier</div>
+    </footer>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // page-load hero choreography
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      document.body.classList.add("loaded");
+    });
+  });
+
+  // typed status lines in hero
+  var l1 = document.getElementById("type-line");
+  var l2 = document.getElementById("type-line2");
+  var t1 = "> uplink: nominal";
+  var t2 = "> governance: cloud-dependent";
+  function typeInto(el, text, done) {
+    if (reduced) { el.textContent = text; if (done) done(); return; }
+    var i = 0;
+    el.innerHTML = '<span class="caret"></span>';
+    var iv = setInterval(function () {
+      i++;
+      el.innerHTML = text.slice(0, i).replace(/</g, "&lt;") + '<span class="caret"></span>';
+      if (i >= text.length) {
+        clearInterval(iv);
+        el.textContent = text;
+        if (done) done();
+      }
+    }, 34);
+  }
+  setTimeout(function () {
+    typeInto(l1, t1, function () {
+      setTimeout(function () {
+        typeInto(l2, t2, function () {
+          l2.className = "line";
+        });
+      }, 350);
+    });
+  }, 900);
+
+  // act reveal + rail
+  var acts = document.querySelectorAll("[data-act]");
+  var railAct = document.getElementById("rail-act");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add("in");
+          var n = e.target.getAttribute("data-act");
+          if (railAct && n) railAct.textContent = "ACT " + n;
+        }
+      });
+    }, { threshold: 0.22 });
+    acts.forEach(function (el) { io.observe(el); });
+  } else {
+    acts.forEach(function (el) { el.classList.add("in"); });
+  }
+
+  // scroll progress
+  var pbar = document.getElementById("pbar");
+  function onScroll() {
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - window.innerHeight;
+    var p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+    pbar.style.transform = "scaleX(" + p + ")";
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+})();
+</script>
