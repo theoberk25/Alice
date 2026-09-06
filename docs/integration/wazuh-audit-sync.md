@@ -213,3 +213,36 @@ Component tests cover valid install, idempotence, rollback, expiry, tampered dat
 wrong trust and offline retention. Live service returned success and cached the
 same hash as Wazuh while `alice-runtime` remained active. No new Markdown files
 were added for this increment, and the user requested local work without a push.
+
+
+## Enterprise presentation (local redesign)
+
+The enterprise page at `http://127.0.0.1:8787/` now opens a security-operations
+workspace: severity metrics, detection histogram, searchable threat-hunting queue,
+endpoint investigation panels and a distinct actual Pi audit stream. It preserves
+the prior architecture, permission, scenario and model views. The operator page
+on port 8789 and the Pi services are unchanged.
+
+Design references: [Wazuh dashboard capabilities](https://documentation.wazuh.com/current/getting-started/components/wazuh-dashboard.html)
+for threat hunting and endpoint security; [Defender incident investigation](https://learn.microsoft.com/en-us/defender-xdr/investigate-incidents)
+for asset pivots and evidence timelines. This is our demo presentation over Wazuh,
+not a replica claiming their full capabilities or an independently implemented EDR.
+Response actions are explicitly unconnected. No isolation/scan/kill command is sent.
+
+`/api/soc` reads `wazuh-alerts-*` and `alice-ledger-v1` independently, returns at
+most 100 records per stream, reports unavailable sources without fake zeros, and
+preserves large integers as decimal strings for browser display. Alert metrics and
+histograms use server-side aggregation over the chosen interval; the loaded search
+sample is bounded to 100. Ledger counts are explicitly all-history. The 13-asset
+inventory is labelled scenario data, not verified agent enrollment. Index presence
+alone does not prove that an alert describes a real attack rather than demo input.
+
+Live query observed 259 indexed alerts, 8 critical-level detections and 97 Pi
+records. Browser checks passed: overview loads; search for authentication failed
+shows 5/100 results; alert detail includes actual MITRE mappings/raw evidence;
+endpoint detail and audit stream navigation work. Five backend tests cover source
+failure, independent streams, range validation and integer precision; JS syntax
+check passed. Changes remain local and no new Markdown file was created.
+
+Final regression after the presentation changes: **310 passed, 226 subtests passed**
+in 21.41 seconds. No push or Pi deployment was performed for this UI increment.

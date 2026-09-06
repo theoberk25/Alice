@@ -467,6 +467,19 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def do_GET(self):
+        if self.path.split('?')[0] == '/api/soc':
+            from urllib.parse import parse_qs, urlsplit
+            from .soc import snapshot
+            window = parse_qs(urlsplit(self.path).query).get('window', ['all'])[0]
+            try:
+                self._send(200, json.dumps(snapshot(_indexer_request, window)), 'application/json')
+            except ValueError:
+                self._send(400, json.dumps({'error':'Unsupported window'}), 'application/json')
+            return
+        if self.path in ('/soc.css', '/soc.js'):
+            mime = 'text/css' if self.path.endswith('.css') else 'text/javascript'
+            self._send(200, (HERE / self.path[1:]).read_bytes(), mime)
+            return
         if self.path.startswith("/api/edge"):
             after = 0
             if "after=" in self.path:

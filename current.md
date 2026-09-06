@@ -2,10 +2,14 @@
 
 Updated: 2026-09-06 UTC (September 5 EDT).
 Baseline: main `44f4d73`, merged at `4eb6238` on `codex/wazuh-log-sync`.
-Objective: real enterprise-to-USB permissions caching, alongside automatic audit uploads.
+Objective: enterprise SIEM/endpoint-security presentation, preserving live USB sync.
 Teammates own Pi ↔ technician approval transport and enterprise cache publication.
 
 ## Implemented and observed
+
+- Enterprise UI redesigned locally: security overview, threat hunting, endpoint
+  evidence and actual Wazuh Pi stream. Browser interactions and five backend tests pass.
+  Live query: 259 alerts / 8 critical / 97 Pi records; endpoint inventory labelled demo.
 
 - Enterprise permissions generation 44 / revocation epoch 8 downloaded from Wazuh
   and signature/hash verified on USB. Timer polls about every 30 seconds.
@@ -41,7 +45,7 @@ Mock ESP remains in its original tmux session and is not boot-persistent.
 
 ## Evidence and blockers
 
-Fresh pre-publication Python suite: **297 passed plus 226 subtests** (22.18 s).
+Fresh Python suite after SIEM redesign: **310 passed plus 226 subtests** (21.41 s).
 Changed Markdown links and file placement checked against README/AGENTS.md.
 Live outage test was previously staged but not run: approval review rejected SSH
 execution because of account usage limits. No network mapping was changed by it.

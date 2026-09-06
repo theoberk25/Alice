@@ -109,17 +109,22 @@
          font-family:var(--mono);font-size:11px;gap:4px;min-width:150px}
   .arrow span{white-space:nowrap}
 </style>
+<link rel="stylesheet" href="/soc.css">
 </head>
 <body>
 <header>
-  <h1><b>ENTERPRISE SIEM</b> <span>/ Sentinel Air Force Base</span></h1>
-  <span class="tag">ALICE EDGE INTEGRATION</span>
+  <h1><b>◈ SENTINEL</b> <span>Enterprise SIEM + EDR demo</span></h1>
+  <span class="tag">SIEM + ENDPOINT SECURITY · DEMO</span>
   <div class="chips" id="chips"></div>
 </header>
 <nav id="nav"></nav>
 <main>
   <div class="banner" id="banner"></div>
-  <section id="s-overview" class="on"></section>
+  <section id="s-soc" class="on"></section>
+  <section id="s-hunt"></section>
+  <section id="s-endpoints"></section>
+  <section id="s-ledger"></section>
+  <section id="s-overview"></section>
   <section id="s-fleet"></section>
   <section id="s-identity"></section>
   <section id="s-permissions"></section>
@@ -132,13 +137,17 @@
 
 <script>
 const TABS = [
-  ["overview","Overview",""],
-  ["fleet","Edge fleet","↕"],
+  ["soc","Security overview",""],
+  ["hunt","Threat hunting",""],
+  ["endpoints","Endpoint security",""],
+  ["ledger","Edge audit stream","↑"],
+  ["overview","Architecture & scenario",""],
+  ["fleet","Demo fleet scenario","↕"],
   ["identity","Identity","↓"],
   ["permissions","Published permissions","↓"],
-  ["activity","Returned activity","↑"],
+  ["activity","Scenario audit","↑"],
   ["models","Behavior models","↓"],
-  ["telemetry","Endpoints &amp; alerts",""],
+  ["telemetry","Demo inventory & alerts",""],
   ["edge","Live edge (technician)","↑"],
 ];
 let S = null;
@@ -165,10 +174,10 @@ function chips(){
   const src = S.sources, ix = src.indexer, d = S.sync_delta;
   const behind = d.available && d.published_generation !== d.cached_generation;
   $("chips").innerHTML = [
-    `<span class="chip ${ix.reachable?"live":"local"}">SIEM <b>${ix.reachable?"LIVE":"OFFLINE"}</b></span>`,
+    `<span class="chip ${ix.reachable?"live":"local"}">INDEXER <b>${ix.reachable?"REACHABLE":"OFFLINE"}</b></span>`,
     `<span class="chip">published <b>gen ${S.manifest.generation ?? "?"}</b></span>`,
-    `<span class="chip ${behind?"local":"live"}">edge <b>gen ${d.cached_generation ?? "?"}</b></span>`,
-    `<span class="chip ${S.chain_intact?"live":"bad"}">returned chain <b>${S.chain_intact?"intact":"BROKEN"}</b></span>`,
+    `<span class="chip">scenario cache <b>gen ${d.cached_generation ?? "?"}</b></span>`,
+    `<span class="chip ${S.chain_intact?"live":"bad"}">scenario chain <b>${S.chain_intact?"intact":"BROKEN"}</b></span>`,
   ].join("");
 }
 
@@ -176,10 +185,9 @@ function banner(){
   const live = S.sources.indexer.reachable;
   $("banner").className = "banner" + (live?"":" warn");
   $("banner").innerHTML = live
-    ? `Live Wazuh indexer at <code>${esc(S.sources.indexer.endpoint)}</code> (cluster
-       <code>${esc(S.sources.indexer.cluster||"?")}</code>, version <code>${esc(S.sources.indexer.version||"?")}</code>).
-       This is the enterprise platform's own view. It publishes releases downstream and
-       receives edge activity upstream; it does not make or replay edge decisions.`
+    ? `Connected to Wazuh. This demonstration combines indexed detections, received
+       ALICE audit records and labelled Sentinel scenarios. Scenario views are not
+       measurements of current endpoint enrollment or Pi enforcement state.`
     : `The indexer is not reachable, so this is the <b>generated release set and returned
        audit on disk</b>, not live enterprise data. Everything below is simulated.`;
 }
@@ -535,7 +543,7 @@ function telemetry(){
   const alerts = S.wazuh_alerts||[];
   $("s-telemetry").innerHTML = `
     <div class="grid g2">
-      <div class="card"><h3>Enrolled endpoints</h3>
+      <div class="card"><h3>Simulated endpoint inventory</h3>
         <table><thead><tr><th>ID</th><th>Host</th><th>Address</th><th>Groups</th></tr></thead><tbody>
         ${S.endpoints.map(e=>`<tr><td class="mono">${esc(e.id)}</td>
           <td class="mono">${esc(e.name)}<div class="note">${esc(e.role)}</div></td>
@@ -648,8 +656,9 @@ pollEdge();
 fetch("/api/state").then(r=>r.json()).then(d=>{
   if(d.error){ $("banner").className="banner warn"; $("banner").textContent=d.error; return; }
   S = d; tabs(); chips(); banner();
-  overview(); fleet(); identity(); permissions(); activity(); models(); telemetry();
+  overview(); fleet(); identity(); permissions(); activity(); models(); telemetry(); renderSoc();
 }).catch(e=>{ $("banner").className="banner warn"; $("banner").textContent = "Failed to load state: "+e; });
 </script>
+<script src="/soc.js"></script>
 </body>
 </html>

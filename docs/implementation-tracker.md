@@ -15,6 +15,11 @@ two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
 
+Enterprise presentation now includes live alert metrics/search, endpoint evidence
+and actual Wazuh Pi audit records. Demo inventory and unavailable EDR responses are
+labelled explicitly; no permissions or task completion statuses changed.
+[Existing runbook and research](integration/wazuh-audit-sync.md).
+
 Local enterprise-download follow-up: real generation 44 permissions now verified
 and cached on USB by a 30-second systemd timer; rollback anchor stays internal.
 This is cache-only: first-light grants unchanged, full enterprise activation and
