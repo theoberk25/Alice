@@ -76,6 +76,7 @@ interface ConsoleState {
   llm: LLMHealth;
   contextSummaries: Record<string, string>;
   challenges: Record<string, string>;
+  contextRequests: Record<string, string>;
   ingest: (event: unknown) => void;
   log: (type: string, detail: string, id?: string) => void;
   error: (message: string) => void;
@@ -92,6 +93,7 @@ interface ConsoleState {
   ) => Promise<void>;
   setTechnician: (technician?: Technician) => void;
   ask: (text: string) => Promise<string>;
+  requestContext: (decisionId?: string) => Promise<void>;
   refreshLLM: () => Promise<void>;
 }
 let transport: AliceTransport;
@@ -131,6 +133,7 @@ export const useConsole = create<ConsoleState>((set, get) => ({
   llm: { status: 'OFFLINE', model: 'Not configured' },
   contextSummaries: {},
   challenges: {},
+  contextRequests: {},
   error: (message) =>
     set((s) => ({
       errors: s.errors.includes(message) ? s.errors : [...s.errors.slice(-4), message],
@@ -504,6 +507,7 @@ export const useConsole = create<ConsoleState>((set, get) => ({
       errors: [],
       contextSummaries: {},
       challenges: {},
+      contextRequests: {},
     });
     if (isNative && config.transport_mode === 'remote' && !get().technician) {
       set({
@@ -641,5 +645,50 @@ export const useConsole = create<ConsoleState>((set, get) => ({
     }
     const reply = await llm.explainDecision(d, text);
     return reply.summary;
+  },
+  requestContext: async (decisionId) => {
+    const s = get(),
+      id = decisionId ?? s.selectedId,
+      d = s.decisions[id];
+    // A deliberate technician context request is separate from the automatic
+    // reassessment path. It issues Record 1 (CONTEXT_REQUESTED) and asks the
+    // agent for a claim; the returned response still parks the flow at
+    // REASSESSMENT_PENDING and only a fresh upstream decision changes the result.
+    if (s.mode === 'remote')
+      throw new Error('Remote context requests are unavailable; the runtime feed is read-only.');
+    if (!d || !s.technician)
+      throw new Error('An authenticated technician and a decision are required.');
+    if (s.latestDecisionByRequest[d.request.request_id] !== d.decision_id)
+      throw new Error(
+        'Historical assessment cannot request context. Select the current assessment.',
+      );
+    if (d.decision.result !== 'HOLD' || d.policy.result === 'DENY' || !d.context_challenge.required)
+      throw new Error('Additional context is only available for a HOLD that requires it.');
+    if (s.responses[d.decision_id])
+      throw new Error('The agent has already returned context for this assessment.');
+    if (s.contextRequests[d.decision_id])
+      throw new Error('A context request is already in flight for this assessment.');
+    // Reuse the challenge id the auto-context path already tracked (or the one
+    // named on the decision) so the returned response binds to this assessment.
+    const challengeId =
+      s.challenges[d.decision_id] ?? d.context_challenge.challenge_id ?? crypto.randomUUID();
+    const challenge = { ...deterministicClarification(d), challenge_id: challengeId };
+    set((st) => ({
+      challenges: { ...st.challenges, [d.decision_id]: challengeId },
+      contextRequests: { ...st.contextRequests, [d.decision_id]: challengeId },
+    }));
+    // Record 1: the audited fact that the technician asked for more context.
+    get().log('CONTEXT_REQUESTED', 'Technician requested additional context', d.decision_id);
+    try {
+      await transport.requestClarification(challenge);
+    } catch (err) {
+      // Roll the marker back so the control returns rather than sticking "in flight".
+      set((st) => {
+        const next = { ...st.contextRequests };
+        delete next[d.decision_id];
+        return { contextRequests: next };
+      });
+      throw err instanceof Error ? err : new Error(String(err));
+    }
   },
 }));

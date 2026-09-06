@@ -12,6 +12,7 @@ import {
   Fingerprint,
   AlertTriangle,
   ChevronDown,
+  MessageSquareText,
 } from 'lucide-react';
 import { Badge, Empty } from '@alice/ui';
 import { canReview } from '@alice/domain';
@@ -76,11 +77,28 @@ export default function App() {
           ['DENY', 'REJECTED'].includes(r.decision?.detail.outcome ?? ''),
         ).length
       : s.order.filter((id) => s.decisions[id]?.decision.result === 'DENY').length;
+  const canRequestContext =
+    available &&
+    !!d &&
+    d.context_challenge.required &&
+    !s.responses[d.decision_id] &&
+    !s.contextRequests[d.decision_id];
   async function act(action: 'HOLD' | 'RESEARCH' | 'REJECT') {
     setBusy(true);
     try {
       await s.act(action);
       if (action === 'RESEARCH') setOverlay('research');
+    } catch (e) {
+      s.error(String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function requestContext() {
+    if (!d) return;
+    setBusy(true);
+    try {
+      await s.requestContext(d.decision_id);
     } catch (e) {
       s.error(String(e));
     } finally {
@@ -326,6 +344,13 @@ export default function App() {
               onClick={() => void act('RESEARCH')}
             >
               <Search size={16} /> Research
+            </button>
+            <button
+              className="context-button"
+              disabled={!canRequestContext || busy}
+              onClick={() => void requestContext()}
+            >
+              <MessageSquareText size={16} /> Request more context
             </button>
             <button
               disabled={!available || busy || !d?.technician_actions.available.includes('HOLD')}

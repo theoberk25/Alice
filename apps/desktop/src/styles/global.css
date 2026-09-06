@@ -1334,6 +1334,15 @@ a {
   border-color: transparent;
   color: var(--alice-red);
 }
+.action-buttons .context-button {
+  background: #0f2733;
+  border-color: #2f5468;
+  color: var(--alice-cyan);
+}
+.action-buttons .context-button:hover:not(:disabled) {
+  background: #143242;
+  border-color: var(--alice-cyan);
+}
 .action-buttons .approve-button {
   background: #173e42;
   border-color: #397776;
