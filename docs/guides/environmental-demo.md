@@ -29,7 +29,7 @@ server starts without review trust, but held requests cannot be approved then.
 No new biometric bypass or synthetic proof generator is included in this launcher.
 
 For the existing native console, start its normal `services.runtime_feed` bridge
-with upstream `http://127.0.0.1:8792`, source `local-runtime`, controller `mock` (the
+with upstream `http://127.0.0.1:8795`, source `local-runtime`, controller `mock` (the
 fan is simulated), `ALICE_FEED_TOKEN` for the console, and `ALICE_UPSTREAM_TOKEN`
 set to the demo operator token. Configure the console's existing feed/review URL
 and token to this bridge. Its strict request view displays the simulated fan
@@ -41,7 +41,7 @@ Configure then Start using the operator API. Agent code can use:
 ```python
 import os
 from services.thermal_demo.client import DemoClient
-client = DemoClient('http://127.0.0.1:8792', os.environ['COOLING_AGENT_TOKEN'])
+client = DemoClient('http://127.0.0.1:8795', os.environ['COOLING_AGENT_TOKEN'])
 state = client.state()
 record = client.request_fan(state, 90, 'cooling-proposal-1')
 ```
@@ -62,3 +62,5 @@ Verify with `python -m pytest -q tests/test_thermal* tests/test_pattern_renderer
 trust and use fake clocks, local sockets and host-compiled actual firmware. Real
 camera, Arduino board build, wiring, LED appearance and Pi timing require separate
 physical acceptance.
+
+The reconciled agent interface is the teammate’s [machine-metrics MCP](../guides/machine-metrics-integration.md): `get_metrics()` and `set_fan_speed(value)` on :8790. The HTTP client is the internal adapter path to the same plant; no second fan state file is authoritative.

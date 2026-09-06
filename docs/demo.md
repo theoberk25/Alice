@@ -1,3 +1,5 @@
+> **Scope reconciliation:** the implemented governed environmental slice uses [metrics MCP :8790 → thermal service :8795](guides/machine-metrics-integration.md). Port :8792 remains reserved for the external agent-loop console. The cold-start/restore and cloud-outage storyline below is a future concept, not an instruction to zero or overwrite operator-entered values. LEDs in the environmental slice are telemetry indicators, not independently switched supplies.
+
 # Demo script
 
 The live demo, scripted beat by beat. This document is written in show order —

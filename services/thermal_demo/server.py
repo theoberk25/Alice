@@ -128,7 +128,7 @@ def main():
     from .runtime import ThermalRuntime, load_agent_keys
     from dcamr.display.renderer import PatternRenderer
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--port', type=int, default=8792)
+    parser.add_argument('--port', type=int, default=8795)
     parser.add_argument('--release', type=Path, required=True)
     parser.add_argument('--trust-key', type=Path, required=True)
     parser.add_argument('--data-dir', type=Path, required=True)

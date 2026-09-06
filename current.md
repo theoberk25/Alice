@@ -1,37 +1,35 @@
 # Current
 Updated: 2026-09-06.
-Branch: `codex/led-display`; baseline `608f107`, upstream `origin/main` `e1e7506`.
+Branch: `codex/led-display`; environmental delivery `40ae904`, merged main `237c307`.
 
 ## Active objective
 
-Complete and push the user-authorized environmental demo software, following the
-[scope handoff](docs/handoffs/2026-09-06-environmental-demo-context.md).
-The user explicitly reauthorized pull and push after reviewing the scope.
-The pre-publication pull of `origin/codex/led-display` was already up to date.
+Reconcile the teammate's machine-metrics MCP with the environmental demo,
+preserving their public interface and the shared ALICE fan authority.
 
 ## Current state
 
-- Thermal/energy backend, lifecycle, state/history and agent proposal API implemented.
-- Real ALICE signed fan requests, policy decisions, ledger execution and native
-  signed review integrated; first-light request schema remains unchanged.
-- Read-only Pi renderer and v3 firmware generate phase-preserving eight-LED patterns
-  with stale leases, readback, recovery and legacy SET compatibility.
-- Agent client, signed demo release generator and frontend contract delivered.
-- Operator page design remains with the teammate. No real fan control or deployment.
+- Main merged cleanly; MCP retains `get_metrics` and percent `set_fan_speed` on 8790.
+- Default MCP reads the shared thermal plant and submits governed fan proposals.
+- Per-agent credentials, exact retry bindings and authenticated pollers integrated.
+- Cloud prompt and read-only smoke script use the current metrics tools.
+- Thermal backend moved to 8795, preserving the teammate's console port 8792.
+- Independent file state requires explicit standalone test mode.
+- No console, native, camera or firmware changes in this reconciliation.
 
 ## Evidence and limits
 
-Final Python integration: 459 passed, 30 skipped, 246 subtests; details in
-[validation](docs/reports/2026-09-06-environmental-demo-validation.md).
-Console checks: 135 tests and eight script tests, typecheck, lint and build passed.
-Eight browser tests passed. Actual firmware host tests passed. Rust fan-validator
-extraction: one passed; full native build blocked by unchanged Swift camera code
-and this machine's SDK. No camera use, board build, flashing or physical acceptance.
+Python regression: 467 passed, 30 skipped, 246 subtests, including eight new
+real HTTP/MCP integration tests. Compilation and diff checks passed.
+See [reconciliation](docs/reports/2026-09-06-metrics-reconciliation.md).
+Earlier console/firmware validation and native SDK limits remain in the
+[environmental report](docs/reports/2026-09-06-environmental-demo-validation.md).
+No live Gemini calls, deployment, flashing or physical acceptance performed.
 
 ## Next steps
 
-1. Teammate implements the operator page using the [contract](docs/contracts/environmental-demo-v1.md).
-2. Resolve existing native camera/SDK build compatibility in its owning workstream.
-3. Separately provision and verify physical Pi/XIAO operation; owner unassigned.
+1. Configure matching private agent tokens and thermal URL for a separate deployment.
+2. Teammate completes the operator page against the shared environmental contract.
+3. Verify physical Pi/XIAO operation and resolve native SDK compatibility separately.
 
-[Run guide](docs/guides/environmental-demo.md) · [Tracker](docs/implementation-tracker.md)
+[Metrics run guide](docs/guides/machine-metrics-integration.md) · [Tracker](docs/implementation-tracker.md)

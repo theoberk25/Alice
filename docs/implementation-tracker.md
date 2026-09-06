@@ -21,6 +21,12 @@ The original eight-test mapping increment is historical, not full hardware evide
 
 ## Status and current checkpoint
 
+Machine-metrics reconciliation: upstream `237c307` is integrated. The public
+`get_metrics` / `set_fan_speed` MCP now defaults to the shared ALICE thermal
+runtime, with agent credentials, exact retry bindings and authenticated pollers.
+[Evidence](reports/2026-09-06-metrics-reconciliation.md): 467 Python tests passed;
+no deployment or physical acceptance is implied. Existing task statuses remain.
+
 September 6 native backend continuation: biometric PR #4 is merged in Theodore's
 `upstream/main` at `d57c660`. Root checkout now uses `codex/native-live-backend`;
 original dirty work, WIP and retired trees are [verified preserved](handoffs/2026-09-06-native-live-backend-workspace.md).

@@ -106,3 +106,5 @@ get a keepalive at most twice a second per group. Lost ACKs trigger GET
 reconciliation, then later newly sampled telemetry; no failed frame is replayed.
 Boot changes clear the setting cache. Readback means configured output, not measured
 illumination. Firmware compilation on the host does not establish board acceptance.
+
+The reconciled agent interface is the teammate’s [machine-metrics MCP](../guides/machine-metrics-integration.md): `get_metrics()` and `set_fan_speed(value)` on :8790. The HTTP client is the internal adapter path to the same plant; no second fan state file is authoritative.
