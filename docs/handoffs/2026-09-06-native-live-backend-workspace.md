@@ -25,11 +25,16 @@ The earlier `.tools/biometric-integration-backup-20260906/` is unchanged.
 | `codex/live-facial-biometric-upgrade` at `0063629` | Original committed biometric baseline; unchanged |
 | `codex/backup-biometric-working-20260906` at `fb7c3d7` | Exact original dirty source/documentation state, including 14 untracked files and intentional tracked deletions |
 | `codex/live-runtime-review-wip` at `aa5bae869053403d6e66f336a16b99e55437e404` | Original incomplete backend/native/UI WIP; unchanged |
-| `codex/live-face-upstream-integration` at `ee97ede` | Merged delivered biometric implementation |
+| `origin/codex/live-face-upstream-integration` at `ee97ede` | Pushed and merged biometric delivery; also preserved in the bundle and upstream ancestry |
 | `codex/live-face-port-source` at `be85a87` | Earlier source-port recovery branch |
+| `codex/backup-native-interrupted-20260906` at `fc18f80` | Native implementation snapshot recovered after an external GitHub Desktop auto-stash |
 
-Other existing branches are retained. No stash is needed for recovery and no
-stash was created. The bundle contains all pre-cleanup refs and the snapshot.
+The bundle contains all pre-cleanup refs and the snapshot. No stash is needed
+for recovery. A separately requested branch-sync task later updated local `main`
+to `d57c660` and removed four redundant local refs after creating its own backup;
+this native-backend task did not delete those branches. Original biometric, dirty
+snapshot, port-source and saved WIP branches remain visible. Local `main` now
+matches Theodore's main; `origin/main` is still the fork's older remote branch.
 `original-working.patch`, `original-index.patch`, `original-status.z`,
 `original-files.json`, `untracked-source.tar.gz`, the copied original handoff and
 `verification.json` independently describe the original working state.
@@ -64,16 +69,47 @@ unchanged root stores. Retired environment launchers may embed their original
 path: these directories are recovery storage, not runnable development checkouts.
 Root Node/Python dependencies are rebuilt at their supported original paths.
 
+Before the personal rehearsal, both existing external native SQLite stores were
+copied through SQLite's backup API into private preservation storage and passed
+`integrity_check`. The rehearsal explicitly reuses the existing enrolled
+`console-mock.sqlite3`; it does not reset or replace identities. New native review
+tables belong to this existing store. Existing biometric data and models remain
+in their original locations.
+
 Before relocation: app-task status showed no other active task, `ps` and `lsof`
 identified local services and open files, and Visual Studio Code's saved handoff
 tab was closed. `lsof +D` then found no open files in either redundant worktree.
 The original local biometric service and old ALICE app were stopped gracefully
-before switching source. The old `workstation/` Vite service was preserved pending
-its separate launch/dependency inspection; no worktree was removed under it.
+before switching source. The old `workstation/` Vite service was separately
+inspected: its directory was already absent, although its orphaned process still
+held the old inode. It was then stopped gracefully so verification could use this
+branch's preview. No worktree or dependency directory was removed under that
+process by this session.
 
 The [original continuation handoff](2026-09-06-live-backend-after-biometric-delivery.md)
 is now included in root documentation. Its separate-worktree instruction is a
 historical recommendation superseded by the user's explicit single-checkout request.
+
+## Concurrent Desktop interruption and recovery
+
+During final validation another task's branch activity coincided with GitHub
+Desktop switching this shared checkout to `main` and back. The Git reflog records
+those switches at 01:18 EDT. Desktop auto-stash `b03e1c6` removed 53 implementation
+paths from the working tree while tests/build were running. Those runs are not
+used as final validation evidence.
+
+The stash tree was saved as named branch `codex/backup-native-interrupted-20260906`
+at `fc18f80` and bundled in `interrupted-native-work.bundle`. An independent bare
+clone reproduced every one of the 53 paths byte-for-byte. The working tree was
+restored, later tracker edits preserved, and affected core checks and the native
+build rerun successfully. `interrupted-restoration.json` and the saved patch retain
+the verification record. Final implementation commits supersede this snapshot;
+the exact Desktop stash is removed only after those commits and recovery checks.
+
+The separate branch cleanup report lives under the other task's visualization
+directory, `01a07518-71f8-7571-b870-752092050fb7/branch-cleanup-20260906/`.
+GitHub Desktop should stay on `codex/native-live-backend` while this checkout is
+in use. Backup branches are recovery references, not alternate active checkouts.
 
 ## Prior delivery checkpoint (historical)
 

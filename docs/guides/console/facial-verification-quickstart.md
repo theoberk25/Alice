@@ -48,8 +48,8 @@ verify identity. Allow macOS camera access and keep ALICE foreground during capt
 
 For the team's live read-only feed, use `ALICE_TRANSPORT_MODE=remote` and the
 existing `ALICE_FEED_URL` / `ALICE_FEED_TOKEN` configuration from the
-[live dashboard guide](../demo-runbook.md). Live HOLD approval
-and rejection remain explicitly unavailable in this delivery. Mock transport is
+[live dashboard guide](../demo-runbook.md). Native HOLD approval
+and rejection require the separately configured [review path](../native-runtime-review.md). Mock transport is
 only for fixture decisions; it does not command physical devices.
 
 ## Enroll once, then sign in automatically
@@ -80,8 +80,9 @@ In the native app with mock transport and real ArcFace enabled, **Approve once**
 a reviewable fixture HOLD starts a fresh automatic facial verification. Login alone
 cannot satisfy it. The native one-use grant binds the technician, decision and request
 and expires after 60 seconds. Failed/cancelled/superseded attempts cannot submit.
-The fixture receipt is not physical execution confirmation. Live Pi approval and
-rejection are separate unfinished work, retained only on a local WIP branch.
+The fixture receipt is not physical execution confirmation. Native runtime approval and
+rejection now use the [signed review path](../native-runtime-review.md); local
+automated evidence is separate from real camera/physical-Pi acceptance.
 
 `npm run check`, `npm run test:rust`, and `npm run test:python` exercise the UI,
 session authority, gallery persistence, cancellation and negative paths.

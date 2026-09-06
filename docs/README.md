@@ -25,7 +25,7 @@ and evidence. Read only the detailed documents relevant to the task.
 | Core runtime | [DCAMR index](dcamr/README.md) |
 | Lab and simulation | [Lab guide](lab/README.md) |
 | Test fixture explanations | [Anomaly](tests/fixtures/anomaly.md), [features](tests/fixtures/features.md) |
-| Native live backend | [Continuation](handoffs/2026-09-06-live-backend-after-biometric-delivery.md), [workspace recovery](handoffs/2026-09-06-native-live-backend-workspace.md) |
+| Native live backend | [Parity checklist](plans/native-live-backend-parity.md), [validation report](reports/2026-09-06-native-live-backend-validation.md), [operator setup](guides/native-runtime-review.md), [review contract](contracts/technician-runtime-review.md), [continuation](handoffs/2026-09-06-live-backend-after-biometric-delivery.md), [workspace recovery](handoffs/2026-09-06-native-live-backend-workspace.md) |
 | Live facial delivery | [Integration report](reports/2026-09-06-live-face-main-integration.md), [setup](guides/console/facial-verification-quickstart.md) |
 | Biometric service | [Service API](guides/biometrics-service.md) |
 | Developer tools | [Script catalog](scripts/README.md) |
