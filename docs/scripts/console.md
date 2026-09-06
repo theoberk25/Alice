@@ -9,6 +9,7 @@ the root package manifest and preserve `.env`, `.tools/` and npm dependency look
 | --- | --- | --- |
 | [desktop.mjs](../../scripts/console/desktop.mjs) | `npm run demo`, `npm run build:app` | Tauri in apps/desktop; builds under apps/desktop/src-tauri/target |
 | [rust.mjs](../../scripts/console/rust.mjs) | `npm run test:rust` | Cargo in apps/desktop/src-tauri; forwards CLI arguments |
+| [provision_review_key.py](../../scripts/console/provision_review_key.py) | `.venv/bin/python scripts/console/provision_review_key.py --help` | Explicit local Ed25519 seed and scoped public trust candidate; outside Git, no remote configuration |
 | [generate-contracts.mjs](../../scripts/console/generate-contracts.mjs) | `npm run contracts:generate` | Runs generate-contracts.ts with installed Vite/Zod and console aliases; writes docs/contracts/*.schema.json and fixtures/alice/*.json |
 
 [paths.mjs](../../scripts/console/paths.mjs) owns checkout discovery. `npm run test:scripts` verifies
