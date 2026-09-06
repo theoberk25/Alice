@@ -58,3 +58,10 @@ ledger and export outputs. See the [first-light handoff](../handoffs/2026-09-05-
 and [backend scope](../reports/2026-09-05-pi-backend-status.md). The console feed is
 read-only, authority is hard-coded and device behavior is mocked; real scoring,
 review/authority protocols and physical Pi/ESP acceptance remain.
+
+## Wazuh maintenance
+
+`python -m lab.wazuh_sync` is implemented under `scripts/lab/`. It requires
+exclusive ledger ownership with `alice-runtime.service` stopped; use the
+[automatic runtime worker](../integration/wazuh-audit-sync.md) during normal operation.
+The generic `run.py` allowlist does not include this maintenance command.

@@ -1,0 +1,22 @@
+[Unit]
+Description=ALICE Pi runtime with automatic Wazuh audit delivery
+Wants=network-online.target
+After=network-online.target
+RequiresMountsFor=/mnt/alice-usb
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/Alice
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/pi/Alice/.venv/bin/python -m dcamr.main --release /mnt/alice-usb/release --trust-key /home/pi/first-light/jared-2/trust/manifest_public.hex --data-dir /mnt/alice-usb/pi-data --usb-root /mnt/alice-usb --ledger-key-file /home/pi/first-light/pi-data/ledger_key.seed --esp-url http://127.0.0.1:8090 --host 0.0.0.0 --port 8080 --wazuh-sync-config /home/pi/first-light/wazuh-sync/config.json
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=35
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

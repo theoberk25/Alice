@@ -15,6 +15,18 @@ two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
 
+[ESP/technician connection handoff](integration/esp-technician-handoff.md) documents
+current service/storage paths, firmware interface, client setup and the recommended
+authenticated held-action response sequence. Recommendations do not change task status.
+
+[Pi → Wazuh live proof](reports/2026-09-06-wazuh-ledger-sync.md): 76 original
+ledger events delivered and acknowledged over verified TLS, replay without duplicate
+writes, original Pi runtime restored. Maintenance-only uploader reuses AuditLog;
+An owner-integrated worker now automatically delivered seven more events from
+physical ext4 USB; live outage/reboot tests and semantic reconciliation remain.
+[Automatic USB proof](reports/2026-09-06-automatic-usb-wazuh-sync.md).
+Task 086 becomes Partial; original task labels and IDs preserved.
+
 [Jared Mac live first-light check](reports/2026-09-05-jared-first-light-test.md):
 signed request accepted on Pi; seven correlated events; retry caused exactly
 one mock ESP execution. Fixture assessment only; no physical/USB acceptance implied.
@@ -23,7 +35,7 @@ Live dashboard slice: [configuration and field mapping](integration/live-dashboa
 The real local first-light runtime now feeds the existing technician dashboard
 automatically through validated authenticated transport. USB-backed SQL storage
 and no-fallback mount guards implement the user-approved offline storage direction.
-Remote biometric actions, enterprise snapshot publication, SIEM workers and
+Remote biometric actions, enterprise snapshot publication, automatic SIEM workers and
 physical Pi/USB acceptance remain pending. Verification is recorded in the
 [live handoff](handoffs/2026-09-06-live-dashboard.md). Task 082 becomes Partial;
 all task IDs and labels are preserved.
@@ -110,8 +122,8 @@ this assessment is not silently substituted for `alice.decision`.
 - **Planned** — the requested behavior is not implemented in this checkout.
   A PRD proposal or empty skeleton is not completion evidence.
 
-Current totals: **12 Done component, 39 Partial,
-67 Planned**. These are task-status counts, not a percentage of product
+Current totals: **12 Done component, 40 Partial,
+66 Planned**. These are task-status counts, not a percentage of product
 readiness or an estimate of remaining effort.
 
 The current model increment is a [general contextual Isolation Forest][context-guide]
@@ -434,13 +446,13 @@ workflows run with explicit no-unintended-execution assertions.
 | 083 | Cache Unverified External Evidence Requests | Planned | No bounded persistent external-evidence request cache exists. |
 | 084 | Detect Cloud Reconnection | Planned | No direct Pi/enterprise reconnection detector or authenticated readiness check exists. |
 | 085 | Exit DDIL Mode | Planned | No fenced return to ONLINE enterprise execution exists; outstanding local commands/approvals must not remain valid after transfer. |
-| 086 | Reconnect to SIEM | Planned | The SIEM connector is empty; direct Pi/enterprise source authentication, replay/cursors and reconnection remain. |
+| 086 | Reconnect to SIEM | Partial | [Bounded Wazuh uploader](integration/wazuh-audit-sync.md) uses strict TLS, create-only delivery, exact read-back and existing ledger acknowledgements. 76 live Pi events delivered and replayed without duplicates. Owner-integrated automatic delivery now runs on ext4 USB (7 additional live events). Simulated outage/restart tests pass; live outage/reboot acceptance and semantic reconciliation remain. |
 | 087 | Reconnect to EDR | Planned | The EDR connector is empty; direct Pi/enterprise source authentication, replay/cursors and reconnection remain. |
 | 088 | Fetch Pending External Evidence | Planned | No direct Pi/enterprise pending-evidence fetch workflow exists; the technician is not the manual relay. |
 | 089 | Reconcile Local Evidence with Cloud Evidence | Planned | The core [reconciliation component][reconciliation] is empty. Direct Pi comparison/upload and append-only findings remain. |
 | 090 | Detect Evidence Discrepancies | Planned | No local/cloud evidence discrepancy detector exists. |
 | 091 | Append Reconciliation Results | Partial | [Ledger finding append][audit] and [outbox tests][audit-outbox-tests] require original ID/hash and source attribution; reconciliation marker requires original ACK plus linked finding. Actual evidence fetching/comparison and enterprise reconciliation remain absent. |
-| 092 | Preserve Original Decision History | Partial | Original audit events remain immutable through live display and reconnect; late execution events update request projections without changing decision IDs or content. Reconciliation must append findings and acknowledgements. SIEM delivery and full reassessment exchange remain. [Live guide](integration/live-dashboard.md). |
+| 092 | Preserve Original Decision History | Partial | Original audit events remain immutable through live display and reconnect; late execution events update request projections without changing decision IDs or content. Reconciliation must append findings and acknowledgements. Bounded Wazuh delivery now preserves originals; full reassessment exchange remains. [Live guide](integration/live-dashboard.md). |
 
 ## Package updates and connected recovery (093–107)
 
