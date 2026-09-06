@@ -39,6 +39,10 @@ output paths still mean relative to the caller's working directory.
   an idempotent, internally labelled DN-Hacks scenario to the configured local
   Wazuh indexer. Omit `--apply` for a read-only count before loading it.
 - [Assessment API](../../dcamr/decision_model.py) and [contract](../contracts/decision-assessment.md)
+- [Local agent launcher](../../scripts/lab/run_local_agent.py): explicit `--check`
+  reads authenticated MCP metrics; `--text` runs Goose with one private identity.
+  This independent launcher supports direct execution and does not start the
+  plant. [Host setup and usage](../guides/local-agent-host.md).
 
 Use Python 3.12 and `requirements-anomaly-training.txt` plus `cryptography` for
 enterprise generation/fitting; ledger replay also needs `requirements-audit.txt`.

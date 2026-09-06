@@ -7,6 +7,7 @@ packages, services and tests. Follow each catalog for dependencies and outputs.
 | --- | --- | --- |
 | Technician console | [Catalog](console.md) | npm commands from repository root; direct launchers work from any directory |
 | Biometrics | [Catalog](biometrics.md) | Repository-local Python environment and model/service tools |
+| Local agent host | [Setup and usage](../guides/local-agent-host.md) | `.venv/bin/python scripts/lab/run_local_agent.py --agent observer-agent-01 --check`; private identity profiles for local Goose |
 | Lab / simulation | [Catalog](../lab/README.md) | python -m lab.* from root; absolute checkout path to scripts/lab/run.py from any directory |
 | Pi → Wazuh delivery | [Maintenance guide](../integration/wazuh-audit-sync.md) | Runtime --wazuh-sync-config for automation; lab.wazuh_sync only with service stopped |
 | Integrated demo acceptance | [Runbook](../guides/demo-runbook.md) | lab.first_light.check_pipeline is read-only; run on Pi beside the existing service |

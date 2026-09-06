@@ -32,6 +32,7 @@ and evidence. Read only the detailed documents relevant to the task.
 | Completed main/redesign integration | [Integration evidence](reports/2026-09-06-main-redesign-integration.md) |
 | Console integration carry-forward | [Complete changes since included PR #5](handoffs/2026-09-06-new-repository-merge.md) |
 | Developer tools | [Script catalog](scripts/README.md) |
+| Local agent host | [Model/MCP setup and usage](guides/local-agent-host.md), [installation evidence](reports/2026-09-06-local-agent-model-setup.md) |
 
 Existing architecture and ownership documents in prds/ retain their published
 paths. New detailed architecture documents go in architecture/. All substantive
