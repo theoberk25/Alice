@@ -9,7 +9,8 @@ Preserved redesign: `db730710750787af9064b495c6a236e0b504b2fe`.
 
 Integrate the complete local redesign onto Theo's current main while preserving
 all teammate content, contracts and behavior. Integration is complete. The user
-now authorized a local .app rebuild for real-sign-in and simulated HOLD popup testing.
+requested the live-runtime app after testing. The rebuilt app is now open in
+remote/ArcFace mode with the original saved database and feed. Popup profile is preserved.
 [Popup setup/evidence](docs/reports/2026-09-06-popup-testing-app.md).
 Worktree: `artifacts/console/main-redesign-integration` within the original checkout.
 [Integration evidence](docs/reports/2026-09-06-main-redesign-integration.md).
@@ -24,14 +25,15 @@ Worktree: `artifacts/console/main-redesign-integration` within the original chec
 - Late telemetry alignment is included: battery units, LED roles and updated team
   docs/tracker row 035. [Team checkpoint](docs/handoffs/2026-09-06-before-telemetry-redesign-merge.md).
 - The original checkout, private settings/models/stores and running services remain
-  separate. The rebuilt integration app uses a private popup-testing profile;
+  separate. The rebuilt integration app now uses the saved live-runtime profile;
   the original Dock-linked bundle and live profile remain unchanged. No push/deploy.
 
 ## Evidence and blockers
 
 Latest popup build: frontend192/scripts8/check and app build passed; default
-browser31 plus the opt-in popup case passed. Final app reopened; real Face ID
-service READY. Use sliders → Reset scenario to repeat context/approval.
+browser31 plus the opt-in popup case passed. Historical popup app validation complete; real Face ID service READY.
+Live profile restored and app reopened at sign-in. Saved feed HTTP200/22 events,
+local-runtime with mock controller; physical Pi connection is not established.
 Historical integration: frontend190/scripts8/browser31/native62 passed;
 biometrics176 passed (1 model skip), repository Python541 and266 subtests passed.
 Native2 opt-in tests ignored. Typecheck/lint/web build/native app build passed.
@@ -43,7 +45,7 @@ The pre-merge checkpoints are preserved for both
 
 ## Next steps
 
-1. Test the opened popup-rehearsal app; use Development scenarios → Reset scenario.
+1. Sign in to the reopened live-runtime app to connect to the saved feed.
 2. Perform real-camera/native appearance and physical-Pi operator acceptance.
 3. Publish or replace the Dock app only on explicit user authorization.
 

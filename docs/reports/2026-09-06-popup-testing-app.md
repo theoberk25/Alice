@@ -58,3 +58,20 @@ unimplemented in the team baseline.
 
 No native/Rust or Python implementation changed. Their prior integration results
 remain historical; real camera quality and physical Pi acceptance are separate.
+
+## User-requested return to live runtime
+
+The user subsequently requested opening the live-runtime app instead of the
+simulated dashboard. The private popup profile was moved intact to
+`.tools/popup-testing-20260906/popup-profile.env`; its test database and history
+remain preserved. The integration checkout now uses the original checkout's saved
+remote/ArcFace configuration, original database, feed and native review settings.
+The original checkout configuration was not modified. The opt-in renderer behavior
+is guarded to mock transport and has no effect in this native remote mode.
+
+Authenticated read-only feed check returned HTTP 200 and 22 retained events, source
+`local-runtime`, controller `mock`. This is the existing running local runtime
+rehearsal, not evidence of a physical Pi connection. The app was closed/reopened;
+native accessibility showed the remote runtime shell, no SIMULATION badge or
+scenario controls, and Sign in / IDENTITY REQUIRED. Feed viewing resumes after
+authorized sign-in. No HOLD, approval, context request or controller action was sent.
