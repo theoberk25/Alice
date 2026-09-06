@@ -1,57 +1,30 @@
 # Current
-Updated: 2026-09-06 EDT.
-Baseline: freshly fetched Theodore Berk `upstream/main` at `966632e`.
-Everyday checkout: `/Users/alexdaoud/Documents/Alice`; branch `codex/native-live-backend`.
+Updated: 2026-09-06.
+Local branch: `codex/led-display`, based on `origin/main` `e1e7506`.
 
 ## Active objective
 
-Native backend integration is the active major project. Locally implemented: collected request
-and audit visibility, exact supplied details, immutable decisions, fresh-face
-approve/reject of eligible OFFLINE ALICE-owned HOLDs, and separate acknowledgment,
-execution and observation. No deepfake work or device-output adjustments.
+Add only a read-only value-to-LED-pattern mapper for the thermal demo.
+No environmental simulation, ALICE decision changes, hardware access or deployment.
 
 ## Current state
 
-- Root is the sole registered worktree. Original biometric/WIP and verified source
-  snapshots remain on named backup branches; private settings/models are preserved.
-- Biometric PR #4 merged at `d57c660`; local commits now include the subsequent
-  upstream wireless/fan roadmap and pitch deliverables. No duplicate biometric commits.
-- Published to `Adaoud03/Alice:main` at the user's request; upstream [PR #5](https://github.com/theoberk25/Alice/pull/5)
-  contains the implementation, evidence and limitations. Upstream merge is pending.
-- Native/web share collected history, evidence and explicit freshness. Native adds
-  exact retained requests and signed fresh-face approve/reject through the existing
-  bridge, Pi ledger and execution path, with durable uncertain-delivery reconciliation.
-- The built app is open for a local personal rehearsal with the existing enrollment;
-  real facial service is ready. Controller/assessment are labeled mock/fixture.
-  Dock/Finder launches now use the same saved remote settings; sign-in starts the feed.
-  `npm run demo:hold -- --session /private/tmp/alice-native-personal-20260906-01/session.json`
-  sends another signed, unexecuted test HOLD; final helper checks: 12 passed.
-- Working scope is first-light `set_light_state`, fixed OFFLINE ALICE authority.
-  Enterprise handover/reads, live brief/model factors and fan adapters remain upstream
-  integration work. Device adjustments stay deferred. Owners are unassigned.
+- `dcamr/display/led_patterns.py` maps four supplied values to eight patterns.
+- Existing target/color mapping retained: yellow power, blue fan, red temperature,
+  white two-segment battery reserve.
+- `python3 -m lab.led_preview` prints the display contract without hardware access.
+- Existing thermal/environment work remains in the separate thermal-demo checkout.
+- [Display contract and next renderer boundary](docs/guides/led-display.md).
 
-## Evidence and limits
+## Verification
 
-Core: 435 passed and 266 subtests. Biometrics: 166 passed. Rust: 60 passed plus
-one opt-in real Rust→Python bridge/runtime test; approve/reject/replay produced one
-mock command. Frontend: 134 tests plus eight script checks; eight UI E2E and one
-real web/runtime E2E passed. Typecheck, lint, web/native builds passed.
-Cross-language proofs, cancellation, replay, restart, concurrency and uncertainty
-have automated evidence. No human camera→Pi/hardware acceptance or live Ollama test.
-Telemetry covers collected ALICE request/audit traffic, not every network packet.
-Verified preservation includes the concurrent Desktop auto-stash recovery; tracked
-source is committed and published to the fork. No upstream merge, deployment,
-remote trust provisioning or hardware operation was performed.
+Eight focused unit tests passed; preview CLI produced JSON; diff whitespace check
+passed. No timing loop, serial, firmware or physical acceptance is claimed.
+Upstream integration history and prior evidence are preserved in the
+[prior status](docs/handoffs/2026-09-06-before-led-display.md).
 
 ## Next steps
 
-1. Personally test fresh login, approve, reject and cancellation in the local rehearsal.
-2. After separate authorization, configure reviewed Pi trust and record physical acceptance.
-3. Coordinate enterprise authority/feed, real model/context and fan contracts before
-   implementing the broader [upstream demo](docs/guides/demo-runbook.md).
-
-[Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
-[Workspace recovery](docs/handoffs/2026-09-06-native-live-backend-workspace.md) ·
-[Ready handoff](docs/handoffs/2026-09-06-native-live-backend-ready.md) ·
-[Parity](docs/plans/native-live-backend-parity.md) ·
-[Validation](docs/reports/2026-09-06-native-live-backend-validation.md)
+1. Review the mapping and segment boundary behavior.
+2. Inspect the single-owner serial path before adding a phase-preserving renderer.
+3. Verify hardware separately before publication/deployment decisions.
