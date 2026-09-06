@@ -106,17 +106,39 @@ class PipelineCheckTests(unittest.TestCase):
         self.assertEqual(report['wazuh'], 'EXACT_MATCH')
         self.assertEqual(self.esp.commands, 1)
 
-    def test_denial_after_assessment_is_also_a_valid_nonexecuting_chain(self):
+    def test_review_required_is_an_immutable_nonexecuting_challenge(self):
         from dataclasses import replace
         from lab.first_light.check_pipeline import check_pipeline
         grant = replace(self.runtime.release.grants[0], approval_required=True)
         self.runtime.release = replace(self.runtime.release, grants=(grant,))
         code, response = self.runtime.handle_request(
             build_envelope(self.seed, state='off', request_id='review-required'))
-        self.assertEqual((code, response['decision']), (403, 'DENY'))
+        self.assertEqual((code, response['decision']), (202, 'CHALLENGE'))
         worker = WazuhWorker(self.runtime.ledger, self.sink, self.runtime._lock)
         for _ in range(3): worker.step()
         report = check_pipeline(url=self.url, request_id='review-required', data_dir=self.data,
+                                sink=self.sink, expected='CHALLENGE')
+        self.assertEqual(report['events_verified'], 3)
+        self.assertEqual(self.esp.commands, 1)
+
+    def test_unusable_assessment_is_a_valid_denial_and_cannot_be_a_challenge(self):
+        from unittest.mock import patch
+        from lab.first_light.assessment_fixture import build_assessment
+        from lab.first_light.check_pipeline import CheckError, check_pipeline
+        def unavailable(**kwargs):
+            value = json.loads(build_assessment(**kwargs))
+            value.update(status='UNAVAILABLE', result='UNKNOWN', raw_score=None, score=None)
+            return json.dumps(value).encode()
+        with patch('dcamr.main.build_assessment', side_effect=unavailable):
+            code, response = self.runtime.handle_request(
+                build_envelope(self.seed, state='off', request_id='assessment-unavailable'))
+        self.assertEqual((code, response['decision']), (403, 'DENY'))
+        worker = WazuhWorker(self.runtime.ledger, self.sink, self.runtime._lock)
+        for _ in range(3): worker.step()
+        report = check_pipeline(url=self.url, request_id='assessment-unavailable', data_dir=self.data,
                                 sink=self.sink, expected='DENY')
         self.assertEqual(report['events_verified'], 3)
         self.assertEqual(self.esp.commands, 1)
+        with self.assertRaises(CheckError):
+            check_pipeline(url=self.url, request_id='assessment-unavailable', data_dir=self.data,
+                           expected='CHALLENGE')

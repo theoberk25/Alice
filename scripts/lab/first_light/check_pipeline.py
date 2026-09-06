@@ -36,7 +36,7 @@ def _get(url):
 def check_pipeline(*, url, request_id, data_dir, expected, usb_root=None, sink=None, wait_seconds=0):
     """Return narrowly scoped evidence; missing optional checks stay NOT_CHECKED."""
     url = loopback_url(url)
-    if expected not in ('ALLOW', 'DENY') or not request_id or not 0 <= wait_seconds <= 300:
+    if expected not in ('ALLOW', 'DENY', 'CHALLENGE') or not request_id or not 0 <= wait_seconds <= 300:
         raise CheckError('INVALID_CHECK_OPTIONS')
     storage = UsbStorage(usb_root, data_dir) if usb_root is not None else None
     deadline = time.monotonic() + wait_seconds
@@ -50,7 +50,8 @@ def check_pipeline(*, url, request_id, data_dir, expected, usb_root=None, sink=N
             expected_chains = ([['REQUEST', 'ASSESSMENT', 'DECISION', 'EXECUTION_ATTEMPT',
                                  'CONTROLLER_RECEIPT', 'EXECUTION_RESULT', 'OBSERVED_STATE']]
                                if expected == 'ALLOW' else
-                               [['REQUEST', 'REJECTION'], ['REQUEST', 'ASSESSMENT', 'DECISION']])
+                               ([['REQUEST', 'ASSESSMENT', 'DECISION']] if expected == 'CHALLENGE' else
+                                [['REQUEST', 'REJECTION'], ['REQUEST', 'ASSESSMENT', 'DECISION']]))
             if [e['event_type'] for e in events] not in expected_chains:
                 raise CheckError('REQUEST_CHAIN_NOT_COMPLETE_OR_EXPECTED')
             if len({e['correlation']['request_sha256'] for e in events}) != 1:
@@ -58,6 +59,8 @@ def check_pipeline(*, url, request_id, data_dir, expected, usb_root=None, sink=N
             if expected == 'DENY' and events[-1]['detail']['outcome'] != (
                     'REJECTED' if len(events) == 2 else 'DENY'):
                 raise CheckError('EXPECTED_DENIAL_NOT_RECORDED')
+            if expected == 'CHALLENGE' and events[-1]['detail']['outcome'] != 'CHALLENGE':
+                raise CheckError('EXPECTED_CHALLENGE_NOT_RECORDED')
             if expected == 'ALLOW' and (
                     events[2]['detail']['outcome'] != 'ALLOW'
                     or events[4]['detail']['outcome'] != 'ACCEPTED'
@@ -101,7 +104,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--url', default='http://127.0.0.1:8080')
     parser.add_argument('--request-id', required=True)
-    parser.add_argument('--expect', choices=('ALLOW', 'DENY'), required=True)
+    parser.add_argument('--expect', choices=('ALLOW', 'DENY', 'CHALLENGE'), required=True)
     parser.add_argument('--data-dir', type=Path, default=Path('/mnt/alice-usb/pi-data'))
     storage = parser.add_mutually_exclusive_group(required=True)
     storage.add_argument('--usb-root', type=Path)

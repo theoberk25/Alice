@@ -1,0 +1,61 @@
+{
+  "description": "Public interoperability vector. Private signing key was ephemeral and is not retained. This expired synthetic proof grants no authority.",
+  "domain_hex": "616c6963652d6e61746976652d7265766965772d763100",
+  "request": {
+    "schema_version": "1.0",
+    "request_id": "REQ-golden-001",
+    "agent_id": "test-agent",
+    "action": "set_light_state",
+    "target": "ESP-LIGHT-01",
+    "parameters": {
+      "state": "on"
+    },
+    "issued_at": "2026-09-06T04:00:00Z"
+  },
+  "request_canonical": "{\"action\":\"set_light_state\",\"agent_id\":\"test-agent\",\"issued_at\":\"2026-09-06T04:00:00Z\",\"parameters\":{\"state\":\"on\"},\"request_id\":\"REQ-golden-001\",\"schema_version\":\"1.0\",\"target\":\"ESP-LIGHT-01\"}",
+  "request_sha256": "07d553c25fd04a68fd448f460750d5f202870e6c9f64367041e85995c73035e6",
+  "proof": {
+    "schema_version": "alice-review-action-v1",
+    "console_id": "test-console",
+    "technician_id": "TECH-golden",
+    "action_id": "ACTION-golden-001",
+    "action": "APPROVE_ONCE",
+    "biometric_session_id": "SESSION-golden-001",
+    "biometric_policy": "alice.live-face.v3",
+    "issued_at": 1788667200,
+    "expires_at": 1788667260,
+    "request_id": "REQ-golden-001",
+    "request_sha256": "07d553c25fd04a68fd448f460750d5f202870e6c9f64367041e85995c73035e6",
+    "decision_event_id": "REQ-golden-001.decision",
+    "decision_event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "release_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "authority_interval_ref": "offline-golden",
+    "runtime_epoch": "epoch-golden",
+    "review_nonce": "nonce-golden"
+  },
+  "proof_canonical": "{\"action\":\"APPROVE_ONCE\",\"action_id\":\"ACTION-golden-001\",\"authority_interval_ref\":\"offline-golden\",\"biometric_policy\":\"alice.live-face.v3\",\"biometric_session_id\":\"SESSION-golden-001\",\"console_id\":\"test-console\",\"decision_event_hash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"decision_event_id\":\"REQ-golden-001.decision\",\"expires_at\":1788667260,\"issued_at\":1788667200,\"release_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"request_id\":\"REQ-golden-001\",\"request_sha256\":\"07d553c25fd04a68fd448f460750d5f202870e6c9f64367041e85995c73035e6\",\"review_nonce\":\"nonce-golden\",\"runtime_epoch\":\"epoch-golden\",\"schema_version\":\"alice-review-action-v1\",\"technician_id\":\"TECH-golden\"}",
+  "public_key": "f044af3ed21f9841537f950bd6174919a6ace0eaea3e7d82bc04e970e4b62275",
+  "signature": "aRqF/r2Nsqud8/Dd51J6R4+/s4cS8HxnpvzdWlZM61VSUCM4hCXTZZtBPnCYvNGuibACtAUnn8YjEODeYzGsBQ==",
+  "canonical_cases": [
+    {
+      "value": {
+        "z": "café 😀",
+        "a": "line\n\t\"\\/",
+        "number": -9223372036854775808
+      },
+      "canonical": "{\"a\":\"line\\n\\t\\\"\\\\/\",\"number\":-9223372036854775808,\"z\":\"café 😀\"}"
+    },
+    {
+      "value": {
+        "z": null,
+        "a": [
+          true,
+          false,
+          0,
+          9223372036854775807
+        ]
+      },
+      "canonical": "{\"a\":[true,false,0,9223372036854775807],\"z\":null}"
+    }
+  ]
+}
