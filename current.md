@@ -1,17 +1,22 @@
 # Current
 
 Updated: 2026-09-05
-Baseline: `ce617cf` (main). Work branch: `first-light-test` (local, not pushed).
+Baseline: `7081b6a` (main fetched; no newer commit at latest live-test check).
 Prior console-layout state is preserved in the
 [console handoff](docs/handoffs/2026-09-05-console-layout.md).
 
 ## Current objective
 
-First-light integration test implemented: one OFFLINE terminal request
-(`set_light_state -> ESP-LIGHT-01`) runs end to end against a mock ESP.
+Prepare enterprise/Pi/technician integration for incoming storage backend.
+Wazuh and enterprise console are live; simulated operator already exists.
+[Network readiness and contract gaps](docs/reports/2026-09-05-enterprise-network-readiness.md).
 Start with [AGENTS.md](AGENTS.md).
 
 ## Current state
+
+- Jared Mac → Pi test succeeded: signed ALLOW/COMPLETED against mock ESP,
+  seven correlated events, retry executed once. Demo release first-light-jared-2
+  active; existing ledger retained. [Evidence](docs/reports/2026-09-05-jared-first-light-test.md).
 
 - Seam fills on `first-light-test`: action-request schema, package verifier,
   exact-match policy engine, additive `decide()` (teammate's assessment
@@ -43,7 +48,12 @@ Start with [AGENTS.md](AGENTS.md).
 
 ## Verification
 
-263 core tests passed (30 pre-existing skips), including 6 new first-light
+Additional live tests: four bad-identity/envelope rejections, one ALLOW, identical
+replay and conflicting-ID rejection; exactly one mock command, cursor resume OK,
+SQLite quick_check OK. Conflict response currently adds no audit event. USB is
+58.6 GiB exFAT, unmounted; waiting for backend filesystem/mount contract.
+
+Historical first-light checkpoint: 263 core tests passed (30 pre-existing skips), including 6 new first-light
 tests, plus a multi-process Mac dry run: ALLOW/COMPLETED/observed=on, exactly
 one ESP command across a retried request, verified+acknowledged USB export,
 `validate()` clean after reopen.

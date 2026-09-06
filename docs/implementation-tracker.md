@@ -15,6 +15,10 @@ two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
 
+[Jared Mac live first-light check](reports/2026-09-05-jared-first-light-test.md):
+signed request accepted on Pi; seven correlated events; retry caused exactly
+one mock ESP execution. Fixture assessment only; no physical/USB acceptance implied.
+
 First-light integration slice (branch `first-light-test`, 2026-09-05): one
 OFFLINE terminal request (`set_light_state -> ESP-LIGHT-01`) now runs end to end
 against a mock ESP: signed-envelope authentication, verified release load,
