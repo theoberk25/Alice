@@ -71,3 +71,28 @@ impl Config {
         })
     }
 }
+
+pub fn feed_config(url: &str, token: &str) -> Result<(String, String), String> {
+    let base = loopback_url(url)?;
+    let parsed = url::Url::parse(&base).map_err(|_| "Invalid feed URL")?;
+    if parsed.path() != "/" || parsed.query().is_some() || parsed.fragment().is_some()
+        || parsed.port().is_none() || parsed.host_str() == Some("localhost")
+        || token.len() < 32 || !token.bytes().all(|b| b.is_ascii_graphic())
+    {
+        return Err("Configure an explicit loopback ALICE_FEED_URL and private ALICE_FEED_TOKEN".into());
+    }
+    Ok((base, token.to_owned()))
+}
+
+#[cfg(test)]
+mod feed_tests {
+    use super::feed_config;
+    #[test]
+    fn feed_boundary_rejects_remote_hosts_paths_and_weak_secrets() {
+        for url in ["http://192.168.1.2:8787", "http://127.0.0.1:8787/request", "http://user@127.0.0.1:8787", "https://127.0.0.1:8787"] {
+            assert!(feed_config(url, &"x".repeat(32)).is_err());
+        }
+        assert!(feed_config("http://127.0.0.1:8787", "").is_err());
+        assert!(feed_config("http://127.0.0.1:8787", &"x".repeat(32)).is_ok());
+    }
+}

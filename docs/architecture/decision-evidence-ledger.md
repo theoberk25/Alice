@@ -12,12 +12,14 @@ Training dependencies remain separate and are not required by the ledger.
 
 ## Local usage
 
-Provision a protected **non-removable** parent directory. `initialize` exclusively
+Provision a protected local parent directory. The user-approved DDIL deployment
+uses a **mounted USB**, guarded by the runtime; see the
+[live/USB configuration](../integration/live-dashboard.md). `initialize` exclusively
 creates a new file; `open` requires an existing store and validates it before use.
 An absent, corrupt or untrusted existing store is never replaced automatically.
 The caller supplies a signer, historical verification keys and a clock provider.
 Production key provisioning and detecting the physical mount type are deployment
-responsibilities; a pathname alone cannot establish non-removable storage.
+responsibilities; a pathname alone cannot establish a present, writable USB mount.
 
 This runnable example uses a temporary directory, ephemeral test key and explicitly
 synthetic request fixture. It exercises storage only, and creates no controller or
@@ -227,11 +229,12 @@ retained trusted checkpoint envelope as `anchor` to detect truncation/rollback
 conflicting with it. Rolling back the entire database and all its checkpoints may
 be undetectable without that independent anchor.
 
-USB removal does not affect the local ledger; any required cache lost with USB is
-a separate readiness failure for future integration. Site storage is likely
-available on premises (for example at a military base), but is not assumed reachable
-during DDIL. USB capacity does not define retention, and this slice never deletes
-local source history or depends on site storage to commit.
+The original recorder tests used non-removable local storage. Under the updated
+USB DDIL configuration, removing the USB makes the runtime ledger unavailable
+and blocks further protected execution. Site storage is not assumed reachable
+during DDIL. Capacity exhaustion does not permit deleting undelivered history;
+reconciliation preserves original events and appends findings/acknowledgements.
+Physical mount, removal and power-loss acceptance remain deployment work.
 
 ## Verification scope
 

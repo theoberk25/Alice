@@ -1,5 +1,8 @@
 # Synthetic behavioral feature fixtures
 
+Fixture files remain in `tests/fixtures/features/` at the repository root.
+Names below refer to that data directory, not this documentation folder.
+
 These fixtures exercise the first `cyber-behavior-v1` feature builder using
 routine Web-01 diagnostics and occasional changes to known destinations. They
 contain a synthetic operational baseline and normalized requests with trusted

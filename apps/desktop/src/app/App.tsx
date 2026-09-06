@@ -28,6 +28,14 @@ import { ResearchModal } from '../components/decisions/ResearchModal';
 import { IdentityPanel } from '../components/technicians/IdentityPanel';
 import { AdminPanel } from '../components/technicians/AdminPanel';
 import { SettingsModal } from '../components/layout/SettingsModal';
+import {
+  RuntimeWorkspace,
+  RuntimeEvidence,
+  RuntimeSystem,
+  RuntimeAgents,
+  RuntimeHistory,
+  RuntimeAudit,
+} from '../components/runtime/RuntimePanels';
 import { scenarioNames, type ScenarioName } from '../../../../fixtures/scenarios';
 type View = 'overview' | 'history' | 'audit' | 'admin';
 type Overlay = 'approval' | 'research' | 'identity' | 'settings' | undefined;
@@ -45,17 +53,28 @@ export default function App() {
       .catch((e) => useConsole.getState().error(`Console startup failed: ${String(e)}`));
   }, []);
   const d = s.decisions[s.selectedId];
+  const remote = s.mode === 'remote';
+  const runtimeRequests = Object.values(s.runtime.requests);
   const locked = !s.technician && (s.biometricMode === 'arcface' || !s.ready);
   const available =
+    !remote &&
     !!d &&
     !!s.technician &&
     s.latestDecisionByRequest[d.request.request_id] === d.decision_id &&
     canReview(s.flows[s.selectedId] ?? 'IDLE') &&
     d.decision.result === 'HOLD' &&
     d.policy.result !== 'DENY';
-  const allowCount = s.order.filter((id) => s.decisions[id]?.decision.result === 'ALLOW').length,
-    holdCount = s.order.filter((id) => s.decisions[id]?.decision.result === 'HOLD').length,
-    denyCount = s.order.filter((id) => s.decisions[id]?.decision.result === 'DENY').length;
+  const allowCount = remote
+      ? runtimeRequests.filter((r) => r.decision?.detail.outcome === 'ALLOW').length
+      : s.order.filter((id) => s.decisions[id]?.decision.result === 'ALLOW').length,
+    holdCount = remote
+      ? runtimeRequests.filter((r) => r.decision?.detail.outcome === 'CHALLENGE').length
+      : s.order.filter((id) => s.decisions[id]?.decision.result === 'HOLD').length,
+    denyCount = remote
+      ? runtimeRequests.filter((r) =>
+          ['DENY', 'REJECTED'].includes(r.decision?.detail.outcome ?? ''),
+        ).length
+      : s.order.filter((id) => s.decisions[id]?.decision.result === 'DENY').length;
   async function act(action: 'HOLD' | 'RESEARCH' | 'REJECT') {
     setBusy(true);
     try {
@@ -95,7 +114,9 @@ export default function App() {
             >
               <Icon size={15} />
               {label}
-              {id === 'history' && !locked && <span>{s.order.length}</span>}
+              {id === 'history' && !locked && (
+                <span>{remote ? runtimeRequests.length : s.order.length}</span>
+              )}
             </button>
           ))}
         </div>
@@ -107,7 +128,11 @@ export default function App() {
           )}
           <span>
             <span className="mini-pulse" />
-            {s.ready ? 'CONSOLE ACTIVE' : 'INITIALIZING'}
+            {remote
+              ? `FEED ${s.feed.state.toUpperCase()}`
+              : s.ready
+                ? 'CONSOLE ACTIVE'
+                : 'INITIALIZING'}
           </span>
           {import.meta.env.DEV && (
             <button
@@ -120,7 +145,7 @@ export default function App() {
           )}
         </div>
       </nav>
-      {developer && !locked && import.meta.env.DEV && (
+      {developer && !remote && !locked && import.meta.env.DEV && (
         <div className="dev-panel">
           <label>
             DEVELOPMENT SCENARIO{' '}
@@ -179,14 +204,21 @@ export default function App() {
               <div className="section-kicker">
                 01 <span>OPERATIONS NETWORK</span>
               </div>
-              <AgentsPanel />
-              <History />
+              {remote ? <RuntimeAgents /> : <AgentsPanel />}
+              {remote ? <RuntimeHistory /> : <History />}
               <div className="mission-card">
                 <span className="eyebrow">CURRENT MISSION</span>
-                <h3>{d?.request.mission_id ?? 'No active mission'}</h3>
-                <p>{d?.request.mission_type.replaceAll('_', ' ') ?? 'Awaiting an ALICE event'}</p>
+                <h3>
+                  {remote ? 'Mission unavailable' : (d?.request.mission_id ?? 'No active mission')}
+                </h3>
+                <p>
+                  {remote
+                    ? 'Mission metadata is not supplied by the runtime feed'
+                    : (d?.request.mission_type.replaceAll('_', ' ') ?? 'Awaiting an ALICE event')}
+                </p>
                 <div>
-                  <ShieldCheck size={14} /> {d?.request.target ?? 'No target'}{' '}
+                  <ShieldCheck size={14} />{' '}
+                  {remote ? 'Target unavailable' : (d?.request.target ?? 'No target')}{' '}
                   <span>PROTECTED ASSET</span>
                 </div>
               </div>
@@ -199,12 +231,16 @@ export default function App() {
                 <div className="decision-counts">
                   <span className="tone-healthy">{allowCount} ALLOWED</span>
                   <i />
-                  <span className="tone-warning">{holdCount} HELD</span>
+                  <span className="tone-warning">
+                    {holdCount} {remote ? 'CHALLENGED' : 'HELD'}
+                  </span>
                   <i />
                   <span className="tone-danger">{denyCount} DENIED</span>
                 </div>
               </div>
-              {d ? (
+              {remote ? (
+                <RuntimeWorkspace />
+              ) : d ? (
                 <DecisionWorkspace decision={d} onResearch={() => setOverlay('research')} />
               ) : (
                 <Empty>
@@ -213,25 +249,37 @@ export default function App() {
                     : 'Loading decision fixtures…'}
                 </Empty>
               )}
-              <CommandPanel />
+              {!remote && <CommandPanel />}
             </section>
             <aside className="right-column">
               <div className="section-kicker">
                 03 <span>TRUST & VERIFICATION</span>
               </div>
-              <SystemPanel />
-              {d && <EvidencePanel decision={d} onResearch={() => setOverlay('research')} />}
+              {remote ? <RuntimeSystem /> : <SystemPanel />}
+              {remote ? (
+                <RuntimeEvidence />
+              ) : (
+                d && <EvidencePanel decision={d} onResearch={() => setOverlay('research')} />
+              )}
             </aside>
           </main>
         ) : (
           <main className="secondary-view">
             {view === 'history' ? (
               <>
-                <History expanded />
-                {d && <DecisionWorkspace decision={d} onResearch={() => setOverlay('research')} />}
+                {remote ? <RuntimeHistory /> : <History expanded />}
+                {remote ? (
+                  <RuntimeWorkspace />
+                ) : (
+                  d && <DecisionWorkspace decision={d} onResearch={() => setOverlay('research')} />
+                )}
               </>
             ) : view === 'audit' ? (
-              <AuditLog />
+              remote ? (
+                <RuntimeAudit />
+              ) : (
+                <AuditLog />
+              )
             ) : (
               <AdminPanel />
             )}
@@ -247,13 +295,15 @@ export default function App() {
             </span>
             <div>
               <strong>
-                {s.actions[s.selectedId]?.action === 'APPROVE_ONCE'
-                  ? 'Approval submitted · awaiting upstream'
-                  : d?.decision.result === 'HOLD'
-                    ? 'Action secured at the local boundary'
-                    : d
-                      ? `Upstream result: ${d.decision.result}`
-                      : 'Awaiting ALICE node'}
+                {remote
+                  ? 'Read-only runtime feed · remote responses unavailable'
+                  : s.actions[s.selectedId]?.action === 'APPROVE_ONCE'
+                    ? 'Approval submitted · awaiting upstream'
+                    : d?.decision.result === 'HOLD'
+                      ? 'Action secured at the local boundary'
+                      : d
+                        ? `Upstream result: ${d.decision.result}`
+                        : 'Awaiting ALICE node'}
               </strong>
               <span>
                 {d?.decision.biometric_required_for_approval

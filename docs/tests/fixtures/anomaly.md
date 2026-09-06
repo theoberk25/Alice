@@ -1,5 +1,8 @@
 # Anomaly contract fixtures
 
+Fixture files remain in `tests/fixtures/anomaly/` at the repository root.
+Names below refer to that data directory, not this documentation folder.
+
 These deterministic mock payloads let DCAMR and the dashboard validate the proposed
 `1.0.0-draft.1` anomaly contract before a model or evaluator exists. Each result
 file contains the complete object that DCAMR embeds at `raw_decision.anomaly`.
@@ -58,7 +61,7 @@ Isolation Forest detects these scenarios, validate feature construction, or
 measure Raspberry Pi resource use. No runtime parameters or thresholds have
 been tuned on measured data.
 
-The A01–A22 labels trace to the [PRD](../../../docs/prds/anomaly-model-prd.md);
+The A01–A22 labels trace to the [PRD](../../prds/anomaly-model-prd.md);
 they do not claim full integration-scenario coverage. This directory does not yet
 contain the proposed request/snapshot bodies, computed binding hashes, artifact
 packages, faults, scorer invocation checks, or DCAMR context. A03 has no sequence

@@ -527,7 +527,7 @@ Use the existing skeleton rather than the attachments' alternative `shared/`, `d
 | `tests/fixtures/features/`, `tests/test_feature_builder.py`, `scripts/lab/replay_feature_fixtures.py` | Implemented feature fixtures, replay and positive/failure tests. |
 | `packages/ops_baseline/` | Coordinate summaries/model binding with package-loader owner; do not replace others' formats unilaterally. |
 | `dcamr/decision_model.py`, `common/schemas/decision_record.json` | DCAMR-owned fusion/shared record; review the anomaly embedding together. |
-| `workstation/` | Consumer coordination only; no dashboard implementation in this slice. |
+| `apps/desktop/`, `packages/contracts/` | Console consumer coordination; this anomaly slice does not implement its live assessment adapter. |
 
 Suggested later branch name: `codex/ml-anomaly-contract`. The supplied documents propose basing work on `dev`, but only `main` was present in the inspected clone. Branch/integration-base selection is a separate team workflow decision; no branch, commit, push or PR is required by this document-only increment.
 

@@ -920,13 +920,13 @@ All 37 tracked Markdown sources were included in the source inventory. Descripti
 - **Snapshot:** 3,181 bytes; SHA-256 `58e2d7aae4ce5024`.
 - **Coverage:** Scope and authority; Verification and remaining work.
 
-#### [tests/fixtures/anomaly/README.md](../../tests/fixtures/anomaly/README.md)
+#### [tests/fixtures/anomaly/README.md](../tests/fixtures/anomaly.md)
 
 - **Title:** Anomaly contract fixtures
 - **Snapshot:** 4,364 bytes; SHA-256 `30b2dbfb94b3b387`.
 - **Coverage:** Files and consumption; Scope of this increment.
 
-#### [tests/fixtures/features/README.md](../../tests/fixtures/features/README.md)
+#### [tests/fixtures/features/README.md](../tests/fixtures/features.md)
 
 - **Title:** Synthetic behavioral feature fixtures
 - **Snapshot:** 4,059 bytes; SHA-256 `c2191e5d5e26c340`.
@@ -1034,7 +1034,7 @@ All 37 tracked Markdown sources were included in the source inventory. Descripti
 - **Snapshot:** 13,122 bytes; SHA-256 `7cc2459cd197d0d0`.
 - **Coverage:** Current product authority and legacy compatibility; Inbound events; Outbound automatic clarification; Outbound technician action; Transport integration; What is implemented and what is mocked; Reassessment exchange and delivery constraints.
 
-#### [workstation/services/biometrics/README.md](../../services/biometrics/README.md)
+#### [workstation/services/biometrics/README.md](../guides/biometrics-service.md)
 
 - **Title:** ALICE face identity service
 - **Snapshot:** 1,860 bytes; SHA-256 `24698700faad1335`.
@@ -1090,7 +1090,7 @@ Copied from [implementation-tracker.md](../implementation-tracker.md) at this sn
 | 025 | Check Known Agent Status | Done component | [Baseline selection](../../dcamr/anomaly_engine/baseline.py) and [tests](../../tests/test_feature_builder.py) distinguish a registered agent from cohort fallback without erasing novelty. |
 | 026 | Check Known Target Status | Done component | [Builder](../../dcamr/anomaly_engine/features.py) and [tests](../../tests/test_feature_builder.py) check the complete baseline target table and selected profile. |
 | 027 | Check Known Action Status | Done component | [Builder](../../dcamr/anomaly_engine/features.py) and [tests](../../tests/test_feature_builder.py) distinguish supported actions with positive versus zero normal counts. |
-| 028 | Build Behavioral Feature Vector | Done component | [Fixed 11-feature builder](../../dcamr/anomaly_engine/features.py) and [five replay fixtures](../../tests/fixtures/features/README.md) produce bounded immutable vectors. |
+| 028 | Build Behavioral Feature Vector | Done component | [Fixed 11-feature builder](../../dcamr/anomaly_engine/features.py) and [five replay fixtures](../tests/fixtures/features.md) produce bounded immutable vectors. |
 | 029 | Build Time-Based Features | Partial | [Five-minute history counts and time boundaries](../../dcamr/anomaly_engine/sequence.py) exist. Operating-window features are deliberately outside the current profile. |
 | 030 | Build Target-Novelty Features | Done component | [Builder](../../dcamr/anomaly_engine/features.py) exposes target/profile-target novelty and exact destination-relationship novelty; [tests](../../tests/test_feature_builder.py) cover these comparisons. |
 | 031 | Build Action-Novelty Features | Done component | [Builder](../../dcamr/anomaly_engine/features.py) exposes action-count novelty; missing baseline data is distinct from an explicit zero count. |
@@ -1110,7 +1110,7 @@ Copied from [implementation-tracker.md](../implementation-tracker.md) at this sn
 | 040 | Score Incoming Requests | Partial | [Contextual scorer](../../dcamr/anomaly_engine/contextual_model.py) now assesses captured PRE/POST observations using exact-context forests and frozen references; [cyber lab](../../scripts/lab/anomaly_training.py) remains. Live request transport, supervised Pi worker and canonical result adapter remain. |
 | 041 | Calculate Anomaly Percentile | Done component | [Rank mapper](../../dcamr/anomaly_engine/scoring.py) and [tests](../../tests/test_anomaly_training.py) map cyber scores against 1,200 frozen normal calibration scores. The [completed separate-reference experiment](../guides/anomaly-training.md) used 1,000 distinct normal source requests per family; within-session correlation remains, and no reference is accepted for deployment. |
 | 042 | Calculate Individual Anomaly Factors | Partial | [Cyber comparisons](../../dcamr/anomaly_engine/features.py) and [contextual training-range factors](../../dcamr/anomaly_engine/contextual_model.py) retain source/timing and deviations, including changed constant features with LOW ML bands. These are observations, not learned attribution; final fusion remains. |
-| 043 | Build Action-Sequence Model | Partial | [Validated transition-count tables](../../dcamr/anomaly_engine/baseline.py) and [synthetic rows](../../tests/fixtures/features/README.md) exist; no sequence-training pipeline or learned sequence artifact exists. |
+| 043 | Build Action-Sequence Model | Partial | [Validated transition-count tables](../../dcamr/anomaly_engine/baseline.py) and [synthetic rows](../tests/fixtures/features.md) exist; no sequence-training pipeline or learned sequence artifact exists. |
 | 044 | Score Action Sequences | Done component | [History component](../../dcamr/anomaly_engine/sequence.py) computes unsmoothed transition frequency for a complete row and masks no-predecessor cases. This is not an attack probability or authorization score. |
 
 #### Decision fusion and context exchange (045–057)

@@ -1,6 +1,6 @@
 # ALICE face identity service
 
-Run from the `workstation/` subsystem root with `npm run biometrics` after installing the Python 3.11 environment and provisioning the model as described in the main README. The service binds to the loopback host/port in `ALICE_BIOMETRIC_SERVICE_URL` (default `http://127.0.0.1:8765`); native Rust uses the same setting. Choose another loopback port if the default is occupied; the same configured URL must reach the service from the native app. The historical standalone port choice does not configure this checkout. Set the same random `ALICE_BIOMETRIC_TOKEN` in both process environments. A missing/short token makes requests fail safely.
+Run from the Alice repository root with `npm run biometrics` after installing the Python 3.11 environment and provisioning the model as described in the [facial verification setup](console/facial-verification-quickstart.md). The service binds to the loopback host/port in `ALICE_BIOMETRIC_SERVICE_URL` (default `http://127.0.0.1:8765`); native Rust uses the same setting. Choose another loopback port if the default is occupied; the same configured URL must reach the service from the native app. The historical standalone port choice does not configure this checkout. Set the same random `ALICE_BIOMETRIC_TOKEN` in both process environments. A missing/short token makes requests fail safely.
 
 | Route | Body / response |
 |---|---|

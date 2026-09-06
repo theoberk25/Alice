@@ -7,7 +7,7 @@
    these rules; explicitly link back here from any new agent instruction file.
 2. Check the branch, working-tree changes and available upstream revision. Preserve
    other contributors' work. Read the relevant PRD, tracker rows and subsystem guide.
-3. Use [docs/README.md](docs/README.md) and [scripts/README.md](scripts/README.md)
+3. Use [docs/README.md](docs/README.md) and [script catalog](docs/scripts/README.md)
    to find existing work before creating another implementation or document.
 4. Explicit user instructions govern the current task. Historical handoffs do not
    grant permission to publish, deploy or implement unrelated roadmap items.
@@ -42,6 +42,8 @@ are necessary, explain why and request explicit permission before reading them.
 
 - Developer scripts belong under scripts/<area>/ for new independent helpers.
   Technician console tools live in scripts/console/ and scripts/biometrics/.
+  Frontend applications belong in apps/, shared console packages in packages/,
+  local services in services/, and console tests in tests/console/.
   Before creating a helper, inspect the script catalog.
 - Python runtime modules remain in their owning packages (dcamr/, agent/, common/,
   cloud/, protected_systems/, services/). Tests remain with tests.
@@ -53,9 +55,14 @@ are necessary, explain why and request explicit permission before reading them.
 - PRDs: docs/prds/. Architecture: docs/architecture/. Contracts: docs/contracts/.
   Guides: docs/guides/. Integration: docs/integration/. Decisions: docs/decisions/.
   Plans: docs/plans/. Session records: docs/handoffs/. Evidence: docs/reports/.
-  Completed/superseded context: docs/archive/; follow its README archive rules.
-- Subsystem-specific docs may remain under docs/ and fixture READMEs
-  beside their fixtures. Link them from the main documentation index.
+  Completed/superseded context: docs/archive/; do not read it without permission.
+- All substantive Markdown documentation belongs under root docs/, including
+  script catalogs, subsystem guides and fixture explanations. Use topic folders
+  and subsystem indexes; do not add README copies beside runtime code or data.
+- Root README.md, architecture.md, AGENTS.md, CLAUDE.md and current.md are the
+  intentional project/session entry points. Scoped agent instruction files are
+  the only additional discovery exception. Link to detailed docs rather than
+  copying them. Archive contents require explicit permission to read.
 - Use snake_case.py and kebab-case.md for new files. Date historical records.
   Preserve existing public paths until a coordinated migration is authorized.
 

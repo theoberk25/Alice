@@ -13,6 +13,35 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         <Badge tone={mode === 'mock' ? 'warning' : 'information'}>
           {mode === 'mock' ? 'MOCK ALICE TRANSPORT' : 'REMOTE ALICE TRANSPORT'}
         </Badge>
+        {mode === 'remote' && (
+          <div className="settings-boundary">
+            <h3>Live Pi feed</h3>
+            <p>
+              The workstation reads the Pi ledger through the configured local bridge. Initial
+              history loads automatically, then new events arrive without refresh.
+            </p>
+            <p>
+              Configure ALICE_FEED_URL and ALICE_FEED_TOKEN in the native app or Vite server
+              environment. Pi access uses SSH forwarding. Connection credentials stay outside this
+              dashboard.
+            </p>
+            <p>
+              Remote accept/deny delivery is unavailable. Reconnecting never loads demonstration
+              records.
+            </p>
+            <button
+              className="small-button"
+              onClick={() =>
+                void useConsole
+                  .getState()
+                  .start()
+                  .catch((e) => setError(String(e)))
+              }
+            >
+              Reconnect and reload runtime history
+            </button>
+          </div>
+        )}
         <h3>Local language gateway</h3>
         <p>
           Ollama runs on this Mac. Select an already installed model. Core review controls remain

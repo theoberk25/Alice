@@ -28,6 +28,8 @@ import { deterministicClarification, OllamaProvider } from '../lib/llm';
 import { MockAliceTransport, RemoteAliceTransport } from '../lib/transport';
 import { nativeCall, isNative, runtimeConfig } from '../lib/native';
 import type { ScenarioName } from '../../../../fixtures/scenarios';
+import { FeedStatusSchema, type FeedStatus } from '@alice/contracts';
+import { emptyRuntime, mergeRuntimeFeed, type RuntimeState } from '@alice/domain';
 export interface AuditEvent {
   id: string;
   timestamp: string;
@@ -45,6 +47,10 @@ export interface Technician {
   enrolled: boolean;
 }
 interface ConsoleState {
+  runtime: RuntimeState;
+  feed: FeedStatus;
+  selectedRuntimeId: string;
+  selectRuntime: (id: string) => void;
   ready: boolean;
   mode: 'mock' | 'remote';
   biometricMode: 'mock' | 'arcface';
@@ -92,6 +98,15 @@ let epoch = 0;
 const llm = new OllamaProvider();
 const persistence = new Map<string, Promise<void>>();
 export const useConsole = create<ConsoleState>((set, get) => ({
+  runtime: emptyRuntime(),
+  feed: {
+    event_type: 'alice.feed_status',
+    state: 'unavailable',
+    last_success_at: null,
+    message: 'No runtime feed connected',
+  },
+  selectedRuntimeId: '',
+  selectRuntime: (selectedRuntimeId) => set({ selectedRuntimeId }),
   ready: false,
   mode: 'mock',
   biometricMode: 'mock',
@@ -142,10 +157,11 @@ export const useConsole = create<ConsoleState>((set, get) => ({
         .catch((e) => get().error(`History could not be restored: ${String(e)}`));
   },
   hydrate: async () => {
-    if (!isNative) return;
+    if (!isNative || get().mode === 'remote') return;
     get().restoreHistory(await nativeCall('read_console_history'));
   },
   restoreHistory: (input) => {
+    if (get().mode === 'remote') return;
     const history = z
       .object({
         decisions: z.array(z.unknown()),
@@ -251,6 +267,34 @@ export const useConsole = create<ConsoleState>((set, get) => ({
     set((s) => ({ flows: { ...s.flows, [id]: transition(s.flows[id] ?? 'IDLE', event) } })),
   ingest: (input) => {
     try {
+      if (typeof input === 'object' && input !== null && 'event_type' in input) {
+        if (input.event_type === 'alice.feed_status') {
+          const feed = FeedStatusSchema.parse(input);
+          set((s) => ({
+            feed,
+            errors:
+              feed.state === 'live'
+                ? s.errors.filter((e) => !e.startsWith('Runtime feed unavailable:'))
+                : s.errors,
+          }));
+          return;
+        }
+        if (input.event_type === 'alice.runtime_feed') {
+          if (get().mode !== 'remote') throw new Error('Runtime feed cannot mix with simulation');
+          const { event_type: _type, ...page } = input;
+          void _type;
+          const runtime = mergeRuntimeFeed(get().runtime, page);
+          set((s) => ({
+            runtime,
+            selectedRuntimeId: s.selectedRuntimeId || Object.keys(runtime.requests).at(-1) || '',
+          }));
+          return;
+        }
+      }
+      if (get().mode === 'remote')
+        throw new Error(
+          'Remote mode requires validated runtime feed events; fixture records are disabled',
+        );
       const e = normalizeEvent(input);
       if (e.event_type === 'alice.decision') {
         const prior = get().decisions[e.decision_id];
@@ -397,13 +441,22 @@ export const useConsole = create<ConsoleState>((set, get) => ({
   start: async (scenario = '03_hold_high_anomaly') => {
     const reset = get().ready;
     disconnect?.();
-    epoch++;
+    const generation = ++epoch;
     persistence.clear();
     const config = await runtimeConfig();
+    if (generation !== epoch) return;
     if (isNative && config.transport_mode === 'mock' && reset)
       await nativeCall('reset_mock_scenario');
     set({
       ready: false,
+      runtime: emptyRuntime(),
+      selectedRuntimeId: '',
+      feed: {
+        event_type: 'alice.feed_status',
+        state: 'connecting',
+        last_success_at: null,
+        message: 'Connecting',
+      },
       mode: config.transport_mode,
       biometricMode: config.biometric_mode,
       scenario,
@@ -428,7 +481,19 @@ export const useConsole = create<ConsoleState>((set, get) => ({
       config.transport_mode === 'mock'
         ? new MockAliceTransport(scenario)
         : new RemoteAliceTransport();
-    disconnect = await transport.connect(get().ingest, get().error);
+    const stop = await transport.connect(
+      (event) => {
+        if (generation === epoch) get().ingest(event);
+      },
+      (message) => {
+        if (generation === epoch) get().error(message);
+      },
+    );
+    if (generation !== epoch) {
+      stop();
+      return;
+    }
+    disconnect = stop;
     await Promise.all(persistence.values()).catch(() => {});
     if (isNative && config.transport_mode === 'mock' && config.biometric_mode === 'mock') {
       const technician = await nativeCall<Technician>('demo_session');
@@ -466,6 +531,8 @@ export const useConsole = create<ConsoleState>((set, get) => ({
   act: async (action, verification, decisionId) => {
     const s = get(),
       d = s.decisions[decisionId ?? s.selectedId];
+    if (s.mode === 'remote')
+      throw new Error('Remote technician actions are unavailable; no response was delivered');
     if (!d || !s.technician)
       throw new Error('An authenticated technician and a decision are required.');
     if (s.latestDecisionByRequest[d.request.request_id] !== d.decision_id)

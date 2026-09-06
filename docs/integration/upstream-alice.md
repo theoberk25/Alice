@@ -88,9 +88,16 @@ Receipt status may be ACCEPTED, PENDING, or REJECTED. ACCEPTED acknowledges the 
 
 ## Transport integration
 
-`AliceTransport` isolates UI/state from transport. `MockAliceTransport` emits fixtures and simulates context and action acknowledgments. `RemoteAliceTransport` is a fail-closed skeleton with explicit unavailable errors.
+`AliceTransport` isolates UI/state from transport. `MockAliceTransport` emits fixtures and simulates context and action acknowledgments. `RemoteAliceTransport` now polls the authenticated read-only runtime bridge;
+see [live mapping/configuration](live-dashboard.md). The rich fixture decision
+contract remains unchanged. A separate `alice-runtime-feed-v1` display contract
+retains audit events and request groups without fabricated fields. Remote
+clarification and technician actions still fail explicitly unavailable.
 
-Implement the real boundary in Rust, then bridge it through this interface:
+The read-only slice adds Rust `read_runtime_events` plus a same-origin Vite
+development proxy. Credentials remain outside the renderer. The following
+requirements concern the **future writable review boundary**, not a claim that
+it is implemented:
 
 1. Authenticate the edge/console connection. Agree TLS or mutually authenticated local-channel details and enrollment of console trust.
 2. WebSocket inbound messages must validate and populate the native authoritative cache, then emit normalized events to the renderer. The current `cache_decision` command is mock-only by design.

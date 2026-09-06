@@ -16,6 +16,14 @@ remote transport now consumes the Pi's read-only `GET /events` feed. Jared's
 enterprise SIEM console gained a clearly-labelled live-edge lab tab. Idempotent
 retry and the deny path were both demonstrated end to end.
 
+## Subsequent local integration
+
+The [live dashboard/USB configuration](../integration/live-dashboard.md) supersedes
+the original Pi-internal-only storage assumption: the user approved USB-backed
+SQL history and offline writes. The local bridge/display slice and mount guards
+are implemented; this report's original first-light results remain historical.
+Enterprise SQL snapshot publication and SIEM reconciliation workers remain pending.
+
 ## Completed and ready now
 
 **Request pipeline (`dcamr/main.py`)** — a stdlib HTTP runtime implementing

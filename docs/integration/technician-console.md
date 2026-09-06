@@ -1,11 +1,39 @@
 # Technician console integration
 
+## Current integration direction
+
+The [live dashboard and USB SQL slice](live-dashboard.md) now implements read-only
+first-light runtime history and incremental display. USB is the user-confirmed
+offline database medium. Physical Pi/USB acceptance, enterprise snapshot
+publication and writable biometric response integration remain pending.
+
+User-confirmed (2026-09-05): ML classification stays on the Pi; held-action accept
+or deny is decided on the local Mac after biometric verification. Merek's next
+session builds the backend data flow, enabling Alex to connect workstation scripts
+and live dashboard behavior. Theo and Jared are configuring the Pi; Xavi is working
+on hardware. The backend carries the bound, biometrically verified response and
+the Pi validates execution prerequisites; neither component silently takes over
+the Mac's held-action choice.
+
+Agree both accept/deny proof requirements, request/assessment currentness, event
+projection and receipt/replay contracts before implementing the live connection.
+The existing approval-focused native guards do not establish that complete target.
+See the [corrected architecture](../../architecture.md) and
+[next-session handoff](../handoffs/2026-09-05-theo-architecture-alignment.md).
+
+## Earlier migration and contract evidence
+
 Repository migration note (2026-09-05): the console source is now located in
 [the shared console layout](../guides/technician-console.md), with its executable contracts,
 fixtures and tests. See the [migration assessment](main-repository-migration.md)
 and [new verification record](../guides/console/verification.md#main-repository-migration-verification).
 The earlier handoff-based assessment below is retained as historical context;
 source colocation does not implement the cross-system agreements described here.
+For current component evidence use the [root architecture](../../architecture.md)
+and [combined review](../handoffs/2026-09-05-team-layout-review.md): 259 core Python
+tests and console frontend/build/browser checks were recorded there. Native, camera
+and Pi acceptance were not rerun at that checkpoint. Counts below describe the
+earlier handoff, not the present checkout.
 
 Updated: 2026-09-05. This document connects the ALICE core work to the separate
 `ALICE_TechnicalReview` technician-console project. It is an integration agreement
@@ -18,7 +46,7 @@ here. References to console implementation below are **handoff-reported**. Comma
 local account details and workstation-specific setup from that handoff are not
 portable installation instructions and are not reproduced.
 
-## Current evidence and component placement
+## Historical handoff evidence and component placement
 
 | Boundary | Evidence and limitation |
 | --- | --- |

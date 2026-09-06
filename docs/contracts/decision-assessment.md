@@ -9,6 +9,22 @@ require human technician approval**, as selected by Jared. Transport is another
 workstream. The UI may display Approve/Hold/Reject; existing decision wire names
 remain ALLOW/HOLD/DENY until the transport owners coordinate a migration.
 
+## Confirmed held-action decision boundary
+
+The user clarified on 2026-09-05 that the Pi owns ML classification and the local
+Mac owns held-action accept/deny resolution after biometric verification. This
+preserves the assessment-only output below; it does not add a final decision to
+this packet. The future backend must carry the Mac response and verification proof
+bound to the exact current request/assessment, and the Pi must check that proof,
+permissions, authority and audit readiness before execution.
+
+Biometric gating of the held-action choice is target behavior, including accept
+and deny. Existing native approval grants and first-light's auto-only decision are
+not evidence of the complete response path. Response/proof schema, existing wire
+name mappings and both-path acceptance tests remain to agree with Alex and the Pi
+team. No executable schema or authorization behavior changes in this documentation
+revision. See the [architecture](../../architecture.md#decision-ownership-pi-classification-mac-review).
+
 ## Call boundary
 
 ```python

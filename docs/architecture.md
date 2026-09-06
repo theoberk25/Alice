@@ -1,5 +1,22 @@
 # Architecture guide
 
+The [root architecture](../architecture.md) now leads with Theo's intended runtime
+pipeline and the user's confirmed split: Pi classification, local Mac held-action
+accept/deny after biometric verification, then Pi validation/enforcement. It also
+defines the backend/live-dashboard work for the next session. The
+[older Pi plan](plans/2026-09-05-theo-pi-runtime-reference.md) is a preserved reference,
+not current implementation status or automatic authorization to execute its steps.
+
+Current implementation update: main at `d6e7e55` adds the
+[first-light slice](reports/2026-09-05-pi-backend-status.md): signed terminal request,
+verified demo release, exact grant resolver, fixture assessment, durable ledger
+producer and mock ESP HTTP execution. Full permission semantics, real scoring/review,
+authority transfer and physical acceptance remain. Requirements below describe
+the full product; use the [current source map](../architecture.md) for implemented scope.
+
+Start with the root [high-level architecture](../architecture.md) for the current
+component map, runtime boundaries and implemented-versus-planned distinction.
+
 The canonical design is [ALICE — architecture and integration
 boundaries](prds/ALICE-DCAMR-Architecture.md), revised September 5, 2026. It
 supersedes the earlier design in which every online and offline request passed
@@ -33,9 +50,11 @@ execution ownership are separate status facts.
 | Trust boundaries and verification scenarios | [Threat model](architecture/threat-model.md), [demo runbook](guides/demo-runbook.md) |
 | Implementation status and next work | [Tracker](implementation-tracker.md) |
 
-The core currently implements anomaly components and synthetic Mac experiments.
-Two-mode orchestration, permissions enforcement, mission audit, enterprise
-connectors, controller execution and live console integration are planned. A
+The core implements anomaly components, Pi assessment packets and a local durable
+ledger, with synthetic Mac experiments and a mock-driven technician console.
+Two-mode orchestration, full permissions enforcement, real assessment audit
+producers, enterprise connectors, physical controller acceptance and live console
+integration remain planned beyond the first-light fixture/mock slice. A
 diagram or contract requirement is not evidence those services are running.
 
 The protected endpoint must enforce one current execution authority. A network
