@@ -105,3 +105,40 @@ def test_http_roles_resume_and_strict_json():
         server.shutdown()
         server.server_close()
         thread.join()
+
+
+class HoldGateway:
+    """Returns an undecided CHALLENGE so the request stays awaiting a technician."""
+
+    def submit(self, action):
+        return {'action': action, 'decision': 'CHALLENGE',
+                'review_state': 'PENDING', 'execution': 'NOT_EXECUTED'}
+
+
+def test_undecided_hold_stays_reviewable_after_the_pending_slot_moves_on():
+    env = configured(gateway=HoldGateway())
+    action = {'request_id': 'hold-1', 'run_id': env.run_id, 'expected_revision': 0, 'fan_pct': 0}
+    env.request_fan(action, 'power-agent-01')
+    staged = env.requests['hold-1']['action']
+    assert env.requests['hold-1']['application'] == 'PENDING'
+    assert env.reviewable(staged) and env.current(staged)
+
+    # Later traffic and a lifecycle change must not strand an undecided hold.
+    env.pending, env.revision = None, env.revision + 1
+    env.control('pause')
+    assert env.reviewable(staged)
+    assert not env.current(staged)
+
+    # A recorded outcome ends review; the decision is no longer open.
+    env.requests['hold-1']['application'] = 'NOT_APPLIED'
+    assert not env.reviewable(staged)
+
+
+def test_reviewable_rejects_unknown_and_altered_requests():
+    env = configured(gateway=HoldGateway())
+    action = {'request_id': 'hold-2', 'run_id': env.run_id, 'expected_revision': 0, 'fan_pct': 0}
+    env.request_fan(action, 'power-agent-01')
+    staged = env.requests['hold-2']['action']
+    assert not env.reviewable({**staged, 'request_id': 'absent'})
+    assert not env.reviewable({**staged, 'parameters': {'fan_pct': 55}})
+    assert not env.reviewable({**staged, 'run_id': 'other-run'})

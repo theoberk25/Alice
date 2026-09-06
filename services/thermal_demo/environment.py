@@ -147,6 +147,22 @@ class Environment:
                 and self.pending == action['request_id']
                 and self.requests[self.pending]['action'] == action)
 
+    def reviewable(self, action):
+        """Whether a technician may still decide this request.
+
+        Execution currency requires the single pending slot and an unchanged
+        revision because applying a stale fan target is unsafe. Deciding is not
+        actuating, so an undecided request stays reviewable after later traffic,
+        a pause, or the pending slot moving on. apply_authorized remains the gate
+        that refuses a stale application, and a resolved request stops being
+        PENDING, so a recorded approval or rejection is never revisited here.
+        """
+        self._advance()
+        record = self.requests.get(action['request_id'])
+        return (record is not None and action['run_id'] == self.run_id
+                and record['application'] == 'PENDING'
+                and record['action'] == action)
+
     def apply_authorized(self, action):
         """Called only by the trusted executor after durable execution admission."""
         with self.lock:
