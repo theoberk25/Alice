@@ -6,6 +6,7 @@ semantic reconciliation. See docs/integration/wazuh-audit-sync.md.
 """
 from dataclasses import dataclass
 from hashlib import sha256
+from http.client import HTTPException
 import base64
 import json
 from pathlib import Path
@@ -102,7 +103,7 @@ class WazuhAuditSink:
             response = self.opener.open(request, timeout=self.timeout)
         except HTTPError as error:
             response = error
-        except (URLError, TimeoutError, OSError):
+        except (URLError, TimeoutError, OSError, HTTPException):
             raise DeliveryError('TRANSPORT_UNAVAILABLE') from None
         try:
             with response:
@@ -115,7 +116,9 @@ class WazuhAuditSink:
             if type(payload) is not dict:
                 raise ValueError
             return status, payload
-        except (ValueError, OSError):
+        except (OSError, HTTPException):
+            raise DeliveryError('TRANSPORT_UNAVAILABLE') from None
+        except ValueError:
             raise DeliveryError('INVALID_INDEXER_RESPONSE') from None
 
     def probe(self):
@@ -130,9 +133,17 @@ class WazuhAuditSink:
         status, created = self._request('PUT', f'/{INDEX}/_create/{identity}', body)
         if status not in (201, 409):
             raise DeliveryError('INDEXER_AUTHORIZATION' if status in (401, 403) else 'INDEXER_WRITE_FAILED')
+        shards = created.get('_shards')
         if status == 201 and (created.get('_id') != identity or created.get('_index') != INDEX
-                              or created.get('result') != 'created' or created.get('_shards', {}).get('failed') != 0):
+                              or created.get('result') != 'created' or type(shards) is not dict
+                              or type(shards.get('failed')) is not int or shards['failed'] != 0):
             raise DeliveryError('INVALID_CREATE_RECEIPT')
+        return self.verify_stored(event)
+
+    def verify_stored(self, event):
+        """Read-only exact-content verification; never uploads or acknowledges."""
+        body = document(event)
+        identity = document_id(event)
         # 409 can mean a conflicting document, never unconditional success.
         # GET is real-time; do not depend on search refresh to verify storage.
         status, stored = self._request('GET', f'/{INDEX}/_doc/{identity}')

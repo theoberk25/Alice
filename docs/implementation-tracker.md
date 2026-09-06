@@ -11,7 +11,8 @@ The current [parent PRD][prd], [architecture][architecture] and
 progress and remaining cross-system agreements are documented separately in the [console integration note][console-integration];
 it does not change core task status without a working cross-system connection.
 The current increment adds the [local Decision Evidence Ledger][audit-guide];
-two-mode admission, authority and live transport still need runtime integration.
+two-mode admission and authority transfer still need runtime integration; live
+read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
@@ -34,26 +35,26 @@ No signed permissions, Pi grants, technician authority or task status changed.
 current service/storage paths, firmware interface, client setup and the recommended
 authenticated held-action response sequence. Recommendations do not change task status.
 
-[Pi → Wazuh live proof](reports/2026-09-06-wazuh-ledger-sync.md): 76 original
-ledger events delivered and acknowledged over verified TLS, replay without duplicate
-writes, original Pi runtime restored. Maintenance-only uploader reuses AuditLog;
-An owner-integrated worker now automatically delivered seven more events from
-physical ext4 USB; live outage/reboot tests and semantic reconciliation remain.
-[Automatic USB proof](reports/2026-09-06-automatic-usb-wazuh-sync.md).
-Task 086 becomes Partial; original task labels and IDs preserved.
+Published `2aaf021` integrates Xavier's `290699b` USB-serial transport with the preserved
+snapshot/Wazuh/dashboard work. Hardware testing was reported on his development Mac;
+Pi serial deployment and joint acceptance remain pending. [Integration evidence](handoffs/2026-09-06-xavier-serial-integration.md).
 
-[Jared Mac live first-light check](reports/2026-09-05-jared-first-light-test.md):
-signed request accepted on Pi; seven correlated events; retry caused exactly
-one mock ESP execution. Fixture assessment only; no physical/USB acceptance implied.
+Integrated locally from Jared's `origin/main` checkpoint `ef413b6` and the preserved
+SQL snapshot checkpoint `73dfa91`. [ESP/technician handoff](integration/esp-technician-handoff.md)
+and [Wazuh runbook](integration/wazuh-audit-sync.md) define the provisioned paths.
 
-Live dashboard slice: [configuration and field mapping](integration/live-dashboard.md).
-The real local first-light runtime now feeds the existing technician dashboard
-automatically through validated authenticated transport. USB-backed SQL storage
-and no-fallback mount guards implement the user-approved offline storage direction.
-Remote biometric actions, enterprise snapshot publication, automatic SIEM workers and
-physical Pi/USB acceptance remain pending. Verification is recorded in the
-[live handoff](handoffs/2026-09-06-live-dashboard.md). Task 082 becomes Partial;
-all task IDs and labels are preserved.
+Jared's [automatic USB proof](reports/2026-09-06-automatic-usb-wazuh-sync.md) reports
+seven new events delivered from physical ext4 USB, reaching 83 Wazuh records,
+with identical retry causing no extra mock-controller command. These are Jared's
+observations; this Mac's SSH connection currently times out. Live outage/reboot,
+physical actuator and semantic reconciliation acceptance remain pending.
+
+Our [signed SQL input snapshot](integration/release-snapshot.md), existing audit
+history and live dashboard are retained alongside the automatic owner-integrated
+Wazuh worker. General enterprise SQL synchronization, activation/freshness/rollback
+protection and remote biometric actions remain separate work. Task 086 is Partial;
+all task IDs and labels are preserved. Combined verification belongs in the
+[integration handoff](handoffs/2026-09-06-jared-main-integration.md).
 
 ### Historical checkpoints
 
@@ -353,7 +354,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 010 | Load Policy Data from SD Card | Planned | Desired medium/path: USB `permissions/`. No discovery, authorized-permissions package load or activation exists; legacy policy keys/paths remain unchanged. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 011 | Load Normal Operations Data from SD Card | Planned | Current medium: USB `normal_behavior/`. The baseline byte loader exists, but no removable-media package load path is implemented. |
 | 012 | Load User Permissions from SD Card | Planned | Desired permissions input is USB `permissions/`; trusted user/agent identity and delegated permissions contracts/loaders remain unimplemented. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
-| 013 | Verify Package Signatures | Partial | [Package verifier][package-verifier] now verifies the first-light release: manifest Ed25519 signature plus per-payload sha256 digests, fail-closed at startup, with [tamper tests][first-light-tests]. Issuer trust provisioning, staging/activation, freshness and rollback checks remain unimplemented; the lab signing key is demonstration trust only. |
+| 013 | Verify Package Signatures | Partial | First-light directory and SQL snapshot inputs share Ed25519/digest verification. Immutable no-overwrite SQL publication and bounded read-only loading are implemented; [snapshot handoff](handoffs/2026-09-06-release-snapshot.md). General enterprise schema/coverage, trust provisioning, freshness, generation rollback protection and activation remain. |
 | 014 | Validate Package Versions | Partial | [Schema/profile versions][feature-validation] and baseline labels are checked. Package freshness, rollback prevention and compatible activation are not implemented. |
 
 ## Request admission and policy checks (015–024)
@@ -441,7 +442,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | Target clarified: local Mac resolves held actions to accept/deny after biometric verification; Merek's backend must deliver that bound response to the Pi. No real receiver is connected; authentication, proof/currentness checks and receipts remain. |
 | 070 | Require Technician Authentication for Approval | Planned | Local ArcFace enrollment/login and native approval grants exist. Target held-action accept/deny choice is biometric-gated on the Mac; both response paths and Pi-verifiable proof bound to current request/assessment/authority need agreement and acceptance. |
-| 071 | Execute Approved Action | Partial | The [enforcement gateway][enforcement] now commands the first-light ESP light over HTTP (receipt and state readback separated; idempotency owned by the runtime), verified against a mock ESP in [tests][first-light-tests]. The real ESP firmware contract, endpoint fence and general action execution remain; ONLINE enterprise control remains direct. |
+| 071 | Execute Approved Action | Partial | HTTP light adapter and XIAO USB-serial adapter share existing receipt/observation contracts. Serial, snapshot, Wazuh and replay integration tests pass; Xavier reports development-Mac LED tests. Pi serial deployment, updated firmware flashing and crash-window physical acceptance remain. [Integration handoff](handoffs/2026-09-06-xavier-serial-integration.md). |
 | 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
 | 073 | Record Action Execution Result | Partial | Runtime records controller receipt, execution result and observed state separately; live dashboard updates these after the immutable decision. Real local runtime/mock-controller browser acceptance passed; physical endpoint and sensor acceptance remain. [Live handoff](handoffs/2026-09-06-live-dashboard.md). |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |
@@ -467,7 +468,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 089 | Reconcile Local Evidence with Cloud Evidence | Planned | The core [reconciliation component][reconciliation] is empty. Direct Pi comparison/upload and append-only findings remain. |
 | 090 | Detect Evidence Discrepancies | Planned | No local/cloud evidence discrepancy detector exists. |
 | 091 | Append Reconciliation Results | Partial | [Ledger finding append][audit] and [outbox tests][audit-outbox-tests] require original ID/hash and source attribution; reconciliation marker requires original ACK plus linked finding. Actual evidence fetching/comparison and enterprise reconciliation remain absent. |
-| 092 | Preserve Original Decision History | Partial | Original audit events remain immutable through live display and reconnect; late execution events update request projections without changing decision IDs or content. Reconciliation must append findings and acknowledgements. Bounded Wazuh delivery now preserves originals; full reassessment exchange remains. [Live guide](integration/live-dashboard.md). |
+| 092 | Preserve Original Decision History | Partial | Original audit events remain immutable through display/reconnect and explicit snapshot selection at restart; combined Wazuh/snapshot tests preserve exact records and restart replay. Snapshot tests preserve event bytes, replay outcomes and queued delivery state as new releases govern future requests. Wazuh delivery preserves originals and appends delivery bookkeeping. Full reassessment and semantic reconciliation remain. [Snapshot guide](integration/release-snapshot.md), [Wazuh runbook](integration/wazuh-audit-sync.md). |
 
 ## Package updates and connected recovery (093–107)
 

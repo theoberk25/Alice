@@ -1,11 +1,14 @@
 # Current
 
 Updated: 2026-09-06 UTC (September 5 EDT).
-Baseline: main `44f4d73`, merged at `4eb6238` on `codex/wazuh-log-sync`.
-Objective: enterprise SIEM/endpoint-security presentation, preserving live USB sync.
+Baseline: merging main `d3502e3` with local `d6b4892` on `codex/wazuh-log-sync`.
+Objective: merge USB-serial ESP and technician updates, then connect operator light actions.
 Teammates own Pi ↔ technician approval transport and enterprise cache publication.
 
 ## Implemented and observed
+
+- Main adds XIAO USB-serial transport/firmware, signed SQL input snapshots and
+  technician acceptance tools. Local SIEM UI, operator and cache downloader retained.
 
 - Enterprise UI redesigned locally: security overview, threat hunting, endpoint
   evidence and actual Wazuh Pi stream. Browser interactions and five backend tests pass.

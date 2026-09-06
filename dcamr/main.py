@@ -34,6 +34,7 @@ from dcamr.audit.signing import Ed25519Signer, Ed25519Verifier, TrustStore, Trus
 from dcamr.decision_model import decide
 from dcamr.usb_storage import UsbStorage, StorageUnavailable
 from dcamr.enforcement.enforcement_gateway import ControllerError, LightController
+from dcamr.enforcement.serial_light_controller import SerialLightController
 from dcamr.packages.package_verifier import load_release
 from dcamr.policy_engine.policy_engine import find_permission
 from lab.first_light.assessment_fixture import build_assessment
@@ -62,11 +63,28 @@ def _request_validator():
     return Draft202012Validator(schema, format_checker=FormatChecker())
 
 
+def _make_controller(esp_base_url, esp_serial, serial_baud, serial_timeout):
+    """Exactly one transport, chosen explicitly.
+
+    HTTP and serial never substitute for one another: a run configured with
+    both or neither fails closed at startup rather than quietly commanding the
+    wrong endpoint.
+    """
+    if bool(esp_base_url) == bool(esp_serial):
+        raise StartupError("choose exactly one of esp_base_url or esp_serial")
+    if esp_serial:
+        return SerialLightController(esp_serial, baud=serial_baud, timeout=serial_timeout)
+    return LightController(esp_base_url)
+
+
 class FirstLightRuntime:
     def __init__(self, *, release_dir, trusted_manifest_key: bytes, data_dir,
-                 esp_base_url: str, usb_root=None, ledger_key_file=None, initialize_ledger=False):
+                 esp_base_url: str = None, usb_root=None, ledger_key_file=None,
+                 initialize_ledger=False, release_snapshot=False, esp_serial: str = None,
+                 serial_baud: int = 115200, serial_timeout: float = 2.0):
         self.sync_worker = None
         self.storage = None
+        self.release_snapshot = release_snapshot
         if usb_root is not None:
             try:
                 self.storage = UsbStorage(usb_root, data_dir)
@@ -79,19 +97,24 @@ class FirstLightRuntime:
             except StorageUnavailable as exc:
                 raise StartupError(str(exc)) from exc
         try:
-            self.release = load_release(release_dir, trusted_manifest_key)
+            if release_snapshot:
+                from dcamr.packages.release_snapshot import load_snapshot
+                self.release = load_snapshot(release_dir, trusted_manifest_key)
+            else:
+                self.release = load_release(release_dir, trusted_manifest_key)
             self._validator = _request_validator()
         except Exception as exc:
             raise StartupError(f"release verification failed: {exc}") from exc
 
         data_dir = Path(data_dir)
-        if self.storage and not initialize_ledger and not (data_dir / "ledger.sqlite").is_file():
+        if (self.storage or release_snapshot) and not initialize_ledger and not (data_dir / "ledger.sqlite").is_file():
             raise StartupError("An existing USB ledger is required; explicit initialization is for first provisioning only")
         (data_dir / "evidence").mkdir(parents=True, exist_ok=True)
         self._evidence_dir = data_dir / "evidence"
         self._boot_id = "boot-" + uuid.uuid4().hex[:12]
         self._lock = threading.Lock()
-        self.controller = LightController(esp_base_url)
+        self.controller = _make_controller(esp_base_url, esp_serial,
+                                           serial_baud, serial_timeout)
 
         seed_path = Path(ledger_key_file) if ledger_key_file else data_dir / "ledger_key.seed"
         if not seed_path.exists():
@@ -155,6 +178,9 @@ class FirstLightRuntime:
                      for name in ("baseline", "model", "calibration", "snapshot")}
         artifacts["policy"] = {"id": self.release.bundle_id,
                                "sha256": self.release.manifest_sha256, "missing_reason": None}
+        if self.release_snapshot:
+            # Identify the verified signed content, not SQLite's physical layout.
+            artifacts["snapshot"] = dict(artifacts["policy"])
         artifacts["evidence"] = list(evidence)
         return artifacts
 
@@ -436,9 +462,15 @@ class FirstLightRuntime:
         self.sync_worker.start()
 
     def close(self):
-        if self.sync_worker:
-            self.sync_worker.close()
-        self.ledger.close()
+        try:
+            if self.sync_worker:
+                self.sync_worker.close()
+            self.ledger.close()
+        finally:
+            # The HTTP controller has no port to release; the serial one does.
+            closer = getattr(self.controller, "close", None)
+            if closer is not None:
+                closer()
 
 
 # ------------------------------------------------------------------- server
@@ -497,7 +529,10 @@ def make_server(runtime: FirstLightRuntime, host="0.0.0.0", port=8080):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--release", type=Path, required=True)
+    release_input = parser.add_mutually_exclusive_group(required=True)
+    release_input.add_argument("--release", type=Path, help="Signed first-light JSON release directory")
+    release_input.add_argument("--release-snapshot", type=Path,
+                               help="Verified first-light SQL input snapshot; existing ledger required")
     parser.add_argument("--trust-key", type=Path, required=True,
                         help="hex file with the trusted manifest public key")
     parser.add_argument("--data-dir", type=Path, required=True,
@@ -512,15 +547,25 @@ def main():
                         help="Explicit first provisioning only; never substitutes for a missing SQL snapshot")
     parser.add_argument("--wazuh-sync-config", type=Path,
                         help="Private HTTPS credentials; enables automatic ledger delivery")
-    parser.add_argument("--esp-url", required=True)
+    transport = parser.add_mutually_exclusive_group(required=True)
+    transport.add_argument("--esp-url", help="HTTP light node base URL")
+    transport.add_argument("--esp-serial",
+                           help="USB CDC device for the XIAO light node; "
+                                "prefer a stable /dev/serial/by-id/... path")
+    parser.add_argument("--serial-baud", type=int, default=115200)
+    parser.add_argument("--serial-timeout", type=float, default=2.0)
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
     args = parser.parse_args()
     trusted = bytes.fromhex(args.trust_key.read_text().strip())
-    runtime = FirstLightRuntime(release_dir=args.release, trusted_manifest_key=trusted,
+    runtime = FirstLightRuntime(release_dir=args.release_snapshot or args.release,
+                                release_snapshot=args.release_snapshot is not None,
+                                trusted_manifest_key=trusted,
                                 data_dir=args.data_dir, esp_base_url=args.esp_url,
                                 usb_root=args.usb_root, ledger_key_file=args.ledger_key_file,
-                                initialize_ledger=args.initialize_ledger)
+                                initialize_ledger=args.initialize_ledger,
+                                esp_serial=args.esp_serial, serial_baud=args.serial_baud,
+                                serial_timeout=args.serial_timeout)
     if args.wazuh_sync_config:
         runtime.start_wazuh_sync(args.wazuh_sync_config)
     server = make_server(runtime, args.host, args.port)

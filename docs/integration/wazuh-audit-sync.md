@@ -246,3 +246,14 @@ check passed. Changes remain local and no new Markdown file was created.
 
 Final regression after the presentation changes: **310 passed, 226 subtests passed**
 in 21.41 seconds. No push or Pi deployment was performed for this UI increment.
+
+## Integrated snapshot and acceptance continuation
+
+The worker also passes local integration checks alongside the explicit signed
+first-light SQL snapshot input, preserving original events and restart replay.
+HTTP protocol/truncated-body errors now enter delivery retry rather than stopping
+the worker as a local failure; malformed nested create receipts are rejected.
+The shared `verify_stored(event)` method performs only exact-content GET verification.
+The [joint acceptance helper](pi-technician-acceptance.md) uses it without uploading
+or mutating delivery state. Existing physical service deployment remains unchanged
+until the operator pulls and performs a coordinated restart.

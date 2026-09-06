@@ -9,6 +9,7 @@ packages, services and tests. Follow each catalog for dependencies and outputs.
 | Biometrics | [Catalog](biometrics.md) | Repository-local Python environment and model/service tools |
 | Lab / simulation | [Catalog](../lab/README.md) | python -m lab.* from root; absolute checkout path to scripts/lab/run.py from any directory |
 | Pi → Wazuh delivery | [Maintenance guide](../integration/wazuh-audit-sync.md) | Runtime --wazuh-sync-config for automation; lab.wazuh_sync only with service stopped |
+| Pi pipeline acceptance | [Joint checklist](../integration/pi-technician-acceptance.md) | lab.first_light.check_pipeline is read-only; run on Pi beside the existing service |
 | Package tooling | [Catalog](packages.md) | Empty placeholders; not runnable tools |
 
 The [console migration](../handoffs/2026-09-05-console-layout.md) includes all

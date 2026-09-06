@@ -3,8 +3,16 @@
 Status: local runtime/browser slice, 2026-09-06 UTC (September 5 EDT).
 Follow [AGENTS.md](../../AGENTS.md). Built on architecture checkpoint `417b9de`
 and merged teammate updates through `7081b6a`, on local `codex/live-dashboard`.
-The user authorized publishing this reviewed slice to main. Deployment and physical
-Pi/USB acceptance remain separate.
+Published to `origin/main` as `44f4d73` with explicit user authorization.
+That checkpoint performed no deployment. Jared subsequently provisioned USB/Wazuh;
+see the [ESP handoff](esp-technician-handoff.md) and [joint acceptance](pi-technician-acceptance.md).
+
+## Local snapshot continuation
+
+The [first-light SQL snapshot slice](release-snapshot.md) now packages and loads
+the existing signed release from SQL while preserving the separate audit ledger.
+It is not general enterprise SQL synchronization or automatic activation. Jared's
+[Wazuh worker](wazuh-audit-sync.md) supplies audit delivery alongside it. The earlier scope statements below describe the published live-feed slice.
 
 ## Approved storage lifecycle
 
@@ -25,8 +33,9 @@ The desktop's existing local identity database is separate from the runtime ledg
 enterprise policy data from SQL, whole-store rollback protection using independent
 anchors, automatic authority transfer, and semantic SIEM reconciliation are
 not implemented by this slice. Automatic upload is now implemented separately by
-the [Wazuh worker](wazuh-audit-sync.md). First-light still loads its existing signed JSON
-permissions release. The USB SQL runtime configuration implements the offline
+the [Wazuh worker](wazuh-audit-sync.md). First-light can load the existing signed JSON
+release from its directory or the explicit signed SQL container; the deployed Pi
+continues using the JSON directory. The USB SQL runtime configuration implements the offline
 recording/display part of the approved lifecycle, not a completed snapshot service.
 
 For a real Pi, provision a locally mounted filesystem supporting SQLite locking,
