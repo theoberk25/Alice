@@ -610,7 +610,7 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 108 | Run End-to-End Normal Request Test | Partial | On the Pi, authenticated MCP → signed ALICE request → permission → model result → ALLOW → simulated plant execution → serial-v3 display → USB ledger → Wazuh delivery passed for 60→70→80→90 fan requests from a 90 F start. The ESP acknowledged configured output; visible illumination and ONLINE direct-control acceptance remain. |
+| 108 | Run End-to-End Normal Request Test | Partial | On the Pi, authenticated MCP → signed ALICE request → permission → model result → ALLOW → simulated plant execution → serial-v3 display → USB ledger → Wazuh delivery passed for 60→70→80→90 fan requests from a 90 F start. The deployed MCP upstream was corrected to runtime port 8080, pollers use MCP port 8790, and a fresh authenticated metrics read passed. The ESP acknowledged configured output; visible illumination and ONLINE direct-control acceptance remain. |
 | 109 | Run New-Agent Push-Back Test | Planned | New-agent novelty/cohort fixtures exist. Console mock clarification is reported separately; no real cross-system new-agent push-back test exists. |
 | 110 | Run Slight-Anomaly Push-Back Test | Planned | An elevated mock result exists; no actual slight-anomaly push-back exchange is tested. |
 | 111 | Run Hard Policy Denial Test | Planned | A skipped-denial fixture validates result shape; no policy evaluation, zero-model-call assertion or enforcement denial is tested end to end. |

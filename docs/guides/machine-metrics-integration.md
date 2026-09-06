@@ -58,6 +58,11 @@ THERMAL_DEMO_URL=http://127.0.0.1:8795
 THERMAL_AGENT_TOKENS=<private JSON mapping of agent IDs to distinct bearer tokens>
 ```
 
+The integrated Pi deployment intentionally overrides the thermal backend to
+`http://127.0.0.1:8080` because the technician feed and maintenance tunnel use that
+fixed runtime port. The MCP itself remains at `http://127.0.0.1:8790/mcp`; pollers
+and agents must point to `8790`, not to the thermal backend port.
+
 Use exactly the backend's agent-token mapping. The generated demonstration release
 contains cooling-agent-01, power-agent-01, observer-agent-01; each client receives
 only its own token as `LIGHT_MCP_TOKEN`. Do not reuse the operator token. Agent IDs

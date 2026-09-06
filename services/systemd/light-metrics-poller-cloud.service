@@ -9,7 +9,7 @@ Type=simple
 # Adjust User/Group/WorkingDirectory for the target host.
 WorkingDirectory=/home/pi/Alice
 Environment=PYTHONUNBUFFERED=1
-Environment=LIGHT_MCP_URL=http://127.0.0.1:8795/mcp
+Environment=LIGHT_MCP_URL=http://127.0.0.1:8790/mcp
 Environment=METRICS_POLL_INTERVAL=0.1
 # Private file contains only this agent’s LIGHT_MCP_TOKEN.
 EnvironmentFile=/etc/alice/metrics-cloud.env

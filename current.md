@@ -1,7 +1,7 @@
 # Current
 Updated: 2026-09-06 EDT. Owners unassigned.
 Branch: `codex/main-redesign-integration`.
-Team baseline: `4f98a14d4ef3cd16355de9d48847211ad08c91ca` (latest fetched main).
+Team baseline: `92c65dc749182196ee763b27f03830e9ab111160` (latest fetched main).
 Initial integration checkpoint: `4b1f67e`, based on previous team main `4531277`.
 Preserved redesign: `db730710750787af9064b495c6a236e0b504b2fe`.
 
@@ -30,6 +30,9 @@ Worktree: `artifacts/console/main-redesign-integration` within the original chec
 
 Latest team Pi deployment, USB/Wazuh and exhausted-light behavior are retained
 unchanged. [Team checkpoint](docs/handoffs/2026-09-06-before-pr-thermal-deployment-merge.md).
+Live readiness recheck: corrected the Pi MCP upstream to runtime port `8080` and
+poller clients to MCP port `8790`; authenticated MCP metrics now pass from the
+configured 90 F / 60% fan / 60% battery READY state.
 
 ## Evidence and blockers
 

@@ -14,7 +14,7 @@ Environment=LIGHT_MCP_HOST=127.0.0.1
 Environment=LIGHT_MCP_PORT=8790
 # One authoritative thermal plant; MCP never owns the fan state file or serial port.
 Environment=MACHINE_BACKEND=thermal
-Environment=THERMAL_DEMO_URL=http://127.0.0.1:8795
+Environment=THERMAL_DEMO_URL=http://127.0.0.1:8080
 # Private file with THERMAL_AGENT_TOKENS (same mapping as the demo backend).
 EnvironmentFile=/etc/alice/metrics-mcp.env
 ExecStart=/home/pi/Alice/.venv/bin/python -m services.light_mcp.server
