@@ -248,6 +248,13 @@ export function RuntimeReviewPanel() {
           Pi review: {snapshot.review_state} · Execution: {snapshot.execution_status}
         </p>
       )}
+      {snapshot?.assessment && (
+        <p>
+          Anomaly: {snapshot.assessment.result} · normal-tail rank{' '}
+          {(snapshot.assessment.score_ppm / 10_000).toFixed(1)}% · model{' '}
+          {snapshot.assessment.model_id}
+        </p>
+      )}
       {snapshot && <p className="muted">{reasons[snapshot.reason] ?? snapshot.reason}</p>}
       {setup && !setup.ready && <p role="alert">{explain(setup.reason)}</p>}
       {error && <p role="alert">{error}</p>}

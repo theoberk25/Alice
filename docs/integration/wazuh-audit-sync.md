@@ -293,3 +293,70 @@ All 97 predeployment canonical events were byte-identical to the backup.
 See the [hardware runbook](../guides/first-light-hardware.md) for configuration,
 backup and validation. This does not activate cached generation 44 permissions
 or establish technician approval transport.
+
+## Signed enterprise LAN ingress (2026-09-06)
+
+`services.enterprise_ingress` listens on `192.168.50.50:8790`, POST `/request`.
+GET `/health` proves only listener availability. Clients send the existing signed
+first-light envelope (`request`, `key_id`, `signature`); no Wazuh credentials or
+Mac signing key are served. Signature, agent binding, strict request schema and
+freshness (300 seconds, five seconds future tolerance) are checked before writes.
+The strict request contract now admits eight-light actions and integer 0..100
+`set_fan_speed` requests for `SERVER-ROOM-FANS`. Ingress must load the same signed
+release generation as the Pi so fan agent keys and permissions agree.
+
+A dedicated create-only index `alice-enterprise-ingress-v1` stores the original
+signed envelope. The dedicated `alice_enterprise_ingress` account can create/read
+that index only. Exact readback precedes forwarding the original request bytes
+to Pi `/request`. Identical retries reconcile receipts; changed content under the
+same request ID conflicts. Pi deduplication prevents repeat execution. Wazuh
+unavailability returns 503 without forwarding; uncertain Pi response returns 502
+with the verified enterprise receipt, requiring history reconciliation. A fresh
+ID is not an automatic retry. No background forwarding queue was added.
+
+Launch from the checkout:
+
+```sh
+.venv/bin/python -m services.enterprise_ingress \
+  --release artifacts/local-state/merek-hold-release/candidate \
+  --trust-key artifacts/local-state/merek-hold-release/public.hex \
+  --wazuh-config artifacts/local-state/enterprise-ingress/wazuh.json
+```
+
+This demo config is private/ignored. Local Docker traffic connects to loopback
+while verifying the TLS certificate against `wazuh.indexer` and the pinned CA;
+no TLS verification bypass or global hosts change. LAN ingress is HTTP with
+signed bodies, not encrypted transport; use an authenticated encrypted gateway
+before Internet exposure. No WAN port forwarding is configured. The listener
+runs as a session process, not a boot-persistent service.
+
+Verified local/LAN test `enterprise-wireless-hold-001`: Wazuh verified receipt,
+Pi CHALLENGE, eligible READY/NOT_EXECUTED; identical retry produced one receipt
+and Pi idempotent replay. Pi reached Mac health over the switch. Five ingress
+tests passed. Actual wireless laptop test is pending. Index receipt is ingestion,
+not a Wazuh detection-rule alert. Technician visibility comes from the Pi's ledger
+feed; this does not automatically activate enterprise permissions or model caches.
+
+Live fan proof `82d209dc-a4b7-4489-bfc2-9165b6e704bf` used signed generation 5:
+enterprise ingress created and read back its Wazuh receipt, cached that receipt on
+Pi USB, forwarded the original envelope, and received Pi
+`CHALLENGE/ANOMALY_REVIEW_REQUIRED`. Pi REQUEST/ASSESSMENT/DECISION records then
+arrived in `alice-ledger-v1` as sequences 698–700. The USB fan state stayed 70%.
+
+The operator source now routes through ingress by default (`--enterprise-url`).
+The already-running localhost:8789 process still uses old direct-to-Pi code:
+this session could not terminate that process due to OS permissions. Its owner
+must restart it with the same private key/credentials and controller settings
+before claiming the existing page is enterprise-first. Do not expose that page's
+local signing controls to LAN clients; use the signed-only 8790 endpoint.
+
+Receipt retention now additionally uses authenticated, host-verified SSH to run
+`dcamr.enterprise_receipts` on the Pi. It validates the existing agent signature
+against the active signed release, then atomically creates an immutable receipt
+under `/mnt/alice-usb/enterprise-cache/ingress-receipts/<document-id>.json`.
+Original envelope and enterprise readback metadata are retained, with fsync and
+exact-content replay checks. USB mount checks fail closed. This is a separate
+cache, never a second ledger writer; Pi does not independently contact Wazuh to
+verify the gateway's receipt claim. Forwarding waits for cache hash acknowledgement.
+Seven ingress/cache tests passed. Runtime restart was not required. Receipt-cache
+fields are returned by ingress; native receipt-specific presentation is not added.

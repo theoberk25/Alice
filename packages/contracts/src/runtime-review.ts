@@ -19,6 +19,24 @@ const DemoFanRequest = z.strictObject({
   target: z.literal('DEMO-SERVER-01'),
   parameters: z.strictObject({ fan_basis_points: z.number().int().min(0).max(10000) }),
 });
+const DirectFanRequest = z.strictObject({
+  schema_version: z.literal('1.0'),
+  request_id: RequestId,
+  agent_id: RequestId,
+  action: z.literal('set_fan_speed'),
+  target: z.literal('SERVER-ROOM-FANS'),
+  parameters: z.strictObject({ value: z.number().int().min(0).max(100) }),
+  issued_at: z.iso.datetime(),
+});
+const AnomalyAssessment = z.strictObject({
+  status: z.literal('OK'),
+  result: z.enum(['LOW', 'ELEVATED', 'HIGH']),
+  score_ppm: z.number().int().min(-1_000_000).max(1_000_000),
+  raw_score_ppm: z.number().int().min(-1_000_000).max(1_000_000),
+  model_id: Id,
+  model_fingerprint: Hash,
+  reason_codes: z.array(Id).max(32),
+});
 export const RuntimeReviewSchema = z
   .strictObject({
     schema_version: z.literal('alice-runtime-review-v1'),
@@ -40,6 +58,7 @@ export const RuntimeReviewSchema = z
         parameters: z.strictObject({ state: z.enum(['on', 'off']) }),
         issued_at: z.iso.datetime(),
       })
+      .or(DirectFanRequest)
       .or(DemoFanRequest)
       .nullable(),
     decision: z.enum(['ALLOW', 'DENY', 'CHALLENGE', 'REJECTED']),
@@ -49,6 +68,8 @@ export const RuntimeReviewSchema = z
     eligible: z.boolean(),
     reason: z.string().max(200),
     execution_status: Execution,
+    decision_reason_codes: z.array(Id).max(32).optional(),
+    assessment: AnomalyAssessment.nullable().optional(),
   })
   .superRefine((v, c) => {
     const fail = (message: string) => c.addIssue({ code: 'custom', message });

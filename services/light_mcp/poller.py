@@ -13,7 +13,7 @@ cron job. See services/systemd/light-metrics-poller-*.service.
 
 Usage (repo root, .venv active; MCP server already running):
     python -m services.light_mcp.poller --agent cloud
-    python -m services.light_mcp.poller --agent local --url http://127.0.0.1:8790/mcp --interval 0.1
+    python -m services.light_mcp.poller --agent local --url http://127.0.0.1:8795/mcp --interval 0.1
     python -m services.light_mcp.poller --agent cloud --once      # single poll, for tests
 """
 from __future__ import annotations
@@ -35,7 +35,7 @@ from mcp.client.streamable_http import streamablehttp_client
 
 log = logging.getLogger("light_mcp.poller")
 
-DEFAULT_URL = os.environ.get("LIGHT_MCP_URL", "http://127.0.0.1:8790/mcp")
+DEFAULT_URL = os.environ.get("LIGHT_MCP_URL", "http://127.0.0.1:8795/mcp")
 DEFAULT_INTERVAL = float(os.environ.get("METRICS_POLL_INTERVAL", "0.1"))
 
 

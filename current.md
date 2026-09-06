@@ -1,35 +1,38 @@
 # Current
 Updated: 2026-09-06.
-Branch: `codex/led-display`; environmental delivery `40ae904`, merged main `237c307`.
+Baseline: local `0e4e747` merged with upstream main `54634adc`; merge commit pending.
 
 ## Active objective
 
-Reconcile the teammate's machine-metrics MCP with the environmental demo,
-preserving their public interface and the shared ALICE fan authority.
+Finish the shared thermal-demo merge so teammates can pull one path from agent MCP
+through model-backed ALICE decisions, native technician review and the simulated
+fan/LED environment.
 
 ## Current state
 
-- Main merged cleanly; MCP retains `get_metrics` and percent `set_fan_speed` on 8790.
-- Default MCP reads the shared thermal plant and submits governed fan proposals.
-- Per-agent credentials, exact retry bindings and authenticated pollers integrated.
-- Cloud prompt and read-only smoke script use the current metrics tools.
-- Thermal backend moved to 8795, preserving the teammate's console port 8792.
-- Independent file state requires explicit standalone test mode.
-- No console, native, camera or firmware changes in this reconciliation.
+- Upstream per-agent MCP on `:8790`, thermal backend on `:8795`, revision locking,
+  simulated plant, LED renderer and native review contracts are preserved.
+- The thermal runtime now loads the bounded data-only fan model and binds each score
+  to the current fan target, temperature, power, signed request and audit evidence.
+- Signed permissions permit cooling and power agents across 0–100%; LOW assessment
+  ALLOWs, ELEVATED/HIGH produces `ANOMALY_REVIEW_REQUIRED`, and missing permission
+  DENYs. The local LLM may explain a HOLD; human approval is still required.
+- Direct legacy fan requests remain supported during the coordinated migration.
 
 ## Evidence and limits
 
-Python regression: 467 passed, 30 skipped, 246 subtests, including eight new
-real HTTP/MCP integration tests. Compilation and diff checks passed.
-See [reconciliation](docs/reports/2026-09-06-metrics-reconciliation.md).
-Earlier console/firmware validation and native SDK limits remain in the
-[environmental report](docs/reports/2026-09-06-environmental-demo-validation.md).
-No live Gemini calls, deployment, flashing or physical acceptance performed.
+- Python repository tests: 509 passed, 1 skipped, 266 subtests.
+- Targeted fan/thermal/MCP tests: 13 passed, 1 skipped.
+- Console: TypeScript typecheck passed; 136 Vitest tests passed.
+- Full root pytest collection additionally requires the separate biometric service
+  environment (`cv2`, FastAPI and Pydantic). Rust was not run on this Mac.
+- No merged code from this session has been deployed to the Pi or physically accepted.
 
 ## Next steps
 
-1. Configure matching private agent tokens and thermal URL for a separate deployment.
-2. Teammate completes the operator page against the shared environmental contract.
-3. Verify physical Pi/XIAO operation and resolve native SDK compatibility separately.
+1. Complete and push the merge after final lint/build and secret/path checks.
+2. Merek pulls main and runs the native console against the updated thermal backend.
+3. Deploy the reviewed model and merged services to the Pi in a separate controlled step.
+4. Rehearse +10/+10/+10 ALLOWs, then the power-agent 0% HOLD and signed rejection.
 
-[Metrics run guide](docs/guides/machine-metrics-integration.md) · [Tracker](docs/implementation-tracker.md)
+[Demo](docs/demo.md) · [Environmental guide](docs/guides/environmental-demo.md) · [Tracker](docs/implementation-tracker.md)

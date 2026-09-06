@@ -185,6 +185,21 @@ pub struct Snapshot {
     pub accepted_action_id: Option<String>,
     #[serde(deserialize_with = "required_nullable")]
     pub accepted_action: Option<String>,
+    #[serde(default)]
+    pub decision_reason_codes: Option<Vec<String>>,
+    #[serde(default)]
+    pub assessment: Option<AnomalyAssessment>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct AnomalyAssessment {
+    status: String,
+    result: String,
+    score_ppm: i64,
+    raw_score_ppm: i64,
+    model_id: String,
+    model_fingerprint: String,
+    reason_codes: Vec<String>,
 }
 fn required_nullable<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
     d: D,
@@ -275,6 +290,15 @@ impl Snapshot {
                     && parsed.agent_id.len() <= 64 && id(&parsed.agent_id)
                     && parsed.action == "set_demo_fan_pct" && parsed.target == "DEMO-SERVER-01"
                     && parsed.parameters.fan_basis_points <= 10000
+            } else if request.get("action").and_then(Value::as_str) == Some("set_fan_speed") {
+                let parsed: DirectFanRequest = serde_json::from_value(request.clone())
+                    .map_err(|_| "INVALID_REVIEW_REQUEST")?;
+                parsed.schema_version == "1.0" && parsed.request_id == request_id
+                    && parsed.request_id.len() <= 64 && parsed.agent_id.len() <= 64
+                    && id(&parsed.agent_id) && parsed.action == "set_fan_speed"
+                    && parsed.target == "SERVER-ROOM-FANS" && parsed.parameters.value <= 100
+                    && parsed.issued_at.ends_with('Z')
+                    && chrono::DateTime::parse_from_rfc3339(&parsed.issued_at).is_ok()
             } else {
                 let parsed: Request = serde_json::from_value(request.clone())
                     .map_err(|_| "INVALID_REVIEW_REQUEST")?;
@@ -301,6 +325,23 @@ impl Snapshot {
         }
         if self.review_state == "REJECTED" && self.execution_status != "NOT_EXECUTED" {
             return Err("INVALID_REJECTION_EXECUTION".into());
+        }
+        if self.decision_reason_codes.as_ref().is_some_and(|codes| {
+            codes.len() > 32 || codes.iter().any(|value| !id(value))
+        }) {
+            return Err("INVALID_DECISION_REASON_CODES".into());
+        }
+        if self.assessment.as_ref().is_some_and(|a| {
+            a.status != "OK"
+                || !["LOW", "ELEVATED", "HIGH"].contains(&a.result.as_str())
+                || !(-1_000_000..=1_000_000).contains(&a.score_ppm)
+                || !(-1_000_000..=1_000_000).contains(&a.raw_score_ppm)
+                || !id(&a.model_id)
+                || !hash(&a.model_fingerprint)
+                || a.reason_codes.len() > 32
+                || a.reason_codes.iter().any(|value| !id(value))
+        }) {
+            return Err("INVALID_ANOMALY_ASSESSMENT".into());
         }
         Ok(())
     }
@@ -338,6 +379,22 @@ struct DemoFanRequest {
 #[serde(deny_unknown_fields)]
 struct DemoFanParameters {
     fan_basis_points: u32,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DirectFanRequest {
+    schema_version: String,
+    request_id: String,
+    agent_id: String,
+    action: String,
+    target: String,
+    parameters: DirectFanParameters,
+    issued_at: String,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DirectFanParameters {
+    value: u32,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]

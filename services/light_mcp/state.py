@@ -1,12 +1,13 @@
 """File-backed machine-state store for the Light/Metrics MCP server.
 
-The MCP no longer drives lights directly. Instead it reads/writes a JSON state
+The MCP no longer drives lights directly. Its public tool reads a JSON state
 file **on the Raspberry Pi** holding three numbers:
 
     {"fan_speed": <num>, "server_temperature": <num>, "power_consumption": <num>}
 
-The agent may READ all three (``get_metrics``) but may only WRITE ``fan_speed``
-(``set_fan_speed``). ``server_temperature`` and ``power_consumption`` are treated
+The agent may READ all three (``get_metrics``) and requests fan changes through
+ALICE. Only ALICE's protected controller writes ``fan_speed`` after authorization.
+``server_temperature`` and ``power_consumption`` are treated
 as externally-owned (e.g. updated by a simulator or sensor loop on the Pi), so
 reads always hit disk rather than caching, and writes preserve those fields.
 

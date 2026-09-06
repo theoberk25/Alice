@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "alice-action-request-v1",
   "title": "First-light terminal action request (strict, test-scoped)",
-  "description": "Exact contract for the first integration test only. Enums are deliberately narrowed to the agreed set_light_state action; widening them is a coordinated contract change per AGENTS.md.",
+  "description": "Exact contract for first-light light and fan integration tests. Each action is bound to its agreed target and parameter shape; widening remains a coordinated contract change per AGENTS.md.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -22,9 +22,7 @@
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*(?![\\s\\S])"
     },
     "action": {
-      "enum": [
-        "set_light_state"
-      ]
+      "enum": ["set_light_state", "set_fan_speed"]
     },
     "target": {
       "enum": [
@@ -35,7 +33,8 @@
         "ESP-LIGHT-05",
         "ESP-LIGHT-06",
         "ESP-LIGHT-07",
-        "ESP-LIGHT-08"
+        "ESP-LIGHT-08",
+        "SERVER-ROOM-FANS"
       ]
     },
     "parameters": {
@@ -47,11 +46,9 @@
             "on",
             "off"
           ]
-        }
-      },
-      "required": [
-        "state"
-      ]
+        },
+        "value": {"type": "integer", "minimum": 0, "maximum": 100}
+      }
     },
     "issued_at": {
       "type": "string",
@@ -68,5 +65,25 @@
     "target",
     "parameters",
     "issued_at"
+  ],
+  "allOf": [
+    {
+      "if": {"properties": {"action": {"const": "set_light_state"}}},
+      "then": {
+        "properties": {
+          "target": {"enum": ["ESP-LIGHT-01", "ESP-LIGHT-02", "ESP-LIGHT-03", "ESP-LIGHT-04", "ESP-LIGHT-05", "ESP-LIGHT-06", "ESP-LIGHT-07", "ESP-LIGHT-08"]},
+          "parameters": {"required": ["state"], "not": {"required": ["value"]}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"action": {"const": "set_fan_speed"}}},
+      "then": {
+        "properties": {
+          "target": {"const": "SERVER-ROOM-FANS"},
+          "parameters": {"required": ["value"], "not": {"required": ["state"]}}
+        }
+      }
+    }
   ]
 }

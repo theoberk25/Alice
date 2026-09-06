@@ -1,7 +1,8 @@
 # Environmental demo v1
 
 Implements the [authorized handoff](../handoffs/2026-09-06-environmental-demo-context.md).
-Demo 1 only; no physical fan, ML scores, camera feed or scripted ALICE outcomes.
+Demo 1 only; no physical fan, camera feed or scripted ALICE outcomes. A reviewed,
+data-only fan anomaly model supplies the pre-action behavioral score.
 The plant is deliberately accelerated and uncalibrated. Frontend page design remains
 with the teammate; existing native request review accepts this additional contract.
 
@@ -74,13 +75,13 @@ authorization record. The wire request retains `run_id`, `client_request_id`,
 
 Server-configured agent keys sign the exact request. Existing verified release,
 exact grant resolution, `decide`, immutable ledger, native console trust, fresh-face
-proof binding, nonce/epoch checks and durable one-use review are reused. Policy
-assessment records a live run-validity check and retained environment evidence,
-with no contextual model score. Missing permission DENYs; approval-required grants
-CHALLENGE; permitted current requests ALLOW. The demo release helper explicitly
-grants cooling-agent-01 automatic 60–90% and reviewed 0–100%; power-agent-01 is
-review-only; observer-agent-01 has no grant. These are local demonstration choices,
-not production operating limits or a predetermined decision sequence.
+proof binding, nonce/epoch checks and durable one-use review are reused. Assessment
+records a live run-validity check, retained environment evidence and a contextual
+model score over the requested change, temperature and power. Missing permission
+DENYs; a permitted current request ALLOWs when the score is LOW and CHALLENGEs for
+ELEVATED/HIGH. The demo release permits cooling-agent-01 and power-agent-01 across
+0–100%; observer-agent-01 has no grant. These are local demonstration choices, not
+production operating limits or a predetermined decision sequence.
 
 The executor commits EXECUTION_ATTEMPT before applying the exact fan target and
 records receipt, result and observed simulation target separately. It rechecks run,

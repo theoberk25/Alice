@@ -71,24 +71,24 @@ def payload(result):
 def test_mcp_allow_reads_actual_fan_and_retains_percentage_interface(metrics):
     env, rt, now, _, _, url = metrics
     original = _payload(asyncio.run(call(url, 'cooling-token', 'get_metrics', {})))
-    assert original['fan_speed'] == 60 and original['server_temperature'] == 160
+    assert original['fan_speed'] == 60 and original['server_temperature'] == 100
     assert original['power_consumption'] == pytest.approx(421.6)
-    result = asyncio.run(call(url, 'cooling-token', 'set_fan_speed', {'value': 90}))
+    result = asyncio.run(call(url, 'cooling-token', 'set_fan_speed', {'value': 70}))
     assert not result.isError, result
     value = payload(result)
     assert value['ok'] and value['decision'] == 'ALLOW', result
-    assert value['fan_speed'] == 60 and value['metrics']['fan_target_speed'] == 90
-    again = payload(asyncio.run(call(url, 'cooling-token', 'set_fan_speed', {'value': 90})))
+    assert value['fan_speed'] == 60 and value['metrics']['fan_target_speed'] == 70
+    again = payload(asyncio.run(call(url, 'cooling-token', 'set_fan_speed', {'value': 70})))
     assert again['application'] == 'UNCHANGED'
     assert sum(e['event_type']=='EXECUTION_ATTEMPT' for e in rt.iter_events()) == 1
     now[0] = 2
     changed = _payload(asyncio.run(call(url, 'cooling-token', 'get_metrics', {})))
-    assert 60 < changed['fan_speed'] < 90 and changed['power_consumption'] > 421.6
+    assert 60 < changed['fan_speed'] < 70 and changed['power_consumption'] > 421.6
 
 
 def test_identity_hold_deny_and_real_review(metrics):
     env, rt, _, sign, _, url = metrics
-    denied = payload(asyncio.run(call(url, 'observer-token', 'set_fan_speed', {'value': 90})))
+    denied = payload(asyncio.run(call(url, 'observer-token', 'set_fan_speed', {'value': 70})))
     assert denied['decision'] == 'DENY' and not denied['ok']
     held = payload(asyncio.run(call(url, 'power-token', 'set_fan_speed', {'value': 0})))
     assert held['decision'] == 'CHALLENGE' and not held['ok']
@@ -121,17 +121,17 @@ def test_lost_ack_exact_retry_and_reset_guard(metrics):
         real(*args)
         raise OSError('lost response')
     with patch.object(backend.client, 'request_fan', side_effect=lost):
-        result = backend.set_fan_speed(90)
+        result = backend.set_fan_speed(70)
     assert result['application'] == 'RECONCILIATION_REQUIRED'
     binding = {k: result[k] for k in ('request_id','run_id','expected_revision')}
-    assert backend.set_fan_speed(90, **binding)['ok']
+    assert backend.set_fan_speed(70, **binding)['ok']
     assert env.revision == 1
     assert sum(e['event_type']=='EXECUTION_ATTEMPT' for e in rt.iter_events()) == 1
     env.control('stop')
     env.configure({'temperature_f': 140, 'fan_pct': 60, 'battery_pct': 60})
     env.control('start')
     with pytest.raises(ValueError, match='stale'):
-        backend.set_fan_speed(90, **binding)
+        backend.set_fan_speed(70, **binding)
     assert env.model.fan_target_pct == 60
 
 
@@ -165,9 +165,9 @@ def test_default_does_not_create_a_second_state_file(tmp_path, monkeypatch):
 
 def test_agents_do_not_share_request_ids_at_same_revision(metrics):
     env, rt, _, _, backends, _ = metrics
-    denied = backends['observer-agent-01'].set_fan_speed(90)
-    allowed = backends['cooling-agent-01'].set_fan_speed(90)
+    denied = backends['observer-agent-01'].set_fan_speed(70)
+    allowed = backends['cooling-agent-01'].set_fan_speed(70)
     assert denied['decision'] == 'DENY'
     assert allowed['decision'] == 'ALLOW' and allowed['ok']
     assert denied['request_id'] != allowed['request_id']
-    assert env.model.fan_target_pct == 90
+    assert env.model.fan_target_pct == 70

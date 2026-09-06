@@ -7,6 +7,7 @@ import base64
 from collections import OrderedDict
 import fcntl
 from hashlib import sha256
+import json
 import os
 from pathlib import Path
 import re
@@ -142,6 +143,14 @@ class ReviewAuthority:
                         'outcome': event['detail']['outcome'],
                         'release_sha256': event['provenance']['policy']['sha256'],
                         'authority': event['authority'],
+                        'reason_codes': tuple(event['detail'].get('reason_codes', ())),
+                    }
+                elif kind == 'ASSESSMENT':
+                    evidence = event['provenance']['evidence']
+                    item['assessment'] = {
+                        'status': event['detail']['status'],
+                        'result': event['detail']['result'],
+                        'evidence_sha256': evidence[0]['sha256'] if len(evidence) == 1 else None,
                     }
                 elif kind == 'TECHNICIAN_ACTION' and event['detail']['intent'] in DISPOSITIONS:
                     if 'action' in item:
@@ -201,6 +210,24 @@ class ReviewAuthority:
         except ValueError:
             # Corrupt historical evidence is visible as unavailable, never eligible.
             pass
+        assessment = None
+        assessment_meta = item.get('assessment')
+        try:
+            assessment_path = self.runtime._evidence_dir / f'{request_id}.assessment.json'
+            if assessment_meta and assessment_meta['evidence_sha256'] and not assessment_path.is_symlink():
+                with assessment_path.open('rb') as source:
+                    raw_assessment = source.read(MAX_EVENT_BYTES + 1)
+                parsed_assessment = json.loads(raw_assessment)
+                if (sha256(raw_assessment).hexdigest() == assessment_meta['evidence_sha256']
+                        and parsed_assessment['status'] == assessment_meta['status']
+                        and parsed_assessment['result'] == assessment_meta['result']):
+                    assessment = {key: parsed_assessment[key] for key in
+                                  ('status', 'result', 'model_id', 'model_fingerprint',
+                                   'reason_codes')}
+                    assessment['score_ppm'] = round(parsed_assessment['score'] * 1_000_000)
+                    assessment['raw_score_ppm'] = round(parsed_assessment['raw_score'] * 1_000_000)
+        except (OSError, ValueError, KeyError):
+            assessment = None
         action = item.get('action')
         authority = self.runtime.current_authority()
         owner = (authority['product_mode'] == 'OFFLINE' and authority['execution_owner'] == 'ALICE'
@@ -226,13 +253,15 @@ class ReviewAuthority:
             finding = find_permission(self.runtime.release, request['agent_id'], request['action'],
                                       request['target'], request['parameters'],
                                       request_sha256=decision['request_sha256'])
-            if (finding.outcome != 'REVIEW_REQUIRED'
+            anomaly_review = ('ANOMALY_REVIEW_REQUIRED' in decision['reason_codes']
+                              and finding.outcome == 'PERMITTED')
+            if (finding.outcome != 'REVIEW_REQUIRED' and not anomaly_review
                     or decision['release_sha256'] != self.runtime.release.manifest_sha256
                     or decision['authority'] != authority):
                 reason = 'POLICY_OR_AUTHORITY_CHANGED'
         state = ('APPROVED' if action['action'] == 'APPROVE_ONCE' else 'REJECTED') if action else 'PENDING'
         eligible = reason == 'READY'
-        return {'schema_version': 'alice-runtime-review-v1', 'request_id': request_id,
+        response = {'schema_version': 'alice-runtime-review-v1', 'request_id': request_id,
                 'request_sha256': decision['request_sha256'],
                 'decision_event_id': decision['event_id'], 'decision_event_hash': decision['event_hash'],
                 'release_sha256': self.runtime.release.manifest_sha256,
@@ -244,6 +273,12 @@ class ReviewAuthority:
                 'accepted_action_id': action['action_id'] if action else None,
                 'accepted_action': action['action'] if action else None,
                 'execution_status': item.get('execution_status', 'UNKNOWN' if state == 'APPROVED' else 'NOT_EXECUTED')}
+        # Additive fan fields only. Existing light snapshots remain byte-shape
+        # compatible during the coordinated console rollout.
+        if request and request.get('action') in ('set_fan_speed', 'set_demo_fan_pct'):
+            response['decision_reason_codes'] = list(decision['reason_codes'])
+            response['assessment'] = assessment
+        return response
 
     def submit(self, envelope):
         if type(envelope) is not dict or set(envelope) != {'proof', 'signature'}:

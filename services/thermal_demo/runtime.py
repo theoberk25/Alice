@@ -10,6 +10,8 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from jsonschema import Draft202012Validator
 
 from dcamr.audit.event_contract import canonical_bytes
+from dcamr.audit.event_contract import contextual_projection
+from dcamr.anomaly_engine.fan_model import FanModel
 from dcamr.main import FirstLightRuntime
 from dcamr.enforcement.serial_light_controller import SerialLightController
 from .environment import DemoError, GatewayUnavailable
@@ -22,9 +24,10 @@ class ThermalRuntime(FirstLightRuntime):
     request keys. Neither an agent nor an operator can submit decision outcomes.
     The frontend review endpoint still requires the existing native signed proof.
     """
-    def __init__(self, *, environment, agent_keys, **options):
+    def __init__(self, *, environment, agent_keys, fan_model_file, **options):
         self.environment = environment
         self.agent_keys = agent_keys
+        self.fan_model = FanModel(fan_model_file)
         super().__init__(**options)
         self._lock = environment.lock
         try:
@@ -68,6 +71,15 @@ class ThermalRuntime(FirstLightRuntime):
     def request_is_current(self, request):
         return self.environment.current(self.action(request))
 
+    def _provenance(self, evidence=()):
+        artifacts = super()._provenance(evidence)
+        artifacts['model'] = {'id': self.fan_model.model_id,
+                              'sha256': self.fan_model.sha256, 'missing_reason': None}
+        artifacts['calibration'] = {'id': self.fan_model.model_id + '.calibration',
+                                    'sha256': self.fan_model.calibration_sha256,
+                                    'missing_reason': None}
+        return artifacts
+
     def submit(self, action):
         with self._lock:
             credentials = self.agent_keys.get(action['agent_id'])
@@ -96,20 +108,45 @@ class ThermalRuntime(FirstLightRuntime):
 
     def assess_request(self, request, request_sha256, correlation, attribution):
         current = self.request_is_current(request)
-        # Real deterministic policy assessment, explicitly no anomaly/model score.
-        detail = {'kind': 'POLICY', 'status': 'OK' if current else 'UNAVAILABLE',
-                  'result': 'PASS' if current else 'UNKNOWN', 'contextual': None,
-                  'reason_codes': ['DEMO_RUN_CURRENT' if current else 'DEMO_RUN_STALE']}
         correlation = dict(correlation, assessment_id=request['request_id'] + '.a1')
         state = self.environment.snapshot()
         observation = json.dumps({k: state[k] for k in ('run_id', 'revision', 'elapsed_seconds', 'values', 'metadata')},
                                  sort_keys=True, allow_nan=False).encode()
         rid = request['request_id']
         self._write_evidence(self._evidence_dir / f'{rid}.environment.json', observation)
+        if current:
+            values = state['values']
+            model_request = {'request_id': rid, 'agent_id': request['agent_id'],
+                             'action': request['action'],
+                             'target': request['target'],
+                             'parameters': {'value': request['parameters']['fan_basis_points'] / 100}}
+            snapshot = {'fan_speed': values['fan_target_pct'],
+                        'server_temperature': (values['temperature_f'] - 32) * 5 / 9,
+                        'power_consumption': values['power_w']}
+            request_at_ms = int(state['elapsed_seconds'] * 1000)
+            assessment, _ = self.fan_model.assess(
+                model_request, snapshot, request_sha256, request_at_ms,
+                source_id='thermal-demo-environment')
+            self._write_evidence(self._evidence_dir / f'{rid}.assessment.json', assessment)
+            parsed = json.loads(assessment)
+            dispatch = {'assessment_id': correlation['assessment_id'], 'request_id': rid,
+                        'request_sha256': request_sha256, 'input_sha256': request_sha256,
+                        'execution_id': None, 'profile_sha256': parsed['profile_sha256'],
+                        'phase': 'PRE_ACTION'}
+            detail = contextual_projection(assessment, dispatch=dispatch,
+                                           evidence_ref=rid + '.assessment-evidence')
+            assessment_evidence = {'ref': rid + '.assessment-evidence',
+                                   'sha256': sha256(assessment).hexdigest(),
+                                   'source': self._source('thermal-demo-model', rid + '.assessment')}
+        else:
+            detail = {'kind': 'CONTEXTUAL', 'status': 'UNAVAILABLE', 'result': 'UNKNOWN',
+                      'contextual': None, 'reason_codes': ['DEMO_RUN_STALE']}
+            assessment_evidence = {'ref': rid + '.environment',
+                                   'sha256': sha256(observation).hexdigest(),
+                                   'source': self._source('thermal-demo', rid + '.observation')}
         self._append(rid + '.assessment', 'ASSESSMENT', correlation=correlation,
                      attribution=attribution, detail=detail,
-                     evidence=[{'ref': rid + '.environment', 'sha256': sha256(observation).hexdigest(),
-                                'source': self._source('thermal-demo', rid + '.observation')}])
+                     evidence=[assessment_evidence])
         return detail, correlation
 
     def _execute_request(self, request, request_sha256, response, correlation, attribution):

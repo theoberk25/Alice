@@ -541,7 +541,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 077 | Detect Cloud Connectivity Loss | Planned | No cloud connectivity detector exists. |
 | 078 | Enter DDIL Mode | Planned | No automatic failover/state machine or endpoint authority transfer exists; loss of cloud reachability cannot by itself authorize local control. |
 | 079 | Continue Local Policy Enforcement | Planned | OFFLINE authorized-permission enforcement remains unimplemented. ONLINE enterprise direct control is intentionally not replaced by a Pi policy gate. |
-| 080 | Continue Local Anomaly Scoring | Partial | [Local lab scoring][training] runs real Isolation Forest offline, alongside [feature checks][feature-tests]. Live Pi inference for OFFLINE governance and authority-mode orchestration remain unimplemented. |
+| 080 | Continue Local Anomaly Scoring | Partial | The environmental runtime loads the bounded data-only hybrid Isolation Forest artifact, scores each authenticated fan proposal against current fan/temperature/power context and records model/calibration provenance. Mac integration tests pass; Pi deployment, measured data and authority-mode orchestration remain. |
 | 081 | Continue Local Context Push-Back | Planned | No real OFFLINE core context exchange runs. Console fixture automation does not establish agent routing, bounded retries or a single authoritative challenge loop. |
 | 082 | Continue Local Dashboard Output | Partial | Existing dashboard loads runtime ledger history and polls incremental events with reconnect, duplicate/conflict and malformed-input handling. Authenticated LAN web access to the physical Pi/USB feed passed. This interim web surface is read-only; native LLM/face/accept-reject integration and the full DDIL authority lifecycle remain. [Integrated runbook](guides/demo-runbook.md). |
 | 083 | Cache Unverified External Evidence Requests | Planned | No bounded persistent external-evidence request cache exists. |
@@ -579,11 +579,11 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 108 | Run End-to-End Normal Request Test | Planned | Normal feature/anomaly fixtures are component evidence only. No complete OFFLINE request-to-execution or ONLINE direct-control/activity-audit acceptance path exists. |
+| 108 | Run End-to-End Normal Request Test | Partial | Authenticated MCP → signed ALICE request → permission → LOW model result → ALLOW → simulated plant execution and ledger evidence passes for a +10 fan step. Physical Pi/LED and ONLINE direct-control acceptance remain. |
 | 109 | Run New-Agent Push-Back Test | Planned | New-agent novelty/cohort fixtures exist. Console mock clarification is reported separately; no real cross-system new-agent push-back test exists. |
 | 110 | Run Slight-Anomaly Push-Back Test | Planned | An elevated mock result exists; no actual slight-anomaly push-back exchange is tested. |
 | 111 | Run Hard Policy Denial Test | Planned | A skipped-denial fixture validates result shape; no policy evaluation, zero-model-call assertion or enforcement denial is tested end to end. |
-| 112 | Run High-Anomaly Hold Test | Planned | Actual lab model outputs and a high mock result exist; no integrated model/fusion hold or no-execution acceptance test exists. |
+| 112 | Run High-Anomaly Hold Test | Partial | Authenticated power-agent 60→0 at 100 F produces a real HIGH model result, `ANOMALY_REVIEW_REQUIRED`, eligible native HOLD and no execution; signed rejection leaves the plant unchanged and signed one-use approval executes. Pi/physical integrated acceptance remains. |
 | 113 | Run Technician Approval Test | Partial | Automated Rust native snapshot/consume/sign/HTTP→real Python bridge/runtime/temporary ledger test approves once, rejects and replays with exactly one mock command. Cross-language vectors, cancellation, concurrency and uncertain/restart tests pass. Real camera→physical Pi→hardware acceptance remains unperformed. [Validation](reports/2026-09-06-native-live-backend-validation.md). |
 | 114 | Run DDIL Decision Test | Planned | Socket-blocked feature replay proves that component is local, not a complete DDIL decision flow. |
 | 115 | Run Cloud Reconnection Test | Planned | No endpoint handover plus direct Pi/enterprise reconnect, audit delivery and cache refresh integration test exists. |
@@ -609,7 +609,7 @@ remaining integrated acceptance. The [architecture][architecture] and
 | SUP-07 | Independent execution attempt and result records | First-light native review separates action acknowledgment, controller receipt, execution result and observed state with authority/request/action bindings. Real hardware and broader controller/domain acceptance remain. [Validation](reports/2026-09-06-native-live-backend-validation.md). |
 | SUP-08 | Direct Pi reconnection audit and reconciliation | Publish every DDIL request/decision/attempt/result directly upstream with durable upload IDs/cursors and acknowledgements, flag risks, append later findings, preserve original history and refresh verified caches without technician relay. |
 | SUP-09 | Trusted agent-to-user accountability | Establish authoritative user/agent/mission mappings and revocation/expiry behavior for ONLINE feeds and OFFLINE requests; agent-supplied identity claims cannot establish their own permissions. |
-| SUP-10 | Contextual fan-sequence escalation | Train on bounded synthetic small-step fan behavior; classify the later abrupt shutdown from sequence plus fresh telemetry, require review for an eligible `ELEVATED`/`HIGH` result, and prove technician rejection sends no command. |
+| SUP-10 | Contextual fan-sequence escalation | Implemented for current-state context: bounded synthetic model permits tested +10 cooling steps and escalates a hot-room 60→0 cut to eligible native review; rejection sends no simulated command. Sequence-history features, real sensor training and Pi acceptance remain. |
 | SUP-11 | Enterprise edge-offline presentation | Show loss/staleness of authenticated Pi and sync feeds, last contact and unknown authority accurately on the disconnected enterprise host; an offline banner must not claim handover completion. |
 
 ## Maintaining this tracker

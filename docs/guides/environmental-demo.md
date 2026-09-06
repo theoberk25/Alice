@@ -20,6 +20,7 @@ python -m services.thermal_demo.server \
   --release /tmp/alice-demo-bundle/release \
   --trust-key /tmp/alice-demo-bundle/manifest-public.hex \
   --agent-keys /tmp/alice-demo-bundle/agent-keys.json \
+  --fan-model-file /path/to/reviewed/model.json \
   --data-dir /tmp/alice-demo-ledger
 ```
 
@@ -47,9 +48,11 @@ record = client.request_fan(state, 90, 'cooling-proposal-1')
 ```
 
 Inspect the actual decision/application, then fresh state; do not locally apply a
-proposal. A 100% cooling request or any power-agent fan request needs signed review
-under the generated demo release. An observer request is denied. These outcomes
-come from the signed grants, not a timer or an LLM. Stop before reconfiguration.
+proposal. A small, context-consistent change from either permitted agent executes
+automatically. An unusual change, such as cutting a hot room's fan from 60% to 0%,
+produces a model-backed HOLD that requires signed human review. The local LLM may
+explain the score but cannot approve it. An observer request is denied by policy.
+Stop before reconfiguration.
 
 Add `--esp-serial /dev/serial/by-id/...` only on a separately prepared Pi with the
 v3 firmware and existing eight-channel wiring. Stop any other service owning that

@@ -208,6 +208,35 @@ it('shows missing local review setup before opening a camera, while retaining ex
   expect(screen.getByRole('button', { name: 'Verify to approve once' })).toBeDisabled();
   expect(screen.queryByTestId('scan')).toBeNull();
 });
+it('shows a model-backed fan HOLD with its exact requested value and anomaly score', async () => {
+  vi.mocked(runtimeReviewer.read).mockResolvedValue(
+    review({
+      decision_reason_codes: ['ANOMALY_REVIEW_REQUIRED'],
+      assessment: {
+        status: 'OK',
+        result: 'HIGH',
+        score_ppm: 1_000_000,
+        raw_score_ppm: -612_345,
+        model_id: 'fan-hybrid-synthetic-v2',
+        model_fingerprint: 'c'.repeat(64),
+        reason_codes: ['OUTSIDE_NORMAL_SUPPORT'],
+      },
+      request: {
+        schema_version: '1.0',
+        request_id: 'request-1',
+        agent_id: 'power-agent-01',
+        action: 'set_fan_speed',
+        target: 'SERVER-ROOM-FANS',
+        parameters: { value: 0 },
+        issued_at: '2026-09-06T01:00:00Z',
+      },
+    }),
+  );
+  render(<RuntimeReviewPanel />);
+  expect(await screen.findByText('{"value":0}')).toBeVisible();
+  expect(screen.getByText(/Anomaly: HIGH · normal-tail rank 100.0%/)).toBeVisible();
+  expect(screen.getByRole('button', { name: 'Verify to approve once' })).toBeEnabled();
+});
 it('fixes action intent before capture, cancels queued success and requires another scan for rejection', async () => {
   await open();
   expect(camera.intent).toMatchObject({

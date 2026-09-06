@@ -49,15 +49,14 @@ locations. This migration does not regenerate or activate them.
 mock ESP, signed terminal client, read-only technician view and verified USB export.
 Run these as `python -m lab.first_light.<module>` from the repository root; the
 existing `scripts/lab/run.py` command allowlist does not include them. The runtime
-is `python -m dcamr.main`; its verifier, exact permissions and light HTTP client
-stay in `dcamr/`. The runtime's dependency on the lab assessment fixture is an
-explicit test-slice exception, not a production scoring adapter.
+is `python -m dcamr.main`; its verifier, exact permissions, light client and
+data-only fan scorer stay in `dcamr/`.
 
 Use temporary or ignored local-state directories for generated release/private-key,
 ledger and export outputs. See the [first-light test report](../reports/2026-09-05-first-light-test-log.md)
-and [backend scope](../reports/2026-09-05-pi-backend-status.md). The console feed is
-read-only, authority is hard-coded and device behavior is mocked; real scoring,
-review/authority protocols and physical Pi/ESP acceptance remain.
+and [backend scope](../reports/2026-09-05-pi-backend-status.md). First-light fan
+scoring and signed native review are now integrated; general authority transfer,
+real fan sensors/actuation and production model validation remain.
 
 The first-light `publish_snapshot` command packages an already signed release as
 a new immutable SQL input artifact. See [snapshot commands and limits](../integration/release-snapshot.md).
@@ -91,3 +90,16 @@ The generic `run.py` allowlist does not include this maintenance command.
 loopback runtime, read-only USB SQL and optional Wazuh GET. It never submits or
 uploads events and may run beside the runtime owner. Follow the
 [integrated demo acceptance guide](../guides/demo-runbook.md#acceptance-sequence).
+
+Fan demo data: `python -m lab.fan_demo_data --output /absolute/new-directory`;
+see [corpus contract and usage](../guides/anomaly-training.md#fan-demo-jsonl-corpus-2026-09-06).
+
+Fan candidate fitting: `python -m lab.train_fan_demo --data /path/to/corpus --output /new/model-directory`.
+Workstation experiment only; [measured limits](../guides/anomaly-training.md#first-fitted-fan-candidate).
+
+`python -m lab.refine_fan_model --output /new/model-directory --demo-data
+/path/to/demo.jsonl` exports the bounded hybrid data-only candidate used by the
+first-light Pi scorer. `python -m lab.first_light.extend_fan_release` extends an
+existing signed release while preserving all prior grants and terminal keys. Both
+commands write generated models or private keys only to a new ignored/private
+directory; neither activates a release.

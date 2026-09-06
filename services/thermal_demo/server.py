@@ -133,6 +133,7 @@ def main():
     parser.add_argument('--trust-key', type=Path, required=True)
     parser.add_argument('--data-dir', type=Path, required=True)
     parser.add_argument('--agent-keys', type=Path, required=True)
+    parser.add_argument('--fan-model-file', type=Path, required=True)
     parser.add_argument('--console-trust-file', type=Path)
     parser.add_argument('--esp-serial')
     parser.add_argument('--capacity-wh', type=float, default=100)
@@ -140,6 +141,7 @@ def main():
     args = parser.parse_args()
     env = Environment(capacity_wh=args.capacity_wh, energy_time_scale=args.energy_time_scale)
     runtime = ThermalRuntime(environment=env, agent_keys=load_agent_keys(args.agent_keys),
+        fan_model_file=args.fan_model_file,
         release_dir=args.release, trusted_manifest_key=bytes.fromhex(args.trust_key.read_text().strip()),
         data_dir=args.data_dir, esp_serial=args.esp_serial, serial_timeout=.25,
         console_trust_file=args.console_trust_file)

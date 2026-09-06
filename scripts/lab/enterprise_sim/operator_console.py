@@ -14,7 +14,7 @@ from .console import server as enterprise
 PAGE = '''<!doctype html><meta charset="utf-8"><title>Sentinel operator</title>
 <style>body{background:#101820;color:#e7eef6;font:17px system-ui;max-width:1000px;margin:45px auto;padding:20px}button,a{padding:12px;margin:8px;color:#071b25;background:#66d9bc;border:0;border-radius:6px;font:inherit}pre{white-space:pre-wrap;background:#1d2a37;padding:18px;border-radius:8px}small{color:#afbfce}</style>
 <h1>Sentinel · SSgt A. Okafor</h1><p>Electrician · elec-agent-01 · Eight mapped lights</p>
-<p>Signed action → Pi permissions check → USB audit → Wazuh upload</p>
+<p>Signed action → enterprise receipt → Pi permissions check → USB audit → Wazuh upload</p>
 <p><strong>Controller: CONTROLLER_LABEL.</strong> ON enables slow blinking (1 second lit / 1 second dark). Feedback reports blink enabled, not instantaneous brightness.</p>
 <button onclick="allOff()">All lights off</button><pre id="bulk" hidden></pre>
 <div id="lights"></div>
@@ -55,6 +55,8 @@ def main():
     p.add_argument('--credentials',type=Path,required=True)
     p.add_argument('--pi-url',default='http://192.168.50.20:8080')
     p.add_argument('--port',type=int,default=8789)
+    p.add_argument('--enterprise-url',default='http://192.168.50.50:8790',
+                   help='Signed ingress; verified Wazuh receipt before Pi forwarding')
     p.add_argument('--controller-label',default='Unverified controller')
     a=p.parse_args()
     for f in (a.key_file,a.credentials):
@@ -82,9 +84,15 @@ def main():
             with lock:
                 e=build_envelope(seed,state=body['state'],target=body['target'],agent_id='elec-agent-01',key_id='elec-agent-01-k1')
                 rid=e['request']['request_id']
-                try:code,result=send(a.pi_url,e)
-                except Exception:code,result=503,{'error':'Pi response unavailable; check history before retrying'}
-                known[rid]={'request_id':rid,'http_status':code,'response':result}
+                receipt = None
+                try:
+                    code, ingress = send(a.enterprise_url,e)
+                    receipt = ingress.get('enterprise_receipt')
+                    result = ingress.get('pi', ingress)
+                except Exception:
+                    code,result=503,{'error':'Enterprise response unavailable; check history before retrying'}
+                known[rid]={'request_id':rid,'http_status':code,'response':result,
+                            'enterprise_receipt':receipt}
                 if len(known)>100:known.pop(next(iter(known)))
             self.reply(200,known[rid])
         def do_GET(self):

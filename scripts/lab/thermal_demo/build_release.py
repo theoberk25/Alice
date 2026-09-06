@@ -23,14 +23,11 @@ def build(directory):
         seed.write_text(key.private_bytes_raw().hex() + '\n')
         keys[key_id] = {'agent_id': agent, 'ed25519_public_hex': key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw).hex()}
         config[agent] = {'key_id': key_id, 'seed_file': seed.name}
-    grants = []
-    for name, agents, low, high, review in (
-        ('DEMO-AUTO', ['cooling-agent-01'], 60, 90, False),
-        ('DEMO-REVIEW', ['cooling-agent-01', 'power-agent-01'], 0, 100, True)):
-        grants.append({'grant_id': name, 'agents': agents, 'actions': ['set_demo_fan_pct'],
-                       'targets': ['DEMO-SERVER-01'], 'effect': 'PERMIT',
-                       'approval_required': review,
-                       'parameter_bounds': {'fan_basis_points': {'min': low * 100, 'max': high * 100}}})
+    grants = [{'grant_id': 'DEMO-FAN-PERMIT',
+               'agents': ['cooling-agent-01', 'power-agent-01'],
+               'actions': ['set_demo_fan_pct'], 'targets': ['DEMO-SERVER-01'],
+               'effect': 'PERMIT', 'approval_required': False,
+               'parameter_bounds': {'fan_basis_points': {'min': 0, 'max': 10000}}}]
     payloads = {'grants.json': {'schema_version': 'alice-permissions-grants-v1',
                               'default_effect': 'DENY', 'grants': grants},
                 'subjects.json': build_subjects_payload(config),
@@ -55,7 +52,7 @@ def main():
     parser.add_argument('directory', type=Path)
     args = parser.parse_args()
     print(build(args.directory))
-    print('Generated local simulation trust only. Signed policy: cooling 60–90 auto, other eligible fan settings require review.')
+    print('Generated local simulation trust only. Signed policy permits both fan agents; the anomaly model determines review.')
 
 
 if __name__ == '__main__':

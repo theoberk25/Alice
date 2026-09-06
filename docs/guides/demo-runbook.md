@@ -11,8 +11,8 @@ The wired first-light path works today:
 
 ```text
 signed local action
-  → SSH tunnel → Pi runtime → permissions check / fixture assessment
-  → USB-serial XIAO → one of eight blinking lights
+  → Pi runtime → verified permissions + live fan-model assessment
+  → protected fan state or USB-serial XIAO light controller
   → ext4 USB ledger → automatic Wazuh upload
   → authenticated read-only technician web app
 ```
@@ -25,11 +25,11 @@ explicit control transfer and readiness checks.
 
 | Surface | Current | Next integration |
 | --- | --- | --- |
-| Pi runtime | `alice-pi-01`, `192.168.50.20`, systemd, physical serial controller | Full synced permissions, real anomaly inference and authority state |
+| Pi runtime | `alice-pi-01`, `192.168.50.20`, systemd, light serial controller plus deployed fan model/state controller | General synced permissions and authority state |
 | Storage | ext4 USB at `/mnt/alice-usb`; ledger/evidence in `pi-data`; signed release in `release` | Atomic enterprise permissions/baseline activation without replacing audit history |
 | Enterprise | Wazuh/Sentinel simulator on Jared's Mac; Pi audit upload works | Publish signed cache releases and reconcile DDIL findings |
 | Agents | Provisioned signed terminal client works through an SSH tunnel | Separate local and cloud identities, authenticated gateway and active-mode routing |
-| Technician | Authenticated LAN web app shows live Pi events, read-only | Native Tauri app with local LLM, facial identity and request-bound accept/reject |
+| Technician | Native Tauri app shows live Pi events and uses facial identity for request-bound accept/reject | Add local-LLM explanation to the supplied structured fan assessment |
 | Physical demo | Eight stable targets blink slowly; signed all-off is available | Grid asset names, telemetry and agreed interlocks |
 
 Focused references are limited to the [technician integration contract](../integration/technician-console.md),
@@ -41,9 +41,9 @@ Focused references are limited to the [technician integration contract](../integ
 
 ## Target story: connected activity to a contextual DDIL hold
 
-This is the agreed integrated demonstration. Items marked **target** still need
-runtime, gateway, fan-control, native-console or control-transfer work; the sequence
-does not turn planned behavior into implementation evidence.
+This is the agreed integrated demonstration. The fan model/runtime and native
+review contract are implemented; agent triggers, general control transfer, real
+sensors and the final local-LLM explanation still need integration.
 
 | Device | Demo address / attachment |
 | --- | --- |
@@ -94,7 +94,7 @@ The synthetic normal-behavior package explicitly contains small `+10%` fan-speed
 adjustments under overheating conditions. Mark this data as demo-generated; it is
 not a learned production safety envelope.
 
-1. `cooling-agent-01` submits `adjust_fan_speed(delta_percent=+10)`.
+1. `cooling-agent-01` submits `set_fan_speed` with the current value plus 10.
 2. The Pi verifies permission, scores it against the normal sequence and emits
    ALLOW. Execute and record the resulting fan level.
 3. Repeat with two new signed request IDs, waiting for each prior result. All three
@@ -102,14 +102,14 @@ not a learned production safety envelope.
 4. The resulting power observation crosses the configured demo wake threshold for
    `power-agent-01`. Keep the exact threshold in the signed fixture/package rather
    than inventing a production electrical limit in the UI.
-5. `power-agent-01` submits `set_fan_speed(percent=0)` to reduce power.
+5. `power-agent-01` submits `set_fan_speed` with `parameters.value=0` to reduce power.
 6. Although this agent is permitted to request fan control, the Isolation Forest
-   classifies the abrupt shutdown as `ELEVATED` or `HIGH` relative to the learned
+   classifies the abrupt shutdown as `HIGH` relative to the learned
    small-step sequence and fresh overheating telemetry. The Pi assessment adds the
-   matching anomaly review signal and `HUMAN_APPROVAL_REQUIRED`; the technician
-   application presents HOLD. The payload includes score, factors, permission
-   result, temperature value/trend, power-threshold observation, freshness, action
-   history and model/cache versions.
+   matching `ANOMALY_REVIEW_REQUIRED` reason; the technician application presents
+   HOLD. The compact native payload includes the exact request, decision reasons,
+   model ID/fingerprint, calibrated score and model reason codes. Detailed factors
+   remain retained Pi evidence and are not yet rendered by the console.
 7. The local LLM explains those supplied facts and recommends rejecting shutdown
    while temperature remains too high. It cannot change HOLD or authorize action.
 8. The technician reviews the single HOLD and chooses REJECT. The Pi records the

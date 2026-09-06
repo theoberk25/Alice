@@ -234,3 +234,100 @@ The latest motor-control direction also needs its own feature/baseline contract.
 It must not reuse cyber columns or claim that a Web-01 score describes servo
 movement. Model persistence format, signed model/reference binding, the Pi loader,
 live result adaptation and actual 2 GB Pi measurements remain separate checkpoints.
+
+## Fan demo JSONL corpus (2026-09-06)
+
+Generate a new, non-existing output directory with
+`python -m lab.fan_demo_data --output /absolute/new-directory`.
+The generator refuses overwrite and requires only the Python standard library.
+The verified demo copy is on the Pi at
+`/mnt/alice-usb/normal_behavior/fan-demo-20260906-v2/`; the workstation copy is
+`artifacts/local-state/fan-demo-v2/` (ignored generated data).
+
+Files: `train.jsonl` (4,000 normal), `calibration.jsonl` (2,400 normal),
+`evaluation.jsonl` (1,000 normal + 1,000 anomalies), `validation.jsonl`
+(200 protocol-invalid/replay cases), `demo.jsonl` (three +10-point increases,
+then 60→0 while hot). `manifest.json` records counts, units, seed and SHA-256.
+All 8,604 records are synthetic. Two generator tests passed; every USB file hash
+and row count was verified after transfer. No model fitting or activation occurred.
+
+Each row pairs snapshot, prior state, unsigned proposed request, computed delta,
+source session/split, label and reason. Fan changes use **percentage points**.
+Room temperature convention: 18–27 C cool/normal, 28–31 warm, 32+ overheating;
+power 250–650 W is a fictional lab envelope, not hardware safety guidance.
+The supplied 58.6 C / 456 W / fan 60→50 example is an anomaly under this room
+sensor convention. If the sensor instead measures a processor, revise the profile
+and labels before fitting. Cameras, battery and load are included, but random
+background values are not a validated physical relationship or post-action model.
+Normal reductions occur while cool; small reductions while overheating and large
+jumps provide contextual counterexamples. A small cut from very low fan speed
+in a cool, lightly loaded room is included as normal.
+
+Fit Isolation Forest only on normal training rows; calibrate on the separate normal
+reference; freeze both before evaluation. Never feed label, reason, scenario,
+expected_review, split, IDs or synthetic timestamps into the feature vector.
+Session IDs are disjoint generation groups, not recordings of a physical simulator.
+Validation cases (bounds, stale revision, expired snapshot, repeated request ID)
+belong to deterministic admission checks; duplicates require replay reconciliation.
+They must not become normal training samples or depend on a model to reject them.
+
+This is a proposed `set_fan_speed` data contract using `parameters.value` plus
+`request.delta`, not the existing signed light-only wire contract. It carries no
+signature or proof of source trust. Do not POST these rows to the live runtime.
+A coordinated fan request/context adapter must translate into the contextual
+model's observation/profile contract, verify normal support per context, fit on
+the workstation, evaluate detection/false positives, and export a verified
+model before deployment. Merely placing files on USB does not activate inference.
+The current first-light runtime still uses its labelled assessment fixture.
+
+### First fitted fan candidate
+
+Run `python -m lab.train_fan_demo --data artifacts/local-state/fan-demo-v2
+--output /absolute/new-model-directory` (one command on one line).
+Actual workstation output: `artifacts/local-state/fan-model-v1/` contains
+`forest.json` (594 KiB, plain tree arrays; no pickle/joblib), `report.json` and
+`predictions.jsonl`. Two independent 64-tree, max_samples=256, single-worker
+Isolation Forests use agent-specific normal references and seed 1729.
+Features: prior/requested fan speed, delta/magnitude, temperature, power, load,
+and predeclared temperature×reduction / power×increase interactions. Labels,
+reasons, scenario IDs and timestamps are excluded. Camera/battery are omitted
+because this generator supplies no established behavioral relationship for them.
+
+The >=99th normal-tail percentile threshold was fixed before evaluating the test
+set. Results: 992 TN, 8 FP, 338 TP, 662 FN (0.8% false positives, 33.8% recall).
+All 250 overheating full-cut evaluation examples were detected. Smaller harmful
+reductions and directive conflicts were frequently missed; the supplied 58.6 C
+example was missed. Demo ranks: 63.56%, 39.67%, 40.33%, 100% respectively, yielding
+normal/normal/normal/unusual. These are tail ranks, not maliciousness probabilities
+or permissions decisions. A correct demo sequence is not general model acceptance.
+
+The portable scorer matched sklearn across all training/calibration/evaluation/demo
+rows with max absolute error 1.67e-16. Four generator/feature/scorer tests passed.
+Normal-only tree fitting cannot split features that are constant in normal data;
+interaction features alone do not guarantee detection outside the learned support.
+This frozen candidate remains an experimental lab adapter, not the existing
+ContextProfile runtime contract. Its per-agent calibration counts are 900 cooling
+and 1,500 power; the cooling reference is below the general contextual fitter's
+1,000 minimum and must not be promoted as satisfying that fitter's contract.
+No Pi inference activation or signed-model release occurred. Next iteration needs
+a separate development set and untouched new test set before model/profile changes;
+keep deterministic bounds/freshness checks separate and preserve human approval.
+
+### Refined candidate; fitting stopped by user
+
+`lab.refine_fan_model --output /new/directory --demo-data /path/to/demo.jsonl`
+compared forest-only with forest + nearest-normal support (512/1,024 prototypes
+per agent). Separate train/reference/calibration seeds supplied 6,000 rows each;
+a 4,000-row development set selected 1,024 prototypes with a <=2% FPR budget.
+Selection was saved before generating the fresh 6,000-row test set. Each agent
+has >=1,000 reference and calibration examples. Test: 3,000 TP, 2,969 TN, 31 FP,
+zero FN; synthetic recall 100%, FPR 1.03%. Power-step subgroup FPR was 3.2%.
+Demo remained normal/normal/normal/unusual. This is a hybrid improvement, not a
+forest-only result, and test examples share the synthetic generator family.
+
+Artifacts: `artifacts/local-state/fan-refined-v1/` and the parity-verification
+rerun `artifacts/local-state/fan-refined-verified/`. Data-only model is 1,109,600
+bytes. Exported pure-Python scorer reproduced aggregate test outcomes on all
+6,000 rows; measured mean ~0.111 ms/request on this Mac, not a Pi benchmark.
+Six tests passed. No live model activation, signed release, Pi benchmark or real
+telemetry validation. User requested stopping further fitting; preserve candidates.

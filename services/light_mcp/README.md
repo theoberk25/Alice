@@ -7,25 +7,28 @@
 > [`docs/agent-build/03-light-mcp.md`](../../docs/agent-build/03-light-mcp.md).
 
 Standalone [MCP](https://modelcontextprotocol.io) server over **Streamable HTTP**
-that reads/writes a JSON **state file on the Raspberry Pi** holding three numbers:
+that reads a JSON **state file on the Raspberry Pi** holding three numbers:
 
 ```json
 {"fan_speed": 50, "server_temperature": 45, "power_consumption": 300}
 ```
 
-The agent may **read all three** and may **write only `fan_speed`**. Both agents
-(cloud ADK, local Goose) share this one tool layer at
-**`http://127.0.0.1:8790/mcp`**.
+The agent may **read all three** and may request changes only to `fan_speed`.
+Each physical agent deployment runs its own loopback instance at
+**`http://127.0.0.1:8795/mcp`**, configured with that agent's private signing key.
+Do not expose an `agent_id` tool argument or share one signing process across
+different agent identities.
 
 ## Tools (stable contract)
 | Tool | Signature | Returns |
 |---|---|---|
 | `get_metrics` | `()` | `{"fan_speed", "server_temperature", "power_consumption"}` — read from the file |
-| `set_fan_speed` | `(value: float)` | `{"ok": true, "fan_speed", "metrics"}`, or `{"ok": false, "value", "error"}` if out of `[FAN_SPEED_MIN, FAN_SPEED_MAX]`; non-numeric is rejected by the tool schema (clean error, no crash) |
+| `set_fan_speed` | `(value: int)` | Signed ALICE request result: ALLOW, HOLD (`CHALLENGE`), or DENY. A HOLD does not change the state until a technician approves it. |
 
 `server_temperature` and `power_consumption` are treated as externally owned
 (e.g. a sensor/simulator loop on the Pi). Reads always hit disk; `set_fan_speed`
-does a locked, atomic read-modify-write that preserves those fields.
+submits through ALICE and never writes the file directly. The ALICE runtime owns
+the protected fan-state write after an automatic ALLOW or technician approval.
 
 ## Files
 - [`server.py`](server.py) — FastMCP server + the two tools.
@@ -40,13 +43,13 @@ does a locked, atomic read-modify-write that preserves those fields.
 pip install -r services/light_mcp/requirements.txt   # mcp<2 (v1 FastMCP), pyyaml
 python -m services.light_mcp.server
 ```
-Serves at **`http://127.0.0.1:8790/mcp`**. Env-overridable: `LIGHT_MCP_HOST`,
+Serves at **`http://127.0.0.1:8795/mcp`**. Env-overridable: `LIGHT_MCP_HOST`,
 `LIGHT_MCP_PORT`, `MACHINE_STATE_FILE`, `FAN_SPEED_MIN`/`MAX`, `SEED_*` (see
 `.env.example`). On the Pi, point `MACHINE_STATE_FILE` at the real path.
 
 ## Verify (MCP Inspector or programmatic client)
 ```bash
-npx @modelcontextprotocol/inspector    # connect to http://127.0.0.1:8790/mcp (Streamable HTTP)
+npx @modelcontextprotocol/inspector    # connect to http://127.0.0.1:8795/mcp (Streamable HTTP)
 ```
 Confirm two tools listed, then: `get_metrics()` → three numbers;
 `set_fan_speed(72)` → `ok:true` and `get_metrics().fan_speed == 72`;
