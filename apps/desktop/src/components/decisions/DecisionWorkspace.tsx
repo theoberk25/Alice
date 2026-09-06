@@ -1,6 +1,14 @@
 import { ShieldAlert, ArrowRight, LockKeyhole, CircleCheck, Ban, ChevronRight } from 'lucide-react';
 import type { Decision } from '@alice/contracts';
-import { Badge, Panel, toneFor, human } from '@alice/ui';
+import {
+  Badge,
+  Panel,
+  toneFor,
+  human,
+  AnimatedCounter,
+  BorderTrail,
+  CommandButton,
+} from '@alice/ui';
 import { useConsole } from '../../state/console';
 import { DecisionLineage, ClarificationTrack } from './DecisionLineage';
 function RiskDial({ score, severity }: { score: number; severity: string }) {
@@ -62,7 +70,10 @@ export function DecisionWorkspace({
   const Icon = result === 'HOLD' ? ShieldAlert : result === 'ALLOW' ? CircleCheck : Ban;
   return (
     <>
-      <section className={`decision-hero result-${result.toLowerCase()}`}>
+      <section
+        data-decision-id={d.decision_id}
+        className={`decision-hero result-${result.toLowerCase()}`}
+      >
         <div className="hero-topline">
           <span className="eyebrow">
             {current
@@ -115,7 +126,7 @@ export function DecisionWorkspace({
           <div>
             <span>CONFIDENCE</span>
             <strong>
-              {Math.round(d.decision.confidence * 100)}
+              <AnimatedCounter value={Math.round(d.decision.confidence * 100)} />
               <small>%</small>
             </strong>
           </div>
@@ -158,9 +169,9 @@ export function DecisionWorkspace({
       {!current && (
         <div className="historical-notice">
           Historical assessment · actions require the latest decision.{' '}
-          <button className="text-button" onClick={() => select(currentId)}>
+          <CommandButton className="text-button" onClick={() => select(currentId)}>
             View current assessment
-          </button>
+          </CommandButton>
         </div>
       )}
       <DecisionLineage decision={d} />
@@ -210,9 +221,9 @@ export function DecisionWorkspace({
             <span key={code}>{human(code).toLowerCase()}</span>
           ))}
         </div>
-        <button className="text-button" onClick={onResearch}>
+        <CommandButton className="text-button" onClick={onResearch}>
           Inspect full decision record <ChevronRight size={14} />
-        </button>
+        </CommandButton>
       </Panel>
       {result === 'HOLD' && (
         <Panel
@@ -230,6 +241,7 @@ export function DecisionWorkspace({
           }
           className="clarification-panel"
         >
+          <BorderTrail active={flows[d.decision_id] === 'REASSESSMENT_PENDING'} />
           <ClarificationTrack decision={d} />
           <div className="agent-quote">
             <span className="quote-mark">“</span>

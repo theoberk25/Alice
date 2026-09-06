@@ -1,5 +1,5 @@
 import type { Decision } from '@alice/contracts';
-import { Panel, Badge, toneFor, human } from '@alice/ui';
+import { Panel, Badge, toneFor, human, CommandButton } from '@alice/ui';
 import { useConsole } from '../../state/console';
 
 export function DecisionLineage({ decision }: { decision: Decision }) {
@@ -11,6 +11,7 @@ export function DecisionLineage({ decision }: { decision: Decision }) {
   if (ids.length < 2 && !pending) return null;
   return (
     <Panel
+      className="lineage-panel"
       title="Assessment lineage"
       meta={<span className="count-label">{decision.request.request_id}</span>}
     >
@@ -22,7 +23,7 @@ export function DecisionLineage({ decision }: { decision: Decision }) {
             s.audit.some((e) => e.type === 'AUTO_CLARIFICATION_SENT' && e.decision_id === id);
           return (
             <li key={id}>
-              <button
+              <CommandButton
                 className="lineage-assessment"
                 onClick={() => s.select(id)}
                 aria-label={`Inspect assessment ${id}`}
@@ -46,7 +47,7 @@ export function DecisionLineage({ decision }: { decision: Decision }) {
                     {d.reassessment.sequence}
                   </small>
                 )}
-              </button>
+              </CommandButton>
               {d.context_challenge.required && (
                 <div className="lineage-events">
                   <p>
