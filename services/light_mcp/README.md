@@ -1,59 +1,72 @@
-# Light-Control MCP server
+# Machine-metrics MCP server
 
-Standalone [MCP](https://modelcontextprotocol.io) server that controls simulated
-"machine" indicator lights (imagine machines at a base / power plant). It exposes
-one shared tool layer over **Streamable HTTP** so both agents in
-[`docs/agent-build/`](../../docs/agent-build/) — the local Goose harness
-([02](../../docs/agent-build/02-local-harness.md)) and the cloud ADK agent
-([01](../../docs/agent-build/01-cloud-agent.md)) — connect to the same server.
+> Repurposed from light control (dir/package name kept as `light_mcp` to preserve
+> the import path, URL and deploy wiring). Spec background:
+> [`docs/agent-build/03-light-mcp.md`](../../docs/agent-build/03-light-mcp.md).
 
-Spec: [`docs/agent-build/03-light-mcp.md`](../../docs/agent-build/03-light-mcp.md).
+Standalone [MCP](https://modelcontextprotocol.io) server over **Streamable HTTP**
+that reads/writes a JSON **state file on the Raspberry Pi** holding three numbers:
 
-## Design seams
-- **Transport = Streamable HTTP** (not stdio): one long-running HTTP service is
-  reachable over the network by a local *and* a remote/cloud agent.
-- **Driver swap seam**: hardware sits behind [`LightDriver`](drivers.py).
-  `MockDriver` ships now (in-memory + logs); `SerialDriver` drops in later with
-  **zero change** to the server or either agent. Select with `LIGHT_DRIVER`.
-- **Machines are config-driven** in [`machines.yaml`](machines.yaml) — rename /
-  remap later without touching code.
+```json
+{"fan_speed": 50, "server_temperature": 45, "power_consumption": 300}
+```
 
-## Tools (stable contract — both agents depend on these)
+The agent may **read all three** and may **write only `fan_speed`**. Both agents
+(cloud ADK, local Goose) share this one tool layer at
+**`http://127.0.0.1:8790/mcp`**.
+
+## Tools (stable contract)
 | Tool | Signature | Returns |
 |---|---|---|
-| `list_machines` | `()` | `{"machines": [{"id","state","allowed_states"}]}` |
-| `get_status` | `(machine_id: str \| None = None)` | one machine's state, or all if omitted |
-| `set_machine` | `(machine_id, state)` | `{"machine_id","state","ok"}` — error if state not allowed |
-| `blink` | `(machine_id, count=3, interval_ms=300)` | `{"machine_id","ok"}` — transient, returns to prior state |
+| `get_metrics` | `()` | `{"fan_speed", "server_temperature", "power_consumption"}` — read from the file |
+| `set_fan_speed` | `(value: float)` | `{"ok": true, "fan_speed", "metrics"}`, or `{"ok": false, "value", "error"}` if out of `[FAN_SPEED_MIN, FAN_SPEED_MAX]`; non-numeric is rejected by the tool schema (clean error, no crash) |
+
+`server_temperature` and `power_consumption` are treated as externally owned
+(e.g. a sensor/simulator loop on the Pi). Reads always hit disk; `set_fan_speed`
+does a locked, atomic read-modify-write that preserves those fields.
+
+## Files
+- [`server.py`](server.py) — FastMCP server + the two tools.
+- [`state.py`](state.py) — `MachineState`: atomic, locked JSON store; seeds the
+  file if missing. The file path (`MACHINE_STATE_FILE`) is the dev→Pi seam.
+- [`poller.py`](poller.py) — **per-agent** 0.1s poller (see below).
+- `drivers.py` / `machines.yaml` — legacy light-control backend, retained but
+  **no longer used** by `server.py`.
 
 ## Run (repo root, `.venv` active)
 ```bash
-pip install -r services/light_mcp/requirements.txt   # first time
+pip install -r services/light_mcp/requirements.txt   # mcp<2 (v1 FastMCP), pyyaml
 python -m services.light_mcp.server
 ```
-Serves at **`http://127.0.0.1:8790/mcp`**. Host/port/driver are env-overridable
-(see below and `.env.example`).
+Serves at **`http://127.0.0.1:8790/mcp`**. Env-overridable: `LIGHT_MCP_HOST`,
+`LIGHT_MCP_PORT`, `MACHINE_STATE_FILE`, `FAN_SPEED_MIN`/`MAX`, `SEED_*` (see
+`.env.example`). On the Pi, point `MACHINE_STATE_FILE` at the real path.
 
-## Verify with the MCP Inspector
+## Verify (MCP Inspector or programmatic client)
 ```bash
-npx @modelcontextprotocol/inspector
+npx @modelcontextprotocol/inspector    # connect to http://127.0.0.1:8790/mcp (Streamable HTTP)
 ```
-Connect to `http://127.0.0.1:8790/mcp` (Streamable HTTP) and confirm the four
-tools are listed. Then:
-- `set_machine("machine-01","on")` → `ok:true`; `get_status()` shows `machine-01: on`.
-- `blink("machine-01")` → returns, leaves state `on`.
-- `set_machine("machine-01","banana")` → clean error (`ok:false`), not a crash.
+Confirm two tools listed, then: `get_metrics()` → three numbers;
+`set_fan_speed(72)` → `ok:true` and `get_metrics().fan_speed == 72`;
+`set_fan_speed(150)` → `ok:false` (out of range), server keeps serving.
 
-## Environment
-| Var | Default | Meaning |
-|---|---|---|
-| `LIGHT_MCP_HOST` | `127.0.0.1` | bind host |
-| `LIGHT_MCP_PORT` | `8790` | bind port (avoids backend/adk/biometrics/feed) |
-| `LIGHT_DRIVER` | `mock` | `mock` \| `serial` |
-| `LIGHT_SERIAL_PORT` | *(empty)* | e.g. `/dev/tty.usbmodem*` (later) |
-| `LIGHT_SERIAL_BAUD` | `115200` | serial baud (later) |
-| `LIGHT_MACHINES_CONFIG` | `services/light_mcp/machines.yaml` | machine list |
+## Per-agent metrics poller (the "0.1s cron")
+Each agent runs **one** poller. Real cron can't do sub-second, so this is a
+long-running 10 Hz loop (deployed as systemd — the sub-second analog of cron):
+it opens one MCP session, calls `get_metrics` every `--interval` seconds (default
+0.1), logs a ~1/sec heartbeat, and writes the latest sample to a per-agent
+snapshot file the agent can read without its own round-trip.
 
-## Deploy (optional)
-[`services/systemd/light-mcp.service`](../systemd/light-mcp.service) mirrors the
-existing units; adjust `WorkingDirectory`/`User` for the target host.
+```bash
+python -m services.light_mcp.poller --agent cloud     # cloud ADK agent
+python -m services.light_mcp.poller --agent local     # local Goose agent
+python -m services.light_mcp.poller --agent cloud --once   # single poll (tests)
+```
+Snapshot default: `poller_<agent>_latest.json` beside this module (gitignored).
+
+## Deploy (optional, systemd)
+- [`services/systemd/light-mcp.service`](../systemd/light-mcp.service) — the server.
+- [`light-metrics-poller-cloud.service`](../systemd/light-metrics-poller-cloud.service)
+  and [`light-metrics-poller-local.service`](../systemd/light-metrics-poller-local.service)
+  — the two per-agent pollers (each `Requires=`/`After=` the server).
+Adjust `WorkingDirectory`/`User`/`MACHINE_STATE_FILE` for the target host.

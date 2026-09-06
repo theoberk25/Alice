@@ -1,5 +1,5 @@
 [Unit]
-Description=ALICE Light-Control MCP server (Streamable HTTP, mock driver)
+Description=ALICE machine-metrics MCP server (Streamable HTTP; reads/writes the Pi state file)
 Wants=network-online.target
 After=network-online.target
 
@@ -10,7 +10,8 @@ WorkingDirectory=/home/pi/Alice
 Environment=PYTHONUNBUFFERED=1
 Environment=LIGHT_MCP_HOST=127.0.0.1
 Environment=LIGHT_MCP_PORT=8790
-Environment=LIGHT_DRIVER=mock
+# The Pi state file the MCP reads (fan/temp/power) and writes (fan_speed only).
+Environment=MACHINE_STATE_FILE=/home/pi/Alice/services/light_mcp/machine_state.json
 ExecStart=/home/pi/Alice/.venv/bin/python -m services.light_mcp.server
 Restart=on-failure
 RestartSec=5

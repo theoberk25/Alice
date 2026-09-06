@@ -40,20 +40,34 @@ LIGHT_MCP_URL = "http://127.0.0.1:8790/mcp"
 # AI Studio key serves this model on the non-Vertex path.
 MODEL = os.getenv("ADK_MODEL", "gemini-flash-latest")
 
-root_agent = LlmAgent(
-    model=MODEL,
-    name="machine_ops_cloud",
-    description="Cloud operations agent that controls base/plant machine lights via the Light MCP.",
-    instruction=(
-        "You operate base/plant machines through the light_control tools "
-        "(list_machines, get_status, set_machine, blink). "
-        "Query status before acting, only use each machine's allowed_states, "
-        "and confirm state changes back to the user. If a tool returns ok:false, "
-        "report the error instead of retrying blindly."
-    ),
-    tools=[
-        McpToolset(
-            connection_params=StreamableHTTPConnectionParams(url=LIGHT_MCP_URL),
-        )
-    ],
+_INSTRUCTION = (
+    "You operate base/plant machines through the light_control tools "
+    "(list_machines, get_status, set_machine, blink). "
+    "Query status before acting, only use each machine's allowed_states, "
+    "and confirm state changes back to the user. If a tool returns ok:false, "
+    "report the error instead of retrying blindly."
 )
+
+
+def build_agent(model: str = MODEL) -> LlmAgent:
+    """Construct the cloud machine-ops agent bound to the Light MCP.
+
+    A factory (not just a module global) so headless callers -- e.g.
+    ``smoke_lights.py`` -- can pick a specific/fallback Gemini model while
+    ``adk web`` keeps discovering ``root_agent`` below.
+    """
+    return LlmAgent(
+        model=model,
+        name="machine_ops_cloud",
+        description="Cloud operations agent that controls base/plant machine lights via the Light MCP.",
+        instruction=_INSTRUCTION,
+        tools=[
+            McpToolset(
+                connection_params=StreamableHTTPConnectionParams(url=LIGHT_MCP_URL),
+            )
+        ],
+    )
+
+
+# `adk web` / `adk run` discover this module-level agent by name.
+root_agent = build_agent()
