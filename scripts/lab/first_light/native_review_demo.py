@@ -22,6 +22,7 @@ from scripts.console.provision_review_key import provision
 from services.runtime_feed import make_server
 
 ROOT = repository_root()
+REHEARSAL_SOURCE = "LOCAL REHEARSAL / SIGNED FIXTURE RELEASE / FIXTURE ASSESSMENT / MOCK ESP"
 
 
 def main():
@@ -47,7 +48,9 @@ def main():
     keys = provision(root / "console", console_id, args.technician_id)
     release = build_release.build(root / "bundle", approval_required=True)
     manifest_key = bytes.fromhex((root / "bundle/trust/manifest_public.hex").read_text().strip())
-    agent_seed = bytes.fromhex((root / "bundle/client/term-agent-01-k1.seed").read_text().strip())
+    agent_key = root / "bundle/client/term-agent-01-k1.seed"
+    agent_key.chmod(0o600)
+    agent_seed = bytes.fromhex(agent_key.read_text().strip())
     servers, runtime, app = [], None, None
     try:
         controller, esp = mock_esp.make_server()
@@ -70,8 +73,8 @@ def main():
                     "ALICE_REVIEW_KEY_FILE": keys["key_file"]}
         if args.database is not None:
             settings["ALICE_DATABASE_PATH"] = str(args.database.expanduser().resolve())
-        info = {"source": "LOCAL REHEARSAL / SIGNED FIXTURE RELEASE / FIXTURE ASSESSMENT / MOCK ESP",
-                "directory": str(root), "environment": settings}
+        info = {"source": REHEARSAL_SOURCE, "directory": str(root),
+                "runtime_url": f"http://127.0.0.1:{pi.server_port}", "environment": settings}
         descriptor = os.open(root / "session.json", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(descriptor, "w") as stream:
             json.dump(info, stream, indent=2)

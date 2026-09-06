@@ -73,6 +73,11 @@ or install physical-Pi trust. See [operator steps](../guides/native-runtime-revi
 All synthetic ledger/keys remain in the new private directory; `stop` on stdin
 shuts down only this rehearsal and its launched app. No physical action is implied.
 
+`npm run demo:hold -- --session /absolute/new-private-dir/session.json` invokes
+`python -m lab.first_light.send_native_hold` to send another uniquely signed HOLD
+through that rehearsal's existing runtime. It requires the private local session
+and authenticated mock source; it neither approves nor commands the controller.
+
 ## Wazuh maintenance
 
 `python -m lab.wazuh_sync` is implemented under `scripts/lab/`. It requires

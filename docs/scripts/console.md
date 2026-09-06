@@ -22,5 +22,8 @@ See the [console guide](../guides/technician-console.md).
 
 See [integrated demo setup](../guides/demo-runbook.md#start-the-current-presentation-services) for the authenticated
 bridge, USB SQL runtime, remote preview/native configuration and browser test.
-The Vite proxy lives with the desktop app; `python -m services.runtime_feed` runs
-the read-only bridge. Neither creates a second backend database.
+The Vite proxy lives with the desktop app and remains read-only;
+`python -m services.runtime_feed` runs the existing authenticated bridge, including
+the Pi-verified native review path. Neither creates a second backend database.
+For local personal acceptance, [the rehearsal](../guides/native-runtime-review.md)
+provides `npm run demo:hold -- --session /absolute/rehearsal/session.json`.

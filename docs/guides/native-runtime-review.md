@@ -67,6 +67,20 @@ Type `hold` for another synthetic request, `status` for mock-command counts, and
 `stop` to stop the rehearsal/app. Runtime data stays in its private directory.
 `session.json` contains private session configuration and must not be shared.
 
+From a second terminal in the repository root, add another HOLD to a running
+rehearsal with:
+
+```sh
+npm run demo:hold -- --session /absolute/new-private-rehearsal/session.json
+```
+
+Each run signs a new test-agent `set_light_state` request and submits it through
+the existing local runtime's `/request` endpoint. It prints the new request ID,
+`CHALLENGE` and `NOT_EXECUTED`; the HOLD appears in the live native feed. The
+command refuses nonlocal or non-rehearsal configuration and checks that the
+authenticated bridge identifies the controller as mock. It does not approve the
+HOLD or send a controller command. Keep the rehearsal running while using it.
+
 1. Start the configured biometric service, then build/launch `npm run build:app`
    and `npm run launch:app`. Sign in with the existing enrolled technician.
 2. Confirm feed source, controller label, connection freshness and history. The
