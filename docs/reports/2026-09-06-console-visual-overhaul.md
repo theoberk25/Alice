@@ -145,9 +145,17 @@ native backend PR #5 and previous biometric PR #4. Their newer behavior was reta
 The verified account has WRITE permission on `theoberk25/Alice`. The feature was
 pushed directly to the identified `upstream` remote and
 [PR #6](https://github.com/theoberk25/Alice/pull/6) was opened against team `main`.
-Local main was not pushed. The remote PR remains open and was not merged or deployed.
+Local main was not pushed. The PR was subsequently **closed without merging** at
+the user’s request on 2026-09-06 at 07:14:02 UTC while a teammate prepares changes.
+The previously pushed remote feature branch remains at `79c2650`; no remote branch
+was deleted. Local implementation, feature branch, worktree, merged main and rebuilt
+Dock app are retained. Further status changes stay local; no more pushes or PR
+publication are authorized by the closing request. No deployment occurred.
 
-This final documentation update records delivery after the tested local integration.
+The delivery documentation update records completion after the tested local integration.
 It is also merged into local main; the application source is unchanged from the
 full integrated suite above. Both worktrees finish clean. The feature branch and
-`/Users/alexdaoud/Documents/alice-dashboard-visual-overhaul` remain for PR review.
+`/Users/alexdaoud/Documents/alice-dashboard-visual-overhaul` remain available locally.
+The PR-closure record is an additional local documentation-only commit; app source
+and the Dock bundle are unchanged. Reconciliation with the teammate’s new changes
+is deferred until requested.

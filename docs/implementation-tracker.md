@@ -22,8 +22,10 @@ feature is isolated in `../alice-dashboard-visual-overhaul` on
 identity/Face ID, motion and accessibility are redesigned. Existing core task
 statuses remain unchanged. [Visual validation](reports/2026-09-06-console-visual-overhaul.md)
 records actual tests, baseline/screens, 11 passing browser regressions and completed local integration.
-Team [PR #6](https://github.com/theoberk25/Alice/pull/6) is open; only the feature
-branch was pushed. The original Dock-linked ALICE.app was rebuilt and reopened.
+Team [PR #6](https://github.com/theoberk25/Alice/pull/6) was opened, then closed
+at the user’s request while a teammate prepares changes. The previously pushed
+feature branch remains; subsequent status changes stay local. Local main was never
+pushed. The original Dock-linked ALICE.app was rebuilt and reopened.
 The [previous current snapshot](handoffs/2026-09-06-before-visual-overhaul.md) is preserved.
 
 Historical September 6 native backend continuation: biometric PR #4 is merged in Theodore's
@@ -611,7 +613,7 @@ remaining integrated acceptance. The [architecture][architecture] and
 | SUP-10 | Contextual fan-sequence escalation | Train on bounded synthetic small-step fan behavior; classify the later abrupt shutdown from sequence plus fresh telemetry, require review for an eligible `ELEVATED`/`HIGH` result, and prove technician rejection sends no command. |
 | SUP-11 | Enterprise edge-offline presentation | Show loss/staleness of authenticated Pi and sync feeds, last contact and unknown authority accurately on the disconnected enterprise host; an offline banner must not claim handover completion. |
 
-| SUP-12 | Technician console visual and motion system | Presentation implemented on team `e1e7506`: shared motion, semantic surfaces, decision/evidence hierarchy, compact identity/biometrics, responsive controls and accessibility. Existing business/security handlers unchanged. Integrated local main: frontend 145 + script 8; Rust 60 (2 opt-in ignored), Python biometrics 166, web/native builds and 11 browser regressions passed. Dock-linked ALICE.app rebuilt/reopened. Feature published in [PR #6](https://github.com/theoberk25/Alice/pull/6); local main not pushed. Exact results in [visual validation](reports/2026-09-06-console-visual-overhaul.md). |
+| SUP-12 | Technician console visual and motion system | Presentation implemented on team `e1e7506`: shared motion, semantic surfaces, decision/evidence hierarchy, compact identity/biometrics, responsive controls and accessibility. Existing business/security handlers unchanged. Integrated local main: frontend 145 + script 8; Rust 60 (2 opt-in ignored), Python biometrics 166, web/native builds and 11 browser regressions passed. Dock-linked ALICE.app rebuilt/reopened. [PR #6](https://github.com/theoberk25/Alice/pull/6) closed at user request, unmerged; redesign retained locally, no further publication. Local main not pushed. Exact results in [visual validation](reports/2026-09-06-console-visual-overhaul.md). |
 
 ## Maintaining this tracker
 
