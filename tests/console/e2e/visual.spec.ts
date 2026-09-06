@@ -22,8 +22,11 @@ test('shared navigation preserves selected decisions and accessible control name
 
 test('identity morph stays visible, traps focus and returns focus on Escape', async ({ page }) => {
   await page.goto('/');
-  const trigger = page.getByRole('button', { name: 'Alex Morgan SIMULATED SESSION' });
-  await trigger.click();
+  await page.getByLabel('Account: Alex Morgan').click();
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Continue to facial login' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Change user' }).click();
+  const trigger = page.getByRole('button', { name: 'Sign in SIMULATED SESSION' });
   const dialog = page.getByRole('dialog', { name: 'Technician identity' });
   await expect(dialog).toBeVisible();
   await expect.poll(async () => (await dialog.boundingBox())?.width ?? 0).toBeGreaterThan(350);

@@ -69,7 +69,7 @@ it('applies native login immediately then fades out after acknowledgement withou
   const close = vi.fn();
   await signIn(close);
   expect(useConsole.getState().technician).toEqual(technician);
-  expect(screen.getByRole('status')).toHaveTextContent('Face ID verified');
+  expect(screen.getByRole('status')).toHaveTextContent('Identity verified');
   expect(close).not.toHaveBeenCalled();
   await act(async () => vi.advanceTimersByTimeAsync(450));
   expect(screen.getByRole('dialog')).toHaveClass('biometric-dialog-exit');
@@ -84,6 +84,7 @@ it.each([200, 480])(
     const close = vi.fn();
     await signIn(close);
     await act(async () => vi.advanceTimersByTimeAsync(elapsed));
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Cancel' })));
     fireEvent.click(screen.getByRole('button', { name: 'Sign out of console' }));
     await act(async () => vi.advanceTimersByTimeAsync(1000));
     expect(useConsole.getState().technician).toBeUndefined();
@@ -126,3 +127,15 @@ it.each(['SUCCEEDED', 'FAILED', 'CANCELLED'] as const)(
     expect(useConsole.getState().runtime).toEqual(before);
   },
 );
+
+it('shows only session actions while already signed in, and Change user clears the old identity first', async () => {
+  useConsole.setState({ technician });
+  render(<IdentityPanel onClose={vi.fn()} />);
+  expect(screen.queryByLabelText('Technician username')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Continue to facial login' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Sign out of console' })).toBeEnabled();
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Change user' })));
+  expect(useConsole.getState().technician).toBeUndefined();
+  expect(screen.getByLabelText('Technician username')).toHaveValue('');
+  expect(api.beginBiometricSession).not.toHaveBeenCalled();
+});

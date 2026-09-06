@@ -146,3 +146,124 @@ def test_hold_command_refuses_bridge_that_reports_physical_controller_before_pos
             send_hold(session)
     assert opener.open.call_count == 1
     assert opener.open.call_args.args[0].get_method() == 'GET'
+
+
+@pytest.fixture
+def stopped_rehearsal(tmp_path):
+    import select
+    directory = tmp_path.resolve() / "existing private rehearsal"
+    child = subprocess.Popen(
+        [sys.executable, "-m", "lab.first_light.native_review_demo", "--directory", str(directory),
+         "--technician-id", "TEST-TECH"], cwd=ROOT, stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        assert select.select([child.stdout], [], [], 20)[0], "Rehearsal startup timed out"
+        ready = json.loads(child.stdout.readline())
+        session = directory / "session.json"
+        settings = json.loads(session.read_text())["environment"]
+        request = urllib.request.Request(settings["ALICE_FEED_URL"] + "/events?after=0",
+                                         headers={"Authorization": "Bearer " + settings["ALICE_FEED_TOKEN"]})
+        with urllib.request.urlopen(request, timeout=5) as response:
+            history = json.load(response)
+        child.stdin.write("stop\n")
+        child.stdin.flush()
+        _, stderr = child.communicate(timeout=10)
+        assert child.returncode == 0, stderr
+        yield session, settings, history, ready["requests"]
+    finally:
+        if child.poll() is None:
+            child.terminate()
+            child.communicate(timeout=10)
+
+
+def test_resume_preserves_history_endpoints_and_keys_after_stdin_closes(stopped_rehearsal):
+    import select
+    import time
+    session, settings, history, requests = stopped_rehearsal
+    root = session.parent
+    paths = [session, root / "runtime/ledger.sqlite", root / "runtime/ledger_key.seed"]
+    paths.extend(path for directory in (root / "bundle", root / "console")
+                 for path in directory.rglob("*") if path.is_file())
+    before = {path: path.read_bytes() for path in paths}
+    child = subprocess.Popen(
+        [sys.executable, "-m", "lab.first_light.native_review_demo", "--resume", str(session)],
+        cwd=ROOT, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        assert select.select([child.stdout], [], [], 20)[0], "Resume timed out"
+        line = child.stdout.readline()
+        assert line, child.stderr.read()
+        ready = json.loads(line)
+        assert ready["resumed"] and ready["mock_controller_reset"]
+        assert ready["mock_state"] == "off" and ready["mock_commands"] == 0
+        assert ready["events"] == len(history["events"])
+        # DEVNULL is immediate EOF: the restored service remains available.
+        time.sleep(0.1)
+        assert child.poll() is None
+        for route in ("/events?after=0", "/review/" + requests[0]):
+            request = urllib.request.Request(settings["ALICE_FEED_URL"] + route,
+                                             headers={"Authorization": "Bearer " + settings["ALICE_FEED_TOKEN"]})
+            with urllib.request.urlopen(request, timeout=5) as response:
+                payload = json.load(response)
+            if route.startswith("/events"):
+                assert payload == history
+            else:
+                assert payload["eligible"] and payload["execution_status"] == "NOT_EXECUTED"
+        child.terminate()
+        stdout, stderr = child.communicate(timeout=10)
+        assert child.returncode == 0, stderr
+        assert settings["ALICE_FEED_TOKEN"] not in line + stdout + stderr
+        assert {path: path.read_bytes() for path in paths} == before
+    finally:
+        if child.poll() is None:
+            child.terminate()
+            child.communicate(timeout=10)
+
+
+def test_resume_rejects_missing_state_and_changed_configuration_before_runtime(stopped_rehearsal):
+    from unittest.mock import patch
+    from lab.first_light.native_review_demo import ResumeError, resume
+    session, _, _, _ = stopped_rehearsal
+    original = session.read_bytes()
+    descriptor = json.loads(original)
+    with patch("lab.first_light.native_review_demo.FirstLightRuntime") as runtime:
+        for name in ("runtime/ledger.sqlite", "runtime/ledger_key.seed", "bundle/release/manifest.sig",
+                     "console/console.seed", "console/console-trust.candidate.json"):
+            path = session.parent / name
+            saved = path.with_name(path.name + ".preserved")
+            path.rename(saved)
+            try:
+                with pytest.raises(ResumeError, match="INVALID_EXISTING_LOCAL_REHEARSAL"):
+                    resume(session)
+                assert not path.exists()
+            finally:
+                saved.rename(path)
+        for change in ({"source": "PHYSICAL PI"}, {"runtime_url": "http://192.168.1.1:8080"},
+                       {"runtime_url": descriptor["environment"]["ALICE_FEED_URL"]},
+                       {"directory": "/different/rehearsal"}, {"extra": "unknown"}):
+            session.write_text(json.dumps({**descriptor, **change}))
+            try:
+                with pytest.raises(ResumeError, match="INVALID_EXISTING_LOCAL_REHEARSAL"):
+                    resume(session)
+            finally:
+                session.write_bytes(original)
+    runtime.assert_not_called()
+
+
+def test_resume_refuses_occupied_port_without_altering_existing_history(stopped_rehearsal):
+    import socket
+    from urllib.parse import urlsplit
+    session, _, _, _ = stopped_rehearsal
+    ledger = session.parent / "runtime/ledger.sqlite"
+    before = ledger.read_bytes()
+    runtime_url = json.loads(session.read_text())["runtime_url"]
+    with socket.socket() as occupied:
+        occupied.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        occupied.bind(("127.0.0.1", urlsplit(runtime_url).port))
+        occupied.listen()
+        result = subprocess.run(
+            [sys.executable, "-m", "lab.first_light.native_review_demo", "--resume", str(session)],
+            cwd=ROOT, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=10)
+        assert result.returncode == 1
+        assert "EXISTING_LOCAL_REHEARSAL_UNAVAILABLE" in result.stderr
+        assert "Traceback" not in result.stderr and result.stdout == ""
+    assert ledger.read_bytes() == before

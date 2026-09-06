@@ -1,14 +1,17 @@
 import { useRef, useState } from 'react';
 import { ShieldCheck, Plus, ScanFace } from 'lucide-react';
-import { Panel, Badge } from '@alice/ui';
+import { Panel, Badge, Modal, TransitionPanel } from '@alice/ui';
 import { nativeCall, isNative } from '../../lib/native';
 import { useConsole, type Technician } from '../../state/console';
 import { CameraCapture } from '../biometrics/CameraCapture';
+import { FaceIdMorph, useFaceIdMorph } from '../biometrics/FaceIdMorph';
 export function AdminPanel() {
+  const faceIdMorph = useFaceIdMorph();
   const [authorized, setAuthorized] = useState(false),
     [username, setUsername] = useState(''),
     [password, setPassword] = useState(''),
     [error, setError] = useState(''),
+    [notice, setNotice] = useState(''),
     [busy, setBusy] = useState(false),
     [technicians, setTechnicians] = useState<Technician[]>([]),
     [enrolling, setEnrolling] = useState<Technician>(),
@@ -34,6 +37,7 @@ export function AdminPanel() {
     operation.current = true;
     setBusy(true);
     setError('');
+    setNotice('');
     try {
       await work();
     } catch (e) {
@@ -114,6 +118,12 @@ export function AdminPanel() {
                 Lock administration
               </button>
             </div>
+            <p className="inline-notice" role="status">
+              {notice}
+            </p>
+            <p className="inline-error" role="alert">
+              {error}
+            </p>
             <div className="technician-list">
               {technicians.map((t) => (
                 <div className="technician-row" key={t.technician_id}>
@@ -127,91 +137,116 @@ export function AdminPanel() {
                     {t.enabled ? 'ENABLED' : 'DISABLED'}
                   </Badge>
                   <Badge tone={t.enrolled ? 'healthy' : 'warning'}>
-                    {t.enrolled ? (t.enrollment_version ?? 'ENROLLED') : 'NO FACE'}
+                    {t.enrollment_pending
+                      ? 'PENDING ENROLLMENT'
+                      : t.enrolled
+                        ? (t.enrollment_version ?? 'ENROLLED')
+                        : 'NO FACE'}
                   </Badge>
-                  <button
-                    className="small-button"
-                    disabled={busy || !!enrolling || !t.enabled}
-                    onClick={() => {
-                      setError('');
-                      setEnrolling(t);
-                    }}
-                  >
-                    <ScanFace size={14} /> {t.enrolled ? 'Begin re-enrollment' : 'Begin enrollment'}
-                  </button>
-                  <button
-                    className="small-button"
-                    disabled={busy || !!enrolling}
-                    onClick={() => {
-                      setError('');
-                      setEditingId(t.technician_id);
-                      setDraft({
-                        technician_id: t.technician_id,
-                        username: t.username,
-                        display_name: t.display_name,
-                        role: t.role,
-                      });
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="small-button"
-                    disabled={busy || !!enrolling}
-                    onClick={() =>
-                      void run(async () => {
-                        await nativeCall('set_technician_enabled', {
-                          technicianId: t.technician_id,
-                          enabled: !t.enabled,
+                  <div className="technician-actions">
+                    <button
+                      ref={faceIdMorph.trigger}
+                      className="small-button"
+                      disabled={busy || !!enrolling || !t.enabled}
+                      onClick={() => {
+                        setError('');
+                        setEnrolling(t);
+                      }}
+                    >
+                      <ScanFace size={14} />{' '}
+                      {t.enrolled ? 'Begin re-enrollment' : 'Begin enrollment'}
+                    </button>
+                    <button
+                      className="small-button"
+                      disabled={busy || !!enrolling}
+                      onClick={() => {
+                        setError('');
+                        setEditingId(t.technician_id);
+                        setDraft({
+                          technician_id: t.technician_id,
+                          username: t.username,
+                          display_name: t.display_name,
+                          role: t.role,
                         });
-                        await refresh();
-                      })
-                    }
-                  >
-                    {t.enabled ? 'Disable' : 'Enable'}
-                  </button>
-                  <button
-                    className="danger-button"
-                    disabled={busy}
-                    onClick={() =>
-                      void run(async () => {
-                        await nativeCall('remove_enrollment', { technicianId: t.technician_id });
-                        if (enrolling?.technician_id === t.technician_id) setEnrolling(undefined);
-                        await refresh();
-                      })
-                    }
-                  >
-                    {t.enrolled ? 'Remove face' : 'Discard pending enrollment'}
-                  </button>
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="small-button"
+                      disabled={busy || !!enrolling}
+                      onClick={() =>
+                        void run(async () => {
+                          await nativeCall('set_technician_enabled', {
+                            technicianId: t.technician_id,
+                            enabled: !t.enabled,
+                          });
+                          await refresh();
+                        })
+                      }
+                    >
+                      {t.enabled ? 'Disable' : 'Enable'}
+                    </button>
+                    {(t.enrolled || t.enrollment_pending) && (
+                      <button
+                        className="danger-button"
+                        disabled={busy}
+                        onClick={() =>
+                          void run(async () => {
+                            await nativeCall('remove_enrollment', {
+                              technicianId: t.technician_id,
+                            });
+                            if (enrolling?.technician_id === t.technician_id)
+                              setEnrolling(undefined);
+                            await refresh();
+                            setNotice(
+                              `${t.display_name}: ${t.enrolled ? 'Face removed' : 'Pending enrollment discarded'}. Identity details are retained.`,
+                            );
+                          })
+                        }
+                      >
+                        {t.enrolled ? 'Remove face' : 'Discard pending enrollment'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
             {enrolling ? (
-              <section className="enrollment-capture">
-                <h3>Enroll {enrolling.display_name}</h3>
-                <p>
-                  Look forward to begin, then slowly move your head in a circle. The scan fills as
-                  each view is captured. Your existing enrollment remains available until the new
-                  one is saved.
-                </p>
-                <CameraCapture
-                  intent={{ purpose: 'ENROLLMENT', technician_id: enrolling.technician_id }}
-                  onCancel={() => setEnrolling(undefined)}
-                  onRecovered={async () => {
-                    await refresh();
-                    setEnrolling(undefined);
-                  }}
-                  onComplete={() =>
-                    run(async () => {
-                      const session = useConsole.getState();
-                      if (session.technician?.technician_id === enrolling.technician_id)
-                        session.setTechnician(undefined);
+              <Modal
+                title="Set up Face ID"
+                className="face-id-dialog"
+                onClose={() => setEnrolling(undefined)}
+                closeDisabled={busy}
+              >
+                <FaceIdMorph source={faceIdMorph.source} />
+                <p className="face-id-account">{enrolling.display_name}</p>
+                <TransitionPanel stage="enrollment" animateContent={false} animateSize>
+                  <CameraCapture
+                    intent={{ purpose: 'ENROLLMENT', technician_id: enrolling.technician_id }}
+                    onCancel={() => setEnrolling(undefined)}
+                    onRecovered={async () => {
                       await refresh();
                       setEnrolling(undefined);
-                    })
-                  }
-                />
-              </section>
+                    }}
+                    onComplete={async () => {
+                      setBusy(true);
+                      try {
+                        const session = useConsole.getState();
+                        if (session.technician?.technician_id === enrolling.technician_id)
+                          session.setTechnician(undefined);
+                        await refresh();
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                    onAcknowledged={() => {
+                      setNotice(`${enrolling.display_name}: Face ID is ready.`);
+                      setEnrolling(undefined);
+                    }}
+                  />
+                </TransitionPanel>
+              </Modal>
             ) : (
               <form
                 className="admin-create stack-form"
@@ -275,9 +310,11 @@ export function AdminPanel() {
             )}
           </>
         )}
-        <p className="inline-error" role="alert">
-          {error}
-        </p>
+        {!authorized && (
+          <p className="inline-error" role="alert">
+            {error}
+          </p>
+        )}
       </div>
     </Panel>
   );

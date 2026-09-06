@@ -1,6 +1,6 @@
 import { ShieldAlert, ArrowRight, LockKeyhole, CircleCheck, Ban, ChevronRight } from 'lucide-react';
 import type { Decision } from '@alice/contracts';
-import { Badge, Panel, toneFor, human, AnimatedCounter, CommandButton } from '@alice/ui';
+import { Badge, Panel, toneFor, human, CommandButton } from '@alice/ui';
 import { useConsole } from '../../state/console';
 import { DecisionLineage, ClarificationTrack } from './DecisionLineage';
 function RiskDial({ score, severity }: { score: number; severity: string }) {
@@ -118,7 +118,7 @@ export function DecisionWorkspace({
           <div>
             <span>CONFIDENCE</span>
             <strong>
-              <AnimatedCounter value={Math.round(d.decision.confidence * 100)} />
+              {Math.round(d.decision.confidence * 100)}
               <small>%</small>
             </strong>
           </div>

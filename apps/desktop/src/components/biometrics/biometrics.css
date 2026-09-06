@@ -193,9 +193,11 @@
 .approval-content > div > .capture-guidance {
   margin: 0 24px 18px;
 }
+/* Camera geometry is fixed before the first frame. Native capture prefers 640×360;
+   contain preserves the complete frame for the 640×480 fallback as well. */
 .biometric-session {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   margin: 18px 0 0;
 }
 .approval-dialog .biometric-session,
@@ -203,12 +205,12 @@
   margin: 0 24px 20px;
 }
 .biometric-session .biometric-preview {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 9;
   width: min(100%, 520px);
   margin-inline: auto;
   background: var(--alice-bg-primary);
   border: 1px solid var(--alice-border);
-  border-radius: 10px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   position: relative;
@@ -224,6 +226,10 @@
   inset: 0;
   color: var(--alice-text-muted);
   opacity: 0.7;
+  transition: opacity 150ms ease-out;
+}
+.biometric-session .biometric-preview:has(img:not([hidden])) .biometric-placeholder {
+  opacity: 0;
 }
 .biometric-session .biometric-success-mark {
   color: var(--alice-green);
@@ -237,16 +243,11 @@
   opacity: 0;
 }
 .biometric-session .biometric-face-guide[data-failed='true'] .biometric-scan-perimeter {
-  opacity: 0.12;
+  opacity: 0.2;
 }
-.biometric-session-complete > .biometric-frame-guidance,
-.biometric-session-complete > .biometric-check-details,
+.biometric-session .biometric-camera-notes[data-stopped='true'],
 .biometric-session-complete > .biometric-policy {
-  /* Preserve the preview and confirmation position during existing acknowledgement. */
-  visibility: hidden;
-}
-.biometric-session .biometric-complete .biometric-center-status,
-.biometric-session .biometric-complete .biometric-preview-badge {
+  /* Preserve layout through the existing acknowledgement, without retaining frames. */
   visibility: hidden;
 }
 .modal.biometric-dialog-exit,
@@ -280,15 +281,11 @@
   filter: drop-shadow(0 1px 2px #0008);
 }
 .biometric-session .biometric-guide-track {
-  stroke: #ffffff66;
-}
-.biometric-session .biometric-landmark-guide {
-  stroke: #ffffff55;
-  stroke-width: 1;
-  stroke-linecap: round;
+  stroke: #b6c2cb;
+  stroke-opacity: 0.65;
 }
 .biometric-session .biometric-guide-progress {
-  stroke: var(--alice-green);
+  stroke: var(--alice-cyan);
   stroke-width: 2;
   stroke-linecap: round;
   transform: rotate(-90deg);
@@ -297,74 +294,50 @@
 .biometric-session .biometric-coverage-arc .biometric-guide-track {
   stroke-width: 3;
   stroke-linecap: round;
-  stroke: #ffffff40;
 }
 .biometric-session .biometric-arc-progress {
   stroke: var(--alice-cyan);
-  stroke-width: 3.5;
+  stroke-width: 3;
   stroke-linecap: round;
 }
 .biometric-session .biometric-center-guide {
-  stroke: #ffffff77;
+  stroke: #b6c2cb;
+  stroke-opacity: 0.6;
   stroke-width: 1;
   stroke-dasharray: 2 7;
 }
-.biometric-session .biometric-center-status,
-.biometric-session .biometric-preview-badge {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 9px;
-  border: 1px solid #ffffff12;
-  border-radius: 5px;
-  background: #0d1014de;
-  color: #e7ebef;
-  font-size: 10px;
-  line-height: 1.3;
-}
-.biometric-session .biometric-center-status {
-  top: 10px;
-}
-.biometric-session .biometric-center-status.center-ready {
-  color: var(--alice-cyan);
-}
-.biometric-session .biometric-preview-badge {
-  bottom: 10px;
-}
 .biometric-session .biometric-guidance {
   text-align: center;
-  min-height: 64px;
+}
+.biometric-session .biometric-guidance > strong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  font: 500 17px / 1.3 var(--alice-font-body);
+  letter-spacing: -0.25px;
 }
 .biometric-session .biometric-guidance[role='alert'] > strong {
   color: var(--alice-red);
 }
-.biometric-session .biometric-preview.biometric-paused {
-  height: 148px;
-  aspect-ratio: auto !important;
+.biometric-session .biometric-remaining-slot {
+  height: 20px;
+  line-height: 20px;
 }
-.biometric-session .biometric-guidance > strong {
-  font: 500 17px / 1.4 var(--alice-font-body);
-  letter-spacing: -0.25px;
+.biometric-session .biometric-remaining {
+  color: var(--alice-text-primary);
+  font-size: 12px;
+  font-weight: 500;
 }
 .biometric-session p {
-  margin: 6px 0 0;
+  margin: 0;
   font-size: 12px;
   line-height: 1.6;
   color: var(--alice-text-secondary);
 }
-.biometric-session .biometric-progress {
-  overflow: hidden;
-  height: 3px;
-  border-radius: 5px;
-  background: var(--alice-border);
-}
-.biometric-session .biometric-progress > span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--alice-cyan);
-  transition: width var(--alice-motion-panel, 220ms) var(--alice-ease, ease-out);
+.biometric-session .biometric-enrollment-feedback {
+  display: grid;
+  gap: 8px;
 }
 .biometric-session .biometric-coverage {
   display: flex;
@@ -375,31 +348,112 @@
 .biometric-session .biometric-coverage > div {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   padding: 5px 7px;
+  border: 1px solid var(--alice-border);
   border-radius: 5px;
   background: var(--alice-bg-raised);
-  color: var(--alice-text-muted);
+  color: var(--alice-text-secondary);
   font-size: 10px;
-  transition: color var(--alice-motion-selection, 180ms) ease;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+.biometric-session .biometric-chip-mark {
+  display: grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
 }
 .biometric-session .biometric-angle-dot {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
+  border: 1px solid currentColor;
   border-radius: 50%;
-  background: currentColor;
-  opacity: 0.5;
 }
-.biometric-session .angle-complete,
-.biometric-session .angle-partial {
+.biometric-session .biometric-coverage .angle-complete {
   color: var(--alice-cyan);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--alice-cyan) 5%, var(--alice-bg-primary));
 }
-.biometric-session .biometric-progress-label,
-.biometric-session .biometric-direction-note {
-  margin: 0;
+.biometric-session .biometric-coverage .angle-needed {
+  color: var(--alice-text-primary);
+  border-color: color-mix(in srgb, var(--alice-text-secondary) 42%, var(--alice-border));
+}
+.biometric-session .biometric-coverage .angle-partial .biometric-angle-dot {
+  background: linear-gradient(90deg, var(--alice-cyan) 50%, transparent 50%);
+}
+.biometric-session .biometric-coverage .angle-last-needed {
+  border-color: var(--alice-text-secondary);
+  background: var(--alice-bg-elevated, var(--alice-bg-raised));
+  font-weight: 500;
+}
+.biometric-session .biometric-progress-label {
   text-align: center;
+  font-size: 11px;
+  color: var(--alice-text-secondary);
+}
+.biometric-session .biometric-sample-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--alice-text-secondary);
   font-size: 10px;
+}
+.biometric-session .biometric-progress {
+  overflow: hidden;
+  width: 84px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--alice-border);
+}
+.biometric-session .biometric-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--alice-cyan) 65%, var(--alice-text-secondary));
+  transition: width 220ms ease-out;
+}
+.biometric-session .biometric-supporting {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+}
+.biometric-session .biometric-explanation {
+  min-height: 39px;
+}
+.biometric-session .biometric-error-reason {
+  min-height: 34px;
+  overflow-wrap: anywhere;
+  text-align: left;
+  font-size: 11px;
+  color: var(--alice-text-primary);
+  border-left: 2px solid var(--alice-red);
+  border-radius: 0 5px 5px 0;
+  background: var(--alice-bg-raised);
+  padding: 8px 10px;
+}
+.biometric-session .biometric-error-reason[aria-hidden='true'] {
+  visibility: hidden;
+}
+.biometric-session .biometric-camera-notes {
+  text-align: center;
+}
+.biometric-session .biometric-frame-guidance,
+.biometric-session .biometric-direction-note,
+.biometric-session .biometric-center-note {
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--alice-text-secondary);
+}
+.biometric-session .biometric-center-note {
+  margin-top: 4px;
   color: var(--alice-text-muted);
+}
+.biometric-session .biometric-check-slot {
+  min-height: 40px;
 }
 .biometric-session .biometric-check-details {
   font-size: 11px;
@@ -409,22 +463,6 @@
   cursor: pointer;
   padding-block: 10px;
   color: var(--alice-text-secondary);
-}
-.biometric-session .biometric-error-reason {
-  overflow-wrap: anywhere;
-  text-align: left;
-  font-size: 11px;
-  color: var(--alice-text-primary);
-  border-left: 2px solid var(--alice-red);
-  border-radius: 0 5px 5px 0;
-  background: var(--alice-bg-raised);
-  padding: 10px 12px;
-}
-.biometric-session .biometric-frame-guidance {
-  text-align: center;
-  font-size: 10px;
-  margin: 0;
-  color: var(--alice-text-muted);
 }
 .admin-content .enrollment-capture {
   max-width: 640px;
@@ -447,14 +485,21 @@
 .biometric-session .biometric-policy {
   text-align: center;
   font-size: 10px;
-  color: var(--alice-text-muted);
+  color: var(--alice-text-secondary);
 }
 .biometric-session .biometric-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  align-items: start;
+}
+.biometric-session .biometric-actions .primary-button {
+  justify-self: start;
+  grid-column: 1;
+}
+.biometric-session .biometric-actions .text-button {
+  grid-column: 2;
+  grid-row: 1;
 }
 .biometric-session .biometric-actions button {
   min-height: 36px;
@@ -478,5 +523,176 @@
   .biometric-session *::after {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* Focused camera dialogs: the essential flow fits at the native 640px minimum.
+   Motion's MIT opacity/path animations acknowledge actual state changes only. */
+.face-id-dialog {
+  width: min(460px, calc(100vw - 32px));
+}
+.face-id-dialog .modal-heading {
+  padding: 12px 20px;
+}
+.face-id-account {
+  margin: 14px 20px 0;
+  text-align: center;
+  color: var(--alice-text-secondary);
+  font-size: 12px;
+}
+.face-id-dialog .identity-content {
+  padding: 0;
+}
+.face-id-dialog .biometric-session {
+  margin: 8px 20px 16px;
+  gap: 10px;
+}
+.face-id-dialog .biometric-guidance > strong {
+  min-height: 32px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.face-id-dialog .biometric-preview {
+  width: min(100%, 420px, calc((100dvh - 420px) * 16 / 9));
+  border-radius: 16px;
+  background: #090d10;
+}
+.face-id-dialog .biometric-coverage {
+  gap: 3px;
+}
+.face-id-dialog .biometric-coverage > div {
+  border: 0;
+  padding: 3px 4px;
+  background: transparent;
+  font-size: 9px;
+}
+.face-id-dialog .biometric-enrollment-feedback {
+  gap: 4px;
+}
+.face-id-dialog .biometric-progress-label {
+  font-size: 10px;
+}
+.face-id-dialog .biometric-explanation {
+  min-height: 39px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.biometric-more {
+  margin-top: 0;
+}
+.biometric-more > summary {
+  text-align: center;
+}
+.biometric-more[open] > :not(summary) {
+  margin-block: 8px;
+}
+.biometric-more .biometric-error-reason[aria-hidden='true'] {
+  display: none;
+}
+.face-id-dialog .biometric-actions .text-button {
+  padding-inline: 18px;
+  border: 1px solid var(--alice-border);
+  border-radius: 8px;
+}
+.admin-content > .inline-notice:empty,
+.admin-content > .inline-error:empty {
+  display: none;
+}
+
+/* Adapted from rdev/liquid-glass-react, Copyright 2025 MAX ROVENSKY (MIT).
+   See docs/guides/console/visual-sources.md for the complete notice and source.
+   Native WebKit uses the frosted backdrop and independent masked highlight
+   layers; no displacement filter or pointer-driven scaling touches camera pixels. */
+.modal.face-id-dialog {
+  --alice-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  border-radius: 28px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  background: rgb(27 32 39 / 88%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  backdrop-filter: blur(28px) saturate(140%);
+  box-shadow:
+    0 12px 40px rgb(0 0 0 / 25%),
+    0 32px 90px rgb(0 0 0 / 45%),
+    inset 0 1px 3px rgb(255 255 255 / 12%);
+  isolation: isolate;
+}
+.modal.face-id-dialog::before,
+.modal.face-id-dialog::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 1.5px;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  background: linear-gradient(
+    135deg,
+    #fff0 0%,
+    rgb(255 255 255 / 32%) 33%,
+    rgb(255 255 255 / 60%) 66%,
+    #fff0 100%
+  );
+  box-shadow:
+    inset 0 0 0 0.5px rgb(255 255 255 / 50%),
+    inset 0 1px 3px rgb(255 255 255 / 25%);
+}
+.modal.face-id-dialog::before {
+  mix-blend-mode: screen;
+  opacity: 0.35;
+}
+.modal.face-id-dialog::after {
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+}
+.face-id-dialog .modal-heading {
+  background: transparent;
+  border-bottom: 0;
+  padding: 15px 20px 4px;
+}
+.face-id-dialog .modal-heading h2 {
+  font-family: var(--alice-font-body);
+  font-weight: 600;
+}
+.face-id-dialog .modal-close {
+  border-radius: 50%;
+  background: rgb(255 255 255 / 7%);
+}
+.face-id-dialog .biometric-preview {
+  border: 1px solid rgb(255 255 255 / 10%);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 18%);
+}
+.face-id-dialog .biometric-guide-track {
+  stroke: #d2dbe2;
+  stroke-opacity: 0.5;
+}
+.face-id-dialog .biometric-actions .text-button {
+  border-radius: 999px;
+  background: rgb(255 255 255 / 7%);
+  border-color: rgb(255 255 255 / 12%);
+  transition:
+    background-color 200ms ease-out,
+    border-color 200ms ease-out;
+}
+.face-id-dialog .biometric-actions .text-button:hover {
+  background: rgb(255 255 255 / 12%);
+  border-color: rgb(255 255 255 / 22%);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .modal.face-id-dialog {
+    background: #1b2027;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .face-id-dialog .biometric-actions .text-button {
+    transition: none;
   }
 }

@@ -256,6 +256,7 @@
   padding: var(--alice-space-3) var(--alice-space-2) var(--alice-space-1);
   font-size: 10px;
   line-height: 1.6;
+  color: var(--alice-text-secondary);
 }
 .history-item {
   position: relative;
@@ -288,7 +289,9 @@
 .history-item .animated-selection {
   border-radius: var(--alice-radius-control);
   background: var(--alice-bg-selected);
-  box-shadow: inset 2px 0 var(--alice-cyan);
+  box-shadow:
+    inset 2px 0 var(--alice-cyan),
+    inset 0 0 0 1px var(--alice-border-bright);
   z-index: -1;
 }
 .history-icon {
@@ -313,6 +316,7 @@
   letter-spacing: -0.015em;
   overflow-wrap: anywhere;
   margin-top: var(--alice-space-1);
+  color: var(--alice-text-secondary);
 }
 .history-outcome {
   flex-shrink: 0;

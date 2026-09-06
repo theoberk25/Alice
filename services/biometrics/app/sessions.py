@@ -27,6 +27,7 @@ class EvidenceWindow:
         self.templates = []
         self.poses = []
         self.last_pose_sample = {}
+        self.current_region = None
         self.accepted = 0
         self.first_accepted_ms = None
         self.last_accepted_ms = None
@@ -38,6 +39,7 @@ class EvidenceWindow:
         self.seen = set()
 
     def interrupt(self):
+        self.current_region = None
         if self.request.purpose != 'ENROLLMENT':
             self.accepted = 0
             self.first_accepted_ms = self.last_accepted_ms = None
@@ -80,6 +82,7 @@ class EvidenceWindow:
             # The lower arc of a continuous circle still supplies actual
             # downward pitch, without a narrow straight-down stopping target.
             region = 'DOWN'
+        self.current_region = region
         if self.request.purpose != "ENROLLMENT":
             if self.last_accepted_ms is not None and elapsed_ms - self.last_accepted_ms > 1500:
                 self.interrupt()
@@ -106,7 +109,13 @@ class EvidenceWindow:
     @property
     def prompt(self):
         if self.request.purpose == 'ENROLLMENT':
-            return 'CENTER' if self.coverage['CENTER'] < 2 else 'LOOK_AROUND'
+            if self.coverage['CENTER'] < 2:
+                return 'CENTER'
+            remaining = [p for p in POSES if self.coverage[p] < 2]
+            if len(remaining) == 1:
+                target = remaining[0]
+                return f'HOLD_{target}' if self.current_region == target else f'LOOK_{target}'
+            return 'LOOK_AROUND'
         return 'VERIFYING_FACE'
 
 class LiveInference:
@@ -223,6 +232,7 @@ class LiveInference:
             candidate_errors = {'PRESENTATION_ATTACK_REJECTED', 'MIXED_SEQUENCE_IDENTITY', 'MIXED_ENROLLMENT_IDENTITY'}
             if binding.purpose != 'ENROLLMENT' or str(error) not in candidate_errors:
                 raise
+            window.interrupt()
             if hasattr(active['pose'], 'interrupt'):
                 active['pose'].interrupt()
             controls = {name: Control(result=Outcome.INCONCLUSIVE, model=self.models.get(name, 'native-v1'), reason='ENROLLMENT_SAMPLE_NOT_ACCEPTED')

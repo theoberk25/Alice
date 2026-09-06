@@ -6,7 +6,7 @@
   --alice-bg-raised: #1a2027;
   --alice-bg-floating: #20262e;
   --alice-bg-hover: #ffffff06;
-  --alice-bg-selected: #83cbd50c;
+  --alice-bg-selected: #83cbd514;
   --alice-grid: #c8d6e603;
   --alice-border: #ffffff0e;
   --alice-border-bright: #ffffff22;
@@ -16,7 +16,7 @@
   --alice-green: #7ac7a5;
   --alice-text-primary: #e7ebef;
   --alice-text-secondary: #adb5c0;
-  --alice-text-muted: #8993a0;
+  --alice-text-muted: #98a2af;
   --alice-font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --alice-font-mono: 'IBM Plex Mono', monospace;
   --alice-font-heading: var(--alice-font-body);
@@ -32,9 +32,9 @@
   --alice-radius-dialog: 13px;
   --alice-motion-press: 100ms;
   --alice-motion-hover: 140ms;
-  --alice-motion-selection: 200ms;
-  --alice-motion-panel: 220ms;
-  --alice-motion-dialog: 340ms;
+  --alice-motion-selection: 180ms;
+  --alice-motion-panel: 160ms;
+  --alice-motion-dialog: 180ms;
   --alice-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --alice-rail-height: 80px;
 }

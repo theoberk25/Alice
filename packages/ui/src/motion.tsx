@@ -64,10 +64,16 @@ export function TransitionPanel({
   stage,
   children,
   className = '',
+  animateContent = true,
+  animateSize,
 }: {
   stage: string | number;
   children: ReactNode;
   className?: string;
+  /** Disable when the subtree owns a live camera/session or form controller. */
+  animateContent?: boolean;
+  /** Opt-in size motion without fading, keying or clipping an active camera subtree. */
+  animateSize?: boolean;
 }) {
   const reduce = useReducedMotion();
   const [scope, animate] = useAnimate<HTMLDivElement>();
@@ -105,7 +111,7 @@ export function TransitionPanel({
   }, [scope]);
   useEffect(() => {
     if (!scope.current) return;
-    if (reduce) {
+    if (reduce || !animateContent) {
       previous.current = stage;
       scope.current.style.opacity = '';
       scope.current.style.transform = '';
@@ -113,17 +119,17 @@ export function TransitionPanel({
     }
     if (previous.current === stage) return;
     previous.current = stage;
-    const animation = animate(scope.current, { opacity: [0.65, 1], y: [8, 0] }, motionTokens.panel);
+    const animation = animate(scope.current, { opacity: [0.85, 1] }, motionTokens.panel);
     return () => animation.stop();
-  }, [stage, reduce, animate, scope]);
+  }, [stage, reduce, animateContent, animate, scope]);
   return (
     <motion.div
       ref={panel}
       initial={false}
       animate={{ height }}
-      style={{ overflow: 'clip', overflowClipMargin: 4 }}
+      style={{ overflow: animateContent ? 'clip' : 'visible', overflowClipMargin: 4 }}
       className={`transition-panel ${className}`}
-      transition={reduce ? { duration: 0 } : motionTokens.panel}
+      transition={reduce || !(animateSize ?? animateContent) ? { duration: 0 } : motionTokens.panel}
       data-visual-stage={stage}
     >
       <div ref={scope} style={{ display: 'flow-root' }}>
@@ -195,7 +201,7 @@ export function AnimatedCounter({
   );
 }
 
-/** An indeterminate edge accent is mounted only while caller-owned work is active. */
+/** A static surface outline indicates caller-owned work without a moving border beam. */
 export function BorderTrail({ active, className = '' }: { active: boolean; className?: string }) {
   const reduce = useReducedMotion();
   if (!active || reduce) return null;
@@ -207,28 +213,10 @@ export function BorderTrail({ active, className = '' }: { active: boolean; class
         position: 'absolute',
         inset: 0,
         borderRadius: 'inherit',
-        border: '1px solid transparent',
+        border: '1px solid var(--alice-border-bright)',
         pointerEvents: 'none',
-        overflow: 'hidden',
-        maskImage: 'linear-gradient(#000, #000), linear-gradient(#000, #000)',
-        maskClip: 'padding-box, border-box',
-        maskComposite: 'exclude',
-        WebkitMaskComposite: 'xor',
       }}
-    >
-      <motion.span
-        style={{
-          position: 'absolute',
-          width: 36,
-          height: 36,
-          background: 'var(--alice-cyan)',
-          opacity: 0.45,
-          offsetPath: 'rect(0 auto auto 0 round 10px)',
-        }}
-        animate={{ offsetDistance: ['0%', '100%'] }}
-        transition={{ duration: 3.6, ease: 'linear', repeat: Infinity }}
-      />
-    </span>
+    />
   );
 }
 

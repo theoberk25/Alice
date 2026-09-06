@@ -5,8 +5,10 @@ import { nativeCall, isNative } from '../../lib/native';
 import { useConsole, type Technician } from '../../state/console';
 import type { LiveBiometricSession } from '@alice/contracts';
 import { CameraCapture } from '../biometrics/CameraCapture';
+import { FaceIdMorph, useFaceIdMorph } from '../biometrics/FaceIdMorph';
 export function IdentityPanel({ onClose }: { onClose: () => void }) {
   const { technician, setTechnician, biometricMode, log } = useConsole();
+  const faceIdMorph = useFaceIdMorph();
   const [username, setUsername] = useState(''),
     [stage, setStage] = useState<'CLAIM' | 'VERIFY'>('CLAIM'),
     [error, setError] = useState(''),
@@ -74,29 +76,42 @@ export function IdentityPanel({ onClose }: { onClose: () => void }) {
   }
   return (
     <Modal
-      title="Technician identity"
+      title={stage === 'VERIFY' ? 'Face ID' : 'Technician identity'}
       onClose={onClose}
       morphId="technician-identity"
-      className={`identity-dialog ${closing ? 'biometric-dialog-exit' : ''}`}
+      className={`identity-dialog ${stage === 'VERIFY' ? 'face-id-dialog' : ''} ${closing ? 'biometric-dialog-exit' : ''}`}
     >
-      <div className="verification-intro identity-intro">
-        <div className="identity-emblem" aria-hidden="true">
-          <ScanFace size={26} strokeWidth={1.4} />
+      {stage === 'CLAIM' && (
+        <div className="verification-intro identity-intro">
+          <div className="identity-emblem" aria-hidden="true">
+            <ScanFace size={26} strokeWidth={1.4} />
+          </div>
+          <Badge tone={biometricMode === 'mock' ? 'warning' : 'information'}>
+            {biometricMode === 'mock' ? 'Demonstration session' : 'Local identity verification'}
+          </Badge>
+          <h3>{technician ? 'Your console session' : 'Claim your identity'}</h3>
+          <p>
+            {technician
+              ? `Signed in as ${technician.display_name}. Sign out or change user to end this session.`
+              : biometricMode === 'mock'
+                ? 'Open a simulated identity session to explore the console.'
+                : 'Enter your username. Face ID checks your saved face automatically; no head turns needed.'}
+          </p>
         </div>
-        <Badge tone={biometricMode === 'mock' ? 'warning' : 'information'}>
-          {biometricMode === 'mock' ? 'Demonstration session' : 'Local identity verification'}
-        </Badge>
-        <h3>{technician ? 'Your console session' : 'Claim your identity'}</h3>
-        <p>
-          {technician
-            ? `Signed in as ${technician.display_name}. Enter another username to switch accounts.`
-            : biometricMode === 'mock'
-              ? 'Open a simulated identity session to explore the console.'
-              : 'Enter your username. Face ID checks your saved face automatically; no head turns needed.'}
-        </p>
-      </div>
-      <TransitionPanel stage={stage} className="identity-content">
-        {biometricMode === 'mock' ? (
+      )}
+      {stage === 'VERIFY' && <FaceIdMorph source={faceIdMorph.source} />}
+      {stage === 'VERIFY' && <p className="face-id-account">{username}</p>}
+      <TransitionPanel
+        stage={stage}
+        className="identity-content"
+        animateContent={false}
+        animateSize={stage === 'VERIFY' && biometricMode !== 'mock'}
+      >
+        {technician && stage === 'CLAIM' ? (
+          <CommandButton className="primary-button" disabled={busy} onClick={() => void logout()}>
+            Change user
+          </CommandButton>
+        ) : biometricMode === 'mock' ? (
           <>
             <div className="identity-session">
               <UserRound size={18} aria-hidden="true" />
@@ -140,7 +155,7 @@ export function IdentityPanel({ onClose }: { onClose: () => void }) {
             className="stack-form"
             onSubmit={(e) => {
               e.preventDefault();
-              if (busy || !username.trim()) return;
+              if (busy || technician || !username.trim()) return;
               setUsername(username.trim());
               setError('');
               setStage('VERIFY');
@@ -160,7 +175,11 @@ export function IdentityPanel({ onClose }: { onClose: () => void }) {
                 autoCapitalize="none"
               />
             </label>
-            <CommandButton className="primary-button" disabled={busy || !username.trim()}>
+            <CommandButton
+              ref={faceIdMorph.trigger}
+              className="primary-button"
+              disabled={busy || !username.trim()}
+            >
               <ScanFace size={17} aria-hidden="true" />
               Continue to facial login
             </CommandButton>
@@ -170,14 +189,19 @@ export function IdentityPanel({ onClose }: { onClose: () => void }) {
             intent={{ purpose: 'LOGIN', username }}
             onComplete={login}
             onAcknowledged={acknowledge}
-            onCancel={() => setStage('CLAIM')}
+            onCancel={() => {
+              clearTimeout(closeTimer.current);
+              closeTimer.current = undefined;
+              setClosing(false);
+              setStage('CLAIM');
+            }}
           />
         )}
       </TransitionPanel>
       <p className="inline-error" role="alert">
         {error}
       </p>
-      {technician && (
+      {technician && stage === 'CLAIM' && (
         <CommandButton
           className="text-button identity-signout"
           disabled={busy}

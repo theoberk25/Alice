@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Check, ScanFace, VideoOff } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import { BorderTrail, CommandButton, TransitionPanel, motionTokens } from '@alice/ui';
+import { CommandButton } from '@alice/ui';
 import { BiometricScan } from './BiometricScan';
+import { FaceIdScan } from './FaceIdScan';
+import { FaceIdStatus, FaceIdEnrollmentProgress } from './FaceIdPresentation';
 import type { BiometricIntent, LiveBiometricSession } from '@alice/contracts';
 import {
   beginBiometricSession,
@@ -12,6 +14,7 @@ import {
   recoverBiometricEnrollment,
 } from '../../features/biometrics/verify';
 import './biometrics.css';
+import './face-id.css';
 const angleLabels = {
   CENTER: 'Center',
   LEFT: 'Left',
@@ -95,7 +98,6 @@ export function CameraCapture({
   const [action, setAction] = useState<'CANCELLING' | 'RECOVERING' | 'COMPLETING'>();
   const busy = useRef(false);
   const preview = useRef<HTMLImageElement>(null);
-  const previewRatio = useRef('');
   const stopCapture = useRef<() => Promise<void>>(async () => {});
   const callbacks = useRef({ onComplete, onCancel, onStarted, onAcknowledged });
   callbacks.current = { onComplete, onCancel, onStarted, onAcknowledged };
@@ -267,13 +269,36 @@ export function CameraCapture({
     };
   }, [intentKey, attempt]);
   const reducedMotion = useReducedMotion();
+  const detailId = useId();
   const enrollment = intent.purpose === 'ENROLLMENT';
   const covered = Object.values(session?.coverage ?? {}).filter((n) => n === 2).length;
   const accepted = Object.values(session?.coverage ?? {}).reduce((sum, n) => sum + (n ?? 0), 0);
   const complete = session?.state === 'SUCCEEDED' && successPresented && !error;
-  const running = !!session && !terminal.has(session.state) && !error;
+  const nativeSucceeded = session?.state === 'SUCCEEDED' && !error;
+  const stopped = !!error || action === 'CANCELLING' || (!!session && terminal.has(session.state));
+  const remaining = Object.entries(angleLabels).filter(
+    ([region]) => (session?.coverage[region as keyof typeof angleLabels] ?? 0) !== 2,
+  );
+  const lastAngle = enrollment && remaining.length === 1 && !stopped ? remaining[0] : undefined;
   const centerReady = (session?.coverage.CENTER ?? 0) === 2;
   const quality = qualityGuidance[session?.controls.quality?.reason ?? ''];
+  const finalDirection = lastAngle
+    ? (
+        {
+          LEFT: 'Turn slightly to your left',
+          RIGHT: 'Turn slightly to your right',
+          UP: 'Look slightly up',
+          DOWN: 'Look slightly down',
+          UP_LEFT: 'Look up and to your left',
+          UP_RIGHT: 'Look up and to your right',
+          CENTER: 'Look straight ahead',
+        } as Record<string, string>
+      )[lastAngle[0]]
+    : undefined;
+  const finalGuidance =
+    lastAngle && session?.prompt === `HOLD_${lastAngle[0]}`
+      ? 'Perfect angle — hold briefly'
+      : finalDirection;
   const guidance = !session
     ? 'Starting your camera…'
     : session.state === 'EVALUATING'
@@ -282,9 +307,8 @@ export function CameraCapture({
         : 'Recognizing your face…'
       : (quality ??
         (enrollment
-          ? centerReady
-            ? 'Slowly move your head in a circle'
-            : 'Look straight ahead to begin'
+          ? (finalGuidance ??
+            (centerReady ? 'Slowly move your head in a circle' : 'Look straight ahead to begin'))
           : 'Recognizing your face…'));
   const detail = quality
     ? enrollment
@@ -294,179 +318,237 @@ export function CameraCapture({
       ? enrollment
         ? 'Use a smaller turn and keep your whole face visible in the camera view.'
         : 'Keep your whole face visible in the camera view. No head turns needed.'
-      : enrollment
-        ? centerReady
-          ? 'Look gently up, down and to each side. Filled sections are already captured.'
-          : 'Keep your head comfortably centered for a moment. Then you can look around in any order.'
-        : 'Keep your face visible. No head turns needed.';
+      : lastAngle
+        ? session?.prompt === `HOLD_${lastAngle[0]}`
+          ? 'Keep this position until the remaining section fills.'
+          : 'Turn your head gently, then pause briefly at the remaining angle.'
+        : enrollment
+          ? centerReady
+            ? 'Look gently up, down and to each side. Filled sections are already captured.'
+            : 'Keep your head comfortably centered for a moment. Then you can look around in any order.'
+          : 'Keep your face visible. No head turns needed.';
+  const instruction =
+    action === 'CANCELLING'
+      ? 'Closing camera…'
+      : error
+        ? errorTitle(error)
+        : nativeSucceeded
+          ? enrollment
+            ? complete
+              ? 'Face saved'
+              : 'Face captured'
+            : 'Face ID verified'
+          : guidance;
+  const explanation = error
+    ? explainError(error)
+    : nativeSucceeded
+      ? complete
+        ? enrollment
+          ? 'Your face is ready to use.'
+          : intent.purpose === 'LOGIN'
+            ? 'Opening your dashboard…'
+            : 'Continuing to your approval…'
+        : enrollment
+          ? 'Finishing enrollment…'
+          : intent.purpose === 'LOGIN'
+            ? 'Finishing your login…'
+            : 'Finishing your approval…'
+      : detail;
+  // Presentation only: these values never enter a biometric handler or command.
+  const faceId = intent.purpose !== 'APPROVAL';
+  const evaluating = session?.state === 'EVALUATING' && !stopped;
+  const faceDetected =
+    session?.controls.quality?.result === 'PASS' && (!stopped || nativeSucceeded);
+  const requestedRegion = session?.prompt.replace(/^(LOOK|HOLD)_/, '');
+  const activeRegion =
+    enrollment && !stopped
+      ? requestedRegion &&
+        requestedRegion in angleLabels &&
+        session?.coverage[requestedRegion as keyof typeof angleLabels] !== 2
+        ? requestedRegion
+        : !centerReady
+          ? 'CENTER'
+          : lastAngle?.[0]
+      : undefined;
+  const direction = activeRegion
+    ? session?.prompt === `HOLD_${activeRegion}`
+      ? 'Hold this angle briefly'
+      : (
+          {
+            CENTER: 'Look straight ahead',
+            LEFT: 'Turn slightly left',
+            RIGHT: 'Turn slightly right',
+            UP: 'Look slightly up',
+            DOWN: 'Look slightly down',
+            UP_LEFT: 'Look up and left',
+            UP_RIGHT: 'Look up and right',
+          } as Record<string, string>
+        )[activeRegion]
+    : enrollment
+      ? 'Slowly move your head in a circle'
+      : 'Look naturally at the camera';
+  const faceIdState =
+    action === 'CANCELLING' || error
+      ? instruction
+      : nativeSucceeded
+        ? 'Identity verified'
+        : evaluating
+          ? 'Checking identity'
+          : faceDetected
+            ? 'Face detected'
+            : 'Finding your face';
+  const Surface = faceId ? motion.section : 'section';
+  const Preview = faceId ? motion.div : 'div';
+  const Supporting = faceId ? motion.div : 'div';
+  const Actions = faceId ? motion.div : 'div';
+  const visualLayout = faceId
+    ? { layout: reducedMotion ? (false as const) : ('position' as const) }
+    : {};
+  const conciseDetail =
+    error || nativeSucceeded
+      ? explanation
+      : (quality ?? (!session ? 'Your camera starts automatically' : direction));
   return (
-    <motion.section
-      layout={!reducedMotion}
-      transition={reducedMotion ? { duration: 0 } : motionTokens.panel}
-      className={`biometric-session ${complete ? 'biometric-session-complete' : ''}`}
+    <Surface
+      {...visualLayout}
+      data-face-id={faceId || undefined}
+      data-enrollment={enrollment || undefined}
+      data-verified={(faceId && nativeSucceeded) || undefined}
+      className={`biometric-session ${faceId ? 'face-id-session' : ''} ${complete ? 'biometric-session-complete' : ''}`}
       aria-label="Automatic facial verification"
       aria-busy={!!action}
     >
-      <motion.div
-        layout={!reducedMotion}
-        transition={reducedMotion ? { duration: 0 } : motionTokens.panel}
-        className={`biometric-preview ${complete ? 'biometric-complete' : ''} ${error ? 'biometric-paused' : ''}`}
+      <div
+        className="biometric-guidance"
+        role={error ? 'alert' : 'status'}
+        aria-live={error ? 'assertive' : 'polite'}
+        aria-atomic="true"
+        aria-describedby={error ? `${detailId} ${detailId}-reason` : detailId}
+      >
+        {faceId ? (
+          <FaceIdStatus text={faceIdState} />
+        ) : (
+          <motion.strong
+            key={instruction}
+            initial={reducedMotion ? false : { opacity: 0.85 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: reducedMotion ? 0 : 0.16 }}
+          >
+            {instruction}
+          </motion.strong>
+        )}
+        {enrollment && !faceId && (
+          <div className="biometric-remaining-slot">
+            {lastAngle && (
+              <motion.span
+                key={lastAngle[0]}
+                className="biometric-remaining"
+                initial={reducedMotion ? false : { opacity: 0.6 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: reducedMotion ? 0 : 0.2 }}
+              >
+                {lastAngle[1]} still needed
+              </motion.span>
+            )}
+          </div>
+        )}
+      </div>
+      <Preview
+        {...visualLayout}
+        className={`biometric-preview ${nativeSucceeded ? 'biometric-complete' : ''} ${stopped && !nativeSucceeded ? 'biometric-paused' : ''}`}
       >
         <div className="biometric-placeholder" aria-hidden="true">
-          {!complete &&
-            (error ? (
+          {!nativeSucceeded &&
+            (stopped ? (
               <VideoOff size={36} strokeWidth={1.25} />
             ) : (
               <ScanFace size={52} strokeWidth={1} />
             ))}
         </div>
-        <img
-          ref={preview}
-          hidden
-          alt="Mirrored live camera preview"
-          decoding="async"
-          onLoad={(event) => {
-            const image = event.currentTarget;
-            if (!image.naturalWidth || !image.naturalHeight) return;
-            const ratio = `${image.naturalWidth} / ${image.naturalHeight}`;
-            if (previewRatio.current !== ratio) {
-              previewRatio.current = ratio;
-              image.parentElement?.style.setProperty('aspect-ratio', ratio);
-            }
-          }}
-        />
-        <BiometricScan
-          enrollment={enrollment}
-          coverage={session?.coverage}
-          centerReady={centerReady}
-          complete={complete}
-          failed={!!error}
-        />
-        <BorderTrail
-          active={
-            !error &&
-            !complete &&
-            (!session || session.state === 'EVALUATING' || action === 'COMPLETING')
-          }
-        />
-        {enrollment && !error && (
-          <span className={`biometric-center-status ${centerReady ? 'center-ready' : ''}`}>
-            {centerReady && <Check size={12} />}
-            {centerReady ? 'Center captured' : 'Center your face'}
-          </span>
+        <img ref={preview} hidden alt="Mirrored live camera preview" decoding="async" />
+        {faceId ? (
+          <FaceIdScan
+            enrollment={enrollment}
+            coverage={session?.coverage}
+            complete={nativeSucceeded}
+            failed={stopped && !nativeSucceeded}
+            evaluating={evaluating}
+            faceDetected={faceDetected}
+            activeRegion={activeRegion}
+          />
+        ) : (
+          <BiometricScan
+            enrollment={enrollment}
+            coverage={session?.coverage}
+            centerReady={centerReady}
+            complete={nativeSucceeded}
+            failed={stopped && !nativeSucceeded}
+          />
         )}
-        <span className="biometric-preview-badge">
-          {complete
-            ? 'Complete'
-            : error
-              ? errorTitle(error)
-              : running
-                ? enrollment
-                  ? 'Continuous face scan'
-                  : 'Live Face ID'
-                : 'Connecting'}
-        </span>
-      </motion.div>
-      {!error && (
-        <p className="biometric-frame-guidance">
-          Keep your whole head visible in the camera view.
-          {enrollment && ' The ring shows scan progress.'}
-        </p>
-      )}
-      <TransitionPanel
-        stage={
-          error ? 'FAILED' : complete ? 'COMPLETE' : `${session?.state ?? 'CREATED'}:${guidance}`
-        }
-        className="biometric-stage"
-      >
-        <div
-          className="biometric-guidance"
-          role={error ? 'alert' : 'status'}
-          aria-live={error ? 'assertive' : 'polite'}
-          aria-atomic="true"
-        >
-          <strong>
-            {action === 'CANCELLING'
-              ? 'Closing camera…'
-              : error
-                ? errorTitle(error)
-                : complete
-                  ? enrollment
-                    ? 'Face saved'
-                    : 'Face ID verified'
-                  : guidance}
-          </strong>
-          <p>
-            {error
-              ? explainError(error)
-              : complete
-                ? enrollment
-                  ? 'Your face is ready to use.'
-                  : intent.purpose === 'LOGIN'
-                    ? 'Opening your dashboard…'
-                    : 'Continuing to your approval…'
-                : detail}
-          </p>
-          {error && (
-            <p className="biometric-error-reason">
-              Reason: <code>{error}</code>
+      </Preview>
+      {enrollment && faceId ? (
+        <FaceIdEnrollmentProgress
+          coverage={session?.coverage}
+          observations={session?.accepted_samples ?? 0}
+          activeRegion={activeRegion}
+          complete={nativeSucceeded}
+        />
+      ) : (
+        enrollment && (
+          <div className="biometric-enrollment-feedback">
+            <div className="biometric-coverage" aria-label="Accepted facial angle coverage">
+              {Object.entries(angleLabels).map(([region, label]) => {
+                const count = session?.coverage[region as keyof typeof angleLabels] ?? 0;
+                return (
+                  <div
+                    key={region}
+                    className={`${count === 2 ? 'angle-complete' : count === 1 ? 'angle-partial angle-needed' : 'angle-needed'} ${lastAngle?.[0] === region ? 'angle-last-needed' : ''}`}
+                    aria-label={`${label}: ${count} of 2 samples accepted`}
+                  >
+                    <motion.span
+                      key={count}
+                      className="biometric-chip-mark"
+                      initial={reducedMotion || count === 0 || stopped ? false : { opacity: 0.4 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: reducedMotion || stopped ? 0 : 0.22 }}
+                      aria-hidden="true"
+                    >
+                      {count === 2 ? <Check size={13} /> : <span className="biometric-angle-dot" />}
+                    </motion.span>
+                    <span>{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="biometric-progress-label">
+              {covered} / 7 angles complete · {session?.accepted_samples ?? 0} accepted observations
             </p>
-          )}
-        </div>
-      </TransitionPanel>
-      {enrollment && (
-        <>
-          <div
-            className="biometric-progress"
-            role="progressbar"
-            aria-label="Face enrollment progress"
-            aria-valuemin={0}
-            aria-valuemax={14}
-            aria-valuenow={accepted}
-            aria-valuetext={`${covered} of 7 facial angles complete`}
-          >
-            <span style={{ width: `${(accepted / 14) * 100}%` }} />
+            <div className="biometric-sample-progress">
+              <div
+                className="biometric-progress"
+                role="progressbar"
+                aria-label="Face enrollment progress"
+                aria-valuemin={0}
+                aria-valuemax={14}
+                aria-valuenow={accepted}
+                aria-valuetext={`${accepted} of 14 angle samples accepted; ${covered} of 7 facial angles complete`}
+              >
+                <span style={{ width: `${(accepted / 14) * 100}%` }} />
+              </div>
+              <span>{accepted} / 14 angle samples</span>
+            </div>
           </div>
-          <div className="biometric-coverage" aria-label="Accepted facial angle coverage">
-            {Object.entries(angleLabels).map(([region, label]) => {
-              const count = session?.coverage[region as keyof typeof angleLabels] ?? 0;
-              return (
-                <div
-                  key={region}
-                  className={count === 2 ? 'angle-complete' : count === 1 ? 'angle-partial' : ''}
-                  aria-label={`${label}: ${count} of 2 samples accepted`}
-                >
-                  {count === 2 ? <Check size={14} /> : <span className="biometric-angle-dot" />}
-                  <span>{label}</span>
-                </div>
-              );
-            })}
-          </div>
-          <p className="biometric-progress-label">
-            {covered} / 7 angles complete · {session?.accepted_samples ?? 0} accepted observations
-          </p>
-          <p className="biometric-direction-note">
-            Left and right mean your own left and right. You can look around in either direction.
-          </p>
-        </>
+        )
       )}
-      {!!session && Object.keys(session.controls).length > 0 && (
-        <details className="biometric-check-details">
-          <summary>Face ID checks</summary>
-          <ul className="biometric-controls">
-            {Object.entries(session.controls).map(([name, control]) => (
-              <li key={name}>
-                <span>{controlLabels[name] ?? name.replaceAll('_', ' ')}</span>
-                <strong>{control!.result.replaceAll('_', ' ')}</strong>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-      <p className="biometric-policy">
-        Keep ALICE in the foreground. Camera images stay on this device.
-      </p>
-      <div className="biometric-actions">
+      <Supporting
+        {...visualLayout}
+        className="biometric-supporting"
+        id={detailId}
+        aria-live="polite"
+      >
+        <p className="biometric-explanation">{faceId ? conciseDetail : explanation}</p>
+      </Supporting>
+      <Actions {...visualLayout} className="biometric-actions">
         {enrollment && /ACTIVATION[_ ]RECOVERY[_ ]REQUIRED/.test(error) && onRecovered && (
           <CommandButton
             type="button"
@@ -519,7 +601,49 @@ export function CameraCapture({
         >
           {action === 'CANCELLING' ? 'Closing…' : action === 'COMPLETING' ? 'Finishing…' : 'Cancel'}
         </CommandButton>
-      </div>
-    </motion.section>
+      </Actions>
+      <details className="biometric-check-details biometric-more">
+        <summary>About Face ID &amp; checks</summary>
+        {faceId && !error && !nativeSucceeded && (
+          <p className="face-id-expanded-guidance">{detail}</p>
+        )}
+        <div className="biometric-camera-notes" data-stopped={stopped}>
+          <p className="biometric-frame-guidance">
+            Keep your whole head visible in the camera view.
+            {enrollment && ' The ring shows scan progress.'}
+          </p>
+          {enrollment && (
+            <p className="biometric-direction-note">
+              Left and right mean your own left and right. You can look around in either direction.
+            </p>
+          )}
+          {enrollment && (
+            <p className="biometric-center-note">
+              {centerReady ? 'Center captured' : 'Center your face'}
+            </p>
+          )}
+        </div>
+        <ul className="biometric-controls">
+          {Object.entries(session?.controls ?? {}).map(([name, control]) => (
+            <li key={name}>
+              <span>{controlLabels[name] ?? name.replaceAll('_', ' ')}</span>
+              <strong>{control!.result.replaceAll('_', ' ')}</strong>
+            </li>
+          ))}
+        </ul>{' '}
+        <p id={`${detailId}-reason`} className="biometric-error-reason" aria-hidden={!error}>
+          {error ? (
+            <>
+              Reason: <code>{error}</code>
+            </>
+          ) : (
+            <>&nbsp;</>
+          )}
+        </p>{' '}
+        <p className="biometric-policy">
+          Keep ALICE in the foreground. Camera images stay on this device.
+        </p>
+      </details>
+    </Surface>
   );
 }

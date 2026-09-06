@@ -411,3 +411,33 @@ def test_low_quality_is_not_enrollment_progress_and_repeated_observation_is_reje
     assert live.active is not None
     with pytest.raises(CaptureError,match='STALE'):live.observe(sample)
     live.close()
+
+
+@pytest.mark.parametrize('diagonal,cardinal,expected', [
+    ((20,15,0),(9,15,0),'UP'), ((-20,15,0),(-9,15,0),'UP'),
+    ((20,15,0),(20,7,0),'LEFT'), ((-20,15,0),(-20,7,0),'RIGHT'),
+    ((20,-15,0),(9,-15,0),'DOWN'),
+])
+def test_circle_diagonal_does_not_latch_over_a_valid_cardinal(diagonal,cardinal,expected):
+    neutral=NeutralPose()
+    for elapsed in (100,350,600): neutral.observe(0,0,0,elapsed)
+    neutral.observe(*diagonal,850)
+    assert neutral.observe(*cardinal,1100).region == expected
+
+
+@pytest.mark.parametrize('target',[p for p in POSES if p != 'CENTER'])
+def test_every_final_angle_gets_direction_then_hold_without_fabricating_coverage(target):
+    w=EvidenceWindow(begin(),[],.45)
+    pad=Control(result=Outcome.PASS,model='test',reason='test',score=.99)
+    regions=[p for p in POSES if p != target for _ in range(2)]
+    for i,region in enumerate(regions,1):
+        w.accept(np.array([1.,0.,0.]),region,pad,i,i*500,bytes([i]))
+    assert w.prompt == f'LOOK_{target}'
+    w.accept(np.array([1.,0.,0.]),target,pad,13,6500,b'first-target')
+    assert w.prompt == f'HOLD_{target}' and not w.enough
+    w.accept(np.array([1.,0.,0.]),target,pad,14,6750,b'too-soon')
+    assert w.coverage[target] == 1 and not w.enough
+    w.interrupt()
+    assert w.prompt == f'LOOK_{target}' and w.coverage[target] == 1
+    w.accept(np.array([1.,0.,0.]),target,pad,15,7000,b'second-target')
+    assert w.enough and w.accepted == 14

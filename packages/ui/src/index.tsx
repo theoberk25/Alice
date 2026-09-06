@@ -72,32 +72,16 @@ export function Modal({
   const ref = useRef<HTMLDialogElement>(null);
   const reduce = useReducedMotion();
   // Capture initial presentation preferences without reopening an active native dialog.
-  const opening = useRef({ morphId, reduce });
+  const opening = useRef({ reduce });
   useLayoutEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    const trigger = opening.current.morphId
-      ? Array.from(document.querySelectorAll<HTMLElement>('[data-morph-id]')).find(
-          (element) => element.dataset.morphId === opening.current.morphId,
-        )
-      : undefined;
-    const source = trigger?.getBoundingClientRect();
     dialog.showModal();
-    const target = dialog.getBoundingClientRect();
-    // Native dialog remains in the top layer. Geometry only supplies a visual origin;
-    // no close, authentication or action callback is linked to animation completion.
-    const canMorph =
-      source && source.width > 0 && source.height > 0 && target.width > 0 && target.height > 0;
-    const initialTransform = canMorph
-      ? `translate(${source.left + source.width / 2 - target.left - target.width / 2}px, ${source.top + source.height / 2 - target.top - target.height / 2}px) scale(${source.width / target.width}, ${source.height / target.height})`
-      : 'translate(0px, 8px) scale(0.985, 0.985)';
+    // Fade the native surface at its final size; never scale a camera from a trigger.
+    // Focus, top-layer interaction and immediate cleanup remain native-owned.
     const animation = opening.current.reduce
       ? undefined
-      : animate(
-          dialog,
-          { opacity: [0.7, 1], transform: [initialTransform, 'translate(0px, 0px) scale(1, 1)'] },
-          canMorph ? motionTokens.dialog : motionTokens.panel,
-        );
+      : animate(dialog, { opacity: [0.85, 1] }, motionTokens.dialog);
     return () => {
       animation?.stop();
       dialog.close();

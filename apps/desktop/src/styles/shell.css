@@ -3,6 +3,9 @@ body {
   font-size: 13px;
   line-height: 1.55;
 }
+html {
+  scroll-padding-bottom: calc(var(--alice-rail-height) + 32px);
+}
 button,
 input,
 select {
@@ -55,7 +58,7 @@ select:focus-visible {
   box-shadow: none;
 }
 .alice-app {
-  padding-bottom: calc(var(--alice-rail-height) + 24px);
+  padding-bottom: calc(var(--alice-rail-height) + 40px + env(safe-area-inset-bottom));
   background-size: 40px 40px;
 }
 .topbar {
@@ -171,9 +174,10 @@ select:focus-visible {
 .nav-tabs {
   gap: 4px;
   align-items: center;
+  isolation: isolate;
 }
 .nav-tabs button {
-  isolation: isolate;
+  isolation: auto;
   position: relative;
   border: 0;
   border-radius: 6px;
@@ -205,23 +209,9 @@ select:focus-visible {
 .nav-tabs button.active svg {
   color: var(--alice-cyan);
 }
-.nav-tabs .nav-hover-surface {
-  background: #ffffff04;
-}
 .nav-tabs .nav-active-surface {
   background: var(--alice-bg-raised);
   box-shadow: inset 0 0 0 1px var(--alice-border);
-}
-.nav-active-surface::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  height: 2px;
-  width: 16px;
-  left: calc(50% - 8px);
-  background: var(--alice-cyan);
-  border-radius: 2px;
-  opacity: 0.8;
 }
 .nav-status {
   gap: 14px;
@@ -413,10 +403,10 @@ select:focus-visible {
   height: auto;
   padding: 16px 28px;
   gap: 24px;
-  background: #191e25f5;
+  background: #191e25;
   border-top: 1px solid var(--alice-border-bright);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 -8px 30px #00000014;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 20px #00000030;
 }
 .action-bar-status {
   min-width: 0;
@@ -551,15 +541,51 @@ select:focus-visible {
   justify-content: center;
 }
 .technician-row {
-  gap: 14px;
-  padding: 18px 0;
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) 94px 155px;
+  gap: 12px;
+  align-items: center;
+  padding: 18px 16px;
+  border: 1px solid var(--alice-border);
+  border-radius: var(--alice-radius-panel);
+  background: var(--alice-bg-primary);
+}
+.technician-list {
+  display: grid;
+  gap: 12px;
+}
+.technician-row > div {
+  min-width: 0;
+}
+.technician-row > .badge {
+  justify-self: start;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .technician-row small {
   font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  color: var(--alice-text-secondary);
 }
 .technician-row button {
   font: 11px var(--alice-font-body);
   padding: 8px 10px;
+  min-height: 34px;
+  justify-content: center;
+}
+.technician-row > .technician-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--alice-border);
+}
+.admin-content .enrollment-capture {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--alice-border-bright);
 }
 .settings-content h3,
 .research-grid h3 {
@@ -712,6 +738,9 @@ select:focus-visible {
   }
 }
 @media (max-width: 800px) {
+  :root {
+    --alice-rail-height: 106px;
+  }
   .topbar {
     height: 70px;
     padding: 0 16px;
@@ -788,7 +817,7 @@ select:focus-visible {
     --alice-rail-height: 106px;
     display: flex;
     flex-wrap: wrap;
-    padding: 10px 16px 12px;
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
     min-height: 106px;
     gap: 8px;
   }
@@ -838,6 +867,19 @@ select:focus-visible {
     max-height: calc(100dvh - 24px);
   }
 }
+@media (max-width: 600px) {
+  .admin-content {
+    padding: 18px 14px;
+  }
+  .technician-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    padding: 14px 12px;
+    gap: 10px;
+  }
+  .technician-row > div:first-child {
+    grid-column: 1 / -1;
+  }
+}
 @media (max-width: 480px) {
   .nav-tabs button {
     font-size: 10px;
@@ -883,5 +925,43 @@ select:focus-visible {
 }
 
 .modal-heading {
+  background: var(--alice-bg-raised);
+}
+
+.account-menu {
+  position: relative;
+}
+.account-menu > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.account-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.account-menu-actions {
+  position: absolute;
+  z-index: 50;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--alice-border-bright);
+  border-radius: 12px;
+  background: var(--alice-bg-floating);
+  box-shadow: 0 12px 40px #0006;
+}
+.account-menu-actions button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--alice-text-primary);
+  font: 400 12px var(--alice-font-body);
+}
+.account-menu-actions button:hover {
   background: var(--alice-bg-raised);
 }

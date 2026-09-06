@@ -1,6 +1,6 @@
 import { Check, Clock3, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import type { Decision } from '@alice/contracts';
-import { Panel, Badge, toneFor, human, AnimatedCounter, CommandButton } from '@alice/ui';
+import { Panel, Badge, toneFor, human, CommandButton } from '@alice/ui';
 import { useConsole } from '../../state/console';
 export function EvidencePanel({
   decision: d,
@@ -14,11 +14,8 @@ export function EvidencePanel({
     <Panel className="evidence-panel" title="Evidence ledger" meta={<ShieldCheck size={14} />}>
       <div className="evidence-score">
         <strong>
-          <AnimatedCounter value={d.evidence.verified} />
-          <span>
-            {' '}
-            / <AnimatedCounter value={d.evidence.items.length} />
-          </span>
+          {d.evidence.verified}
+          <span> / {d.evidence.items.length}</span>
         </strong>
         <div>
           References verified<small>At this assessment</small>

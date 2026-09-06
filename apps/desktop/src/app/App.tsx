@@ -52,7 +52,6 @@ type Overlay = 'approval' | 'research' | 'identity' | 'settings' | undefined;
 export default function App() {
   const s = useConsole();
   const reducedMotion = useReducedMotion();
-  const [hoveredTab, setHoveredTab] = useState<View>();
   const [view, setView] = useState<View>('overview'),
     [approvalId, setApprovalId] = useState<string>(),
     [overlay, setOverlay] = useState<Overlay>(),
@@ -110,7 +109,7 @@ export default function App() {
       <Header onIdentity={() => setOverlay('identity')} onSettings={() => setOverlay('settings')} />
       <nav className="main-nav" aria-label="Console navigation">
         <LayoutGroup id="console-navigation">
-          <div className="nav-tabs" onMouseLeave={() => setHoveredTab(undefined)}>
+          <div className="nav-tabs">
             {(
               [
                 { id: 'overview', label: 'Operations', icon: LayoutDashboard },
@@ -124,17 +123,9 @@ export default function App() {
                 className={view === id ? 'active' : ''}
                 aria-label={label}
                 aria-current={view === id ? 'page' : undefined}
-                onMouseEnter={() => setHoveredTab(id)}
-                onFocus={() => setHoveredTab(id)}
-                onBlur={() => setHoveredTab(undefined)}
                 onClick={() => setView(id)}
                 disabled={locked && id !== 'admin'}
               >
-                <AnimatedSelection
-                  active={hoveredTab === id}
-                  layoutId="nav-hover"
-                  className="nav-hover-surface"
-                />
                 <AnimatedSelection
                   active={view === id}
                   layoutId="nav-active"
@@ -239,13 +230,7 @@ export default function App() {
         </div>
       )}
       <AnimatePresence initial={false}>
-        <motion.div
-          key={view}
-          className="page-surface"
-          initial={{ opacity: 0, y: reducedMotion ? 0 : 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reducedMotion ? 0 : 0.22, ease: motionTokens.ease }}
-        >
+        <motion.div key={view} className="page-surface" initial={false}>
           {(!locked || view === 'admin') &&
             (view === 'overview' ? (
               <main className="dashboard">
@@ -348,7 +333,7 @@ export default function App() {
       {!locked && (
         <motion.footer
           className="action-bar"
-          initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+          initial={reducedMotion ? false : { opacity: 0.85, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={motionTokens.panel}
         >

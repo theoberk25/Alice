@@ -1,16 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { animate, createTimeline } from 'animejs';
-import { useReducedMotion } from 'motion/react';
-import { motionTokens } from '@alice/ui';
+import { animate, motion, useReducedMotion } from 'motion/react';
 import type { LiveBiometricSession } from '@alice/contracts';
 
-const scanMotion = {
-  evidence: Number(motionTokens.panel.duration) * 1000,
-  retract: 160,
-  resolve: 300,
-  checkDelay: 100,
-  ease: 'outCubic',
-};
+const evidenceTransition = { duration: 0.22, ease: 'easeOut' } as const;
 
 // Positions follow the mirrored preview: the person's left is the left side of the guide.
 const coverageArcs = [
@@ -58,51 +50,29 @@ export function BiometricScan({
     const animations = coverageArcs.flatMap(({ region }) => {
       const from = previous[region] ?? 0;
       const to = next[region] ?? 0;
-      const path = ref.current?.querySelector(`[data-region="${region}"] .biometric-arc-progress`);
+      const path = ref.current?.querySelector<SVGPathElement>(
+        `[data-region="${region}"] .biometric-arc-progress`,
+      );
       if (!path || from === to) return [];
-      return [
-        animate(path, {
+      const animation = animate(
+        path,
+        {
           strokeDasharray: [`${from * 50} 100`, `${to * 50} 100`],
-          duration: scanMotion.evidence,
-          ease: scanMotion.ease,
-        }),
-      ];
+          strokeOpacity: [0.55, 1],
+        },
+        evidenceTransition,
+      );
+      return [{ animation, path }];
     });
-    return () => animations.forEach((animation) => animation.revert());
-  }, [coverageKey, reducedMotion, complete, failed]);
-
-  useEffect(() => {
-    const scan = ref.current;
-    if (!scan || reducedMotion) return;
-    const perimeter = scan.querySelector('.biometric-scan-perimeter');
-    if (!perimeter) return;
-    if (complete) {
-      const check = scan.querySelector('.biometric-success-mark path');
-      const circle = scan.querySelector('.biometric-success-mark circle');
-      if (!check || !circle) return;
-      const timeline = createTimeline({ defaults: { ease: scanMotion.ease } })
-        .add(perimeter, { opacity: [1, 0], duration: scanMotion.retract }, 0)
-        .add(circle, { r: [108, 56], opacity: [0.2, 0.6], duration: scanMotion.resolve }, 0)
-        .add(
-          check,
-          { strokeDashoffset: [100, 0], opacity: [0, 1], duration: scanMotion.evidence },
-          scanMotion.checkDelay,
-        );
-      return () => {
-        timeline.revert();
-      };
-    }
-    if (failed) {
-      const animation = animate(perimeter, {
-        opacity: [0.65, 0.12],
-        duration: scanMotion.evidence,
-        ease: scanMotion.ease,
+    return () =>
+      animations.forEach(({ animation, path }) => {
+        animation.stop();
+        // The SVG attribute always holds exact accepted evidence. Remove the temporary
+        // presentation styles when stopping so reduced/terminal states cannot freeze it.
+        path.style.removeProperty('stroke-dasharray');
+        path.style.removeProperty('stroke-opacity');
       });
-      return () => {
-        animation.revert();
-      };
-    }
-  }, [complete, failed, reducedMotion]);
+  }, [coverageKey, reducedMotion, complete, failed]);
 
   return (
     <svg
@@ -149,10 +119,6 @@ export function BiometricScan({
               pathLength="100"
               strokeDasharray={`${complete ? 100 : 0} 100`}
             />
-            <path
-              className="biometric-landmark-guide"
-              d="M85 102h12 M143 102h12 M120 113v16 M103 148q17 8 34 0"
-            />
           </>
         )}
       </g>
@@ -165,7 +131,10 @@ export function BiometricScan({
           strokeLinejoin="round"
         >
           <circle cx="120" cy="120" r="56" />
-          <path
+          <motion.path
+            initial={reducedMotion ? false : { strokeDashoffset: 100 }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={reducedMotion ? { duration: 0 } : evidenceTransition}
             d="M94 120l17 17 35-37"
             pathLength="100"
             strokeDasharray="100"

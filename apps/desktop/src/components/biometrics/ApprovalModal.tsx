@@ -110,7 +110,7 @@ export function ApprovalModal({
       morphId="approval"
       className="approval-dialog"
     >
-      <TransitionPanel stage={state} className="approval-content">
+      <TransitionPanel stage={state} className="approval-content" animateContent={false}>
         <div className="verification-intro">
           <Badge tone={biometricMode === 'mock' ? 'warning' : 'information'}>
             {biometricMode === 'mock' ? 'Simulated identity verification' : 'Local face identity'}

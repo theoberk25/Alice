@@ -63,7 +63,9 @@ it('starts with intent only and has no shutter or renderer frame input', async (
     }),
   );
   expect(screen.queryByRole('button', { name: /capture|photo|shutter/i })).not.toBeInTheDocument();
-  expect(screen.getByText('0 / 7 angles complete · 0 accepted observations')).toBeInTheDocument();
+  expect(
+    screen.getByLabelText('0 / 7 angles complete · 0 accepted observations'),
+  ).toBeInTheDocument();
   expect(document.querySelector('.biometric-scan')).toBeNull(); // reduced motion
   expect(done).not.toHaveBeenCalled();
 });
@@ -80,7 +82,7 @@ it('coverage changes only from accepted native observations', async () => {
     />,
   );
   expect(
-    await screen.findByText('1 / 7 angles complete · 2 accepted observations'),
+    await screen.findByLabelText('1 / 7 angles complete · 2 accepted observations'),
   ).toBeInTheDocument();
 });
 
@@ -470,28 +472,29 @@ it('starts enrollment centered, then supports a continuous scan without ordered 
     />,
   );
   await act(async () => vi.advanceTimersByTimeAsync(0));
-  expect(screen.getByRole('status')).toHaveTextContent('Look straight ahead to begin');
+  expect(screen.getByRole('status')).toHaveTextContent('Finding your face');
+  expect(screen.getByRole('status')).toHaveAccessibleDescription('Look straight ahead');
   await act(async () => vi.advanceTimersByTimeAsync(200));
-  expect(screen.getByRole('status')).toHaveTextContent('Slowly move your head in a circle');
-  expect(screen.getByRole('status')).not.toHaveTextContent(/turn.*left|turn.*right/i);
-  expect(screen.getByText('Center captured')).toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveAccessibleDescription(
+    'Slowly move your head in a circle',
+  );
+  expect(document.querySelector('.biometric-explanation')).not.toHaveTextContent(
+    /turn.*left|turn.*right/i,
+  );
+  expect(screen.getByLabelText('Center: 2 of 2 samples accepted')).toHaveAttribute(
+    'data-accepted',
+    '2',
+  );
   expect(screen.getByRole('progressbar', { name: 'Face enrollment progress' })).toHaveAttribute(
     'aria-valuenow',
     '5',
   );
-  expect(document.querySelector('[data-region="LEFT"] .biometric-arc-progress')).toHaveAttribute(
-    'stroke-dasharray',
-    '100 100',
+  expect(document.querySelector('[data-region="LEFT"]')).toHaveAttribute('data-accepted', '2');
+  expect(document.querySelector('[data-region="UP"]')).toHaveAttribute('data-accepted', '1');
+  expect(document.querySelector('[data-region="RIGHT"]')).toHaveAttribute('data-accepted', '0');
+  expect(document.querySelectorAll('.face-id-pose-arc:not(.face-id-center-region)')).toHaveLength(
+    6,
   );
-  expect(document.querySelector('[data-region="UP"] .biometric-arc-progress')).toHaveAttribute(
-    'stroke-dasharray',
-    '50 100',
-  );
-  expect(document.querySelector('[data-region="RIGHT"] .biometric-arc-progress')).toHaveAttribute(
-    'stroke-dasharray',
-    '0 100',
-  );
-  expect(document.querySelectorAll('.biometric-coverage-arc')).toHaveLength(6);
 });
 
 it('pauses enrollment guidance for quality without resetting coverage or requiring a retry', async () => {
@@ -526,12 +529,14 @@ it('pauses enrollment guidance for quality without resetting coverage or requiri
     />,
   );
   await act(async () => vi.advanceTimersByTimeAsync(0));
-  expect(screen.getByRole('status')).toHaveTextContent('Pause briefly for a clear view');
-  expect(screen.getByRole('status')).toHaveTextContent('Your progress is kept');
+  expect(screen.getByRole('status')).toHaveTextContent('Finding your face');
+  expect(screen.getByRole('status')).toHaveAccessibleDescription('Pause briefly for a clear view');
   expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '3');
   expect(screen.queryByRole('button', { name: 'Retry with new session' })).toBeNull();
   await act(async () => vi.advanceTimersByTimeAsync(200));
-  expect(screen.getByRole('status')).toHaveTextContent('Slowly move your head in a circle');
+  expect(screen.getByRole('status')).toHaveAccessibleDescription(
+    'Slowly move your head in a circle',
+  );
   expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '5');
   expect(api.beginBiometricSession).toHaveBeenCalledTimes(1);
   expect(api.cancelBiometricSession).not.toHaveBeenCalled();
@@ -568,14 +573,14 @@ it('keeps enrollment coverage unchanged when the service rejects a candidate sam
     />,
   );
   await act(async () => vi.advanceTimersByTimeAsync(0));
-  expect(screen.getByRole('status')).toHaveTextContent('Face the camera for a moment');
+  expect(screen.getByRole('status')).toHaveAccessibleDescription('Face the camera for a moment');
   expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '4');
   expect(document.querySelector('[data-region="RIGHT"]')).toHaveAttribute('data-accepted', '0');
   expect(screen.queryByRole('button', { name: 'Retry with new session' })).toBeNull();
   expect(api.cancelBiometricSession).not.toHaveBeenCalled();
 });
 
-it('uses the decoded camera aspect ratio instead of cropping a differently shaped native frame', async () => {
+it('keeps one preview node and viewport through wide and fallback frame decoding', async () => {
   render(
     <CameraCapture
       intent={{ purpose: 'ENROLLMENT', technician_id: 'T1' }}
@@ -584,15 +589,20 @@ it('uses the decoded camera aspect ratio instead of cropping a differently shape
     />,
   );
   const preview = screen.getByAltText('Mirrored live camera preview');
-  Object.defineProperty(preview, 'naturalWidth', { configurable: true, value: 1280 });
-  Object.defineProperty(preview, 'naturalHeight', { configurable: true, value: 720 });
-  fireEvent.load(preview);
-  expect(preview.parentElement).toHaveStyle({ aspectRatio: '1280 / 720' });
-  Object.defineProperty(preview, 'naturalWidth', { configurable: true, value: 640 });
-  Object.defineProperty(preview, 'naturalHeight', { configurable: true, value: 480 });
-  fireEvent.load(preview);
-  expect(preview.parentElement).toHaveStyle({ aspectRatio: '640 / 480' });
+  const viewport = preview.parentElement;
+  for (const [width, height] of [
+    [1280, 720],
+    [640, 480],
+  ]) {
+    Object.defineProperty(preview, 'naturalWidth', { configurable: true, value: width });
+    Object.defineProperty(preview, 'naturalHeight', { configurable: true, value: height });
+    fireEvent.load(preview);
+    expect(screen.getByAltText('Mirrored live camera preview')).toBe(preview);
+    expect(preview.parentElement).toBe(viewport);
+    expect(viewport?.style.aspectRatio).toBe('');
+  }
   expect(screen.getByText(/The ring shows scan progress/)).toBeInTheDocument();
+  await waitFor(() => expect(api.beginBiometricSession).toHaveBeenCalledTimes(1));
 });
 
 it('shows camera disconnection prominently with its exact native reason, without opening details', async () => {
@@ -613,8 +623,10 @@ it('shows camera disconnection prominently with its exact native reason, without
   );
   const alert = await screen.findByRole('alert');
   expect(alert).toHaveTextContent('Camera disconnected');
-  expect(alert).toHaveTextContent('The camera stopped delivering images');
-  expect(alert).toHaveTextContent('Reason: CAMERA_DISCONNECTED');
+  expect(alert).toHaveAccessibleDescription(
+    expect.stringContaining('The camera stopped delivering images'),
+  );
+  expect(alert).toHaveAccessibleDescription(expect.stringContaining('Reason: CAMERA_DISCONNECTED'));
   expect(screen.queryByText('Technical details')).toBeNull();
   expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '5');
   expect(screen.getByRole('button', { name: 'Retry with new session' })).toBeEnabled();
@@ -652,15 +664,15 @@ it.each([
       />,
     );
     await act(async () => vi.advanceTimersByTimeAsync(0));
-    expect(screen.getByRole('status')).toHaveTextContent(guidance);
-    expect(screen.getByRole('status')).toHaveTextContent('Verification continues automatically');
+    expect(screen.getByRole('status')).toHaveTextContent('Finding your face');
+    expect(screen.getByRole('status')).toHaveAccessibleDescription(guidance);
     expect(screen.queryByRole('button', { name: 'Retry with new session' })).toBeNull();
     expect(complete).not.toHaveBeenCalled();
     expect(cancel).not.toHaveBeenCalled();
     expect(api.cancelBiometricSession).not.toHaveBeenCalled();
     await act(async () => vi.advanceTimersByTimeAsync(200));
-    expect(screen.getByRole('status')).toHaveTextContent('Recognizing your face…');
-    expect(screen.getByRole('status')).toHaveTextContent('No head turns needed');
+    expect(screen.getByRole('status')).toHaveTextContent('Face detected');
+    expect(screen.getByRole('status')).toHaveAccessibleDescription('Look naturally at the camera');
     expect(screen.queryByRole('button', { name: 'Retry with new session' })).toBeNull();
     expect(api.beginBiometricSession).toHaveBeenCalledTimes(1);
     expect(complete).not.toHaveBeenCalled();
@@ -727,16 +739,23 @@ it.each<BiometricIntent>([
     const complete = vi.fn().mockResolvedValue(undefined);
     render(<CameraCapture intent={intent} onComplete={complete} onCancel={vi.fn()} />);
     await act(async () => vi.advanceTimersByTimeAsync(0));
-    expect(screen.getByRole('status')).toHaveTextContent('Recognizing your face…');
-    expect(screen.getByRole('status')).toHaveTextContent('No head turns needed');
+    const capturingText = intent.purpose === 'LOGIN' ? 'Face detected' : 'Recognizing your face…';
+    expect(screen.getByRole('status')).toHaveTextContent(capturingText);
+    expect(screen.getByRole('status')).toHaveAccessibleDescription(
+      expect.stringContaining(
+        intent.purpose === 'LOGIN' ? 'Look naturally at the camera' : 'No head turns needed',
+      ),
+    );
     expect(screen.queryByRole('progressbar')).toBeNull();
     expect(complete).not.toHaveBeenCalled();
     await act(async () => vi.advanceTimersByTimeAsync(200));
-    expect(screen.getByRole('status')).toHaveTextContent('Recognizing your face…');
+    expect(screen.getByRole('status')).toHaveTextContent(capturingText);
     expect(screen.getByRole('status')).not.toHaveTextContent(/left|right|upward|downward|circle/i);
     expect(complete).not.toHaveBeenCalled();
     await act(async () => vi.advanceTimersByTimeAsync(200));
-    expect(screen.getByRole('status')).toHaveTextContent('Face ID verified');
+    expect(screen.getByRole('status')).toHaveTextContent(
+      intent.purpose === 'LOGIN' ? 'Identity verified' : 'Face ID verified',
+    );
     expect(complete).toHaveBeenCalledExactlyOnceWith(nativeSuccess);
     expect(api.beginBiometricSession).toHaveBeenCalledExactlyOnceWith(intent);
   },
@@ -767,8 +786,8 @@ it('acknowledges native success after clearing preview and stops reading camera 
   expect(preview).toHaveAttribute('src');
   await act(async () => vi.advanceTimersByTimeAsync(200));
   expect(preview).not.toHaveAttribute('src');
-  expect(document.querySelector('.biometric-success-mark')).toBeInTheDocument();
-  expect(screen.getByRole('status')).toHaveTextContent('Face ID verified');
+  expect(document.querySelector('.face-id-scan')).toHaveAttribute('data-complete', 'true');
+  expect(screen.getByRole('status')).toHaveTextContent('Identity verified');
   expect(complete).toHaveBeenCalledTimes(1);
   const reads = vi.mocked(api.readBiometricPreview).mock.calls.length;
   await act(async () => vi.advanceTimersByTimeAsync(449));
@@ -798,7 +817,7 @@ it.each(['cancel', 'hidden', 'unmount'] as const)(
       />,
     );
     await act(async () => vi.advanceTimersByTimeAsync(0));
-    expect(screen.getByRole('status')).toHaveTextContent('Face ID verified');
+    expect(screen.getByRole('status')).toHaveTextContent('Identity verified');
     const hidden =
       reason === 'hidden' ? vi.spyOn(document, 'hidden', 'get').mockReturnValue(true) : undefined;
     if (reason === 'cancel') fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -834,4 +853,67 @@ it('uses a brief static acknowledgement for reduced motion', async () => {
   expect(acknowledged).not.toHaveBeenCalled();
   await act(async () => vi.advanceTimersByTimeAsync(1));
   expect(acknowledged).toHaveBeenCalledTimes(1);
+});
+
+it('distinguishes the last missing angle, coverage samples, and accepted observations', async () => {
+  const coverage = {
+    CENTER: 2,
+    LEFT: 1,
+    RIGHT: 2,
+    UP: 2,
+    DOWN: 2,
+    UP_LEFT: 2,
+    UP_RIGHT: 2,
+  } as const;
+  vi.mocked(api.beginBiometricSession).mockResolvedValue(
+    session({ coverage, accepted_samples: 17 }),
+  );
+  render(
+    <CameraCapture
+      intent={{ purpose: 'ENROLLMENT', technician_id: 'T1' }}
+      onComplete={vi.fn()}
+      onCancel={vi.fn()}
+    />,
+  );
+  expect(await screen.findByText('Turn slightly left')).toBeInTheDocument();
+  expect(screen.getByLabelText('Left: 1 of 2 samples accepted')).toHaveAttribute(
+    'data-active',
+    'true',
+  );
+  expect(document.querySelectorAll('.face-id-poses [data-accepted="2"]')).toHaveLength(6);
+  expect(
+    screen.getByLabelText('6 / 7 angles complete · 17 accepted observations'),
+  ).toBeInTheDocument();
+  expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '13');
+  expect(screen.getByRole('progressbar')).toHaveAttribute(
+    'aria-valuetext',
+    '13 of 14 angle samples accepted; 6 of 7 facial angles complete',
+  );
+  expect(document.querySelector('[data-region="LEFT"]')).toHaveAttribute('data-accepted', '1');
+  expect(document.querySelector('.border-trail')).toBeNull();
+});
+
+it('reports native verification immediately while approval processing remains pending', async () => {
+  vi.useFakeTimers();
+  const complete = vi.fn().mockReturnValue(new Promise<void>(() => {}));
+  vi.mocked(api.readBiometricSession).mockResolvedValue(
+    session({ purpose: 'APPROVAL', state: 'SUCCEEDED' }),
+  );
+  render(
+    <CameraCapture
+      intent={{ purpose: 'APPROVAL', technician_id: 'T1', decision_id: 'D1', request_id: 'R1' }}
+      onComplete={complete}
+      onCancel={vi.fn()}
+    />,
+  );
+  await act(async () => vi.advanceTimersByTimeAsync(200));
+  expect(screen.getByRole('status')).toHaveTextContent('Face ID verified');
+  expect(screen.getByRole('status')).toHaveAccessibleDescription(
+    expect.stringContaining('Finishing your approval…'),
+  );
+  expect(screen.getByRole('button', { name: 'Finishing…' })).toBeDisabled();
+  expect(document.querySelector('.biometric-success-mark')).toBeInTheDocument();
+  expect(screen.getByAltText('Mirrored live camera preview')).not.toHaveAttribute('src');
+  expect(screen.queryByText('Connecting')).toBeNull();
+  expect(complete).toHaveBeenCalledTimes(1);
 });
