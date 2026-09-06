@@ -8,7 +8,7 @@ Preserved redesign: `db730710750787af9064b495c6a236e0b504b2fe`.
 ## Active objective
 
 Integrate the complete local redesign onto Theo's current main while preserving
-all teammate content, contracts and behavior. Integration is complete; PR publication is now user-authorized. The user
+all teammate content, contracts and behavior. Integration is complete; [PR #7](https://github.com/theoberk25/Alice/pull/7) is open for user merge. The user
 requested the live-runtime app after testing. The rebuilt app is now open in
 remote/ArcFace mode with the original saved database and feed. Popup profile is preserved.
 [Popup setup/evidence](docs/reports/2026-09-06-popup-testing-app.md).
@@ -51,7 +51,7 @@ The pre-merge checkpoints are preserved for both
 
 1. Sign in to the reopened live-runtime app to connect to the saved feed.
 2. Perform real-camera/native appearance and physical-Pi operator acceptance.
-3. Publish the PR to Theo’s main for user review/merge; keep the Dock app unchanged.
+3. User reviews/merges PR #7; keep the Dock app unchanged.
 
 [Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
 [Design sources](docs/guides/console/visual-sources.md) ·
