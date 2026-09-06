@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "alice-demo-fan-v1",
+  "title": "Simulation-only fan request",
+  "description": "Private demo adapter contract; does not authorize physical fans or lights.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "alice-demo-fan-v1"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*(?![\\s\\S])"
+    },
+    "action": {
+      "const": "set_demo_fan_pct"
+    },
+    "target": {
+      "const": "DEMO-SERVER-01"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fan_basis_points": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "fan_basis_points"
+      ]
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "expected_revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "client_request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "agent_id",
+    "action",
+    "target",
+    "parameters",
+    "run_id",
+    "expected_revision",
+    "client_request_id"
+  ]
+}

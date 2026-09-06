@@ -48,16 +48,24 @@ def _decode(raw: bytes):
     except (UnicodeDecodeError, ValueError):
         return None
     if (not isinstance(reply, dict) or type(reply.get("v")) is not int
-            or reply["v"] not in (1, 2)):
+            or reply["v"] not in (1, 2, 3)):
         return None
     if not isinstance(reply.get("id"), str) or not isinstance(reply.get("ok"), bool):
         return None
     if not isinstance(reply.get("boot_id"), str) or not re.fullmatch(r"[0-9a-f]{8}", reply["boot_id"]):
         return None
     expected = {"v", "id", "ok", "boot_id", "state" if reply["ok"] else "error"}
-    if reply["v"] == 2:
+    if reply["v"] >= 2:
         expected.add("channel")
         if type(reply.get("channel")) is not int or not 1 <= reply["channel"] <= 8:
+            return None
+    if reply["v"] == 3 and reply["ok"]:
+        expected.remove("state")
+        expected.update(("mode", "mhz", "stale"))
+        if (reply.get("mode") not in ("legacy", "off", "solid", "blink", "unavailable")
+                or type(reply.get("mhz")) is not int or type(reply.get("stale")) is not bool
+                or (reply["mode"] == "blink" and not 500 <= reply["mhz"] <= 5000)
+                or (reply["mode"] != "blink" and reply["mhz"] != 0)):
             return None
     if set(reply) != expected:
         return None
@@ -105,6 +113,7 @@ class SerialLightController:
         try:
             port = serial.Serial()
             port.port = self._device
+            port.exclusive = True  # cooperating POSIX serial owners cannot overlap
             port.baudrate = self._baud
             port.timeout = self._timeout
             port.write_timeout = self._timeout
@@ -167,7 +176,7 @@ class SerialLightController:
             self._drop()
             raise ControllerError("serial write failed") from exc
         reply = self._await_reply(transport, command_id, deadline)
-        if reply['v'] != message['v'] or (message['v'] == 2 and reply.get('channel') != message['channel']):
+        if reply['v'] != message['v'] or (message['v'] >= 2 and reply.get('channel') != message['channel']):
             raise ControllerError("reply channel/version mismatch")
         return reply
 
@@ -266,6 +275,27 @@ class SerialLightController:
             return ObservedState(reply["ok"] and state in STATES, state if reply["ok"] and state in STATES else None)
         except ControllerError:
             return ObservedState(False, None)
+
+    def pattern(self, channel, *, mode=None, mhz=0, operation="pattern"):
+        """v3 settings/readback through the same locked serial owner; no retries."""
+        if type(channel) is not int or not 1 <= channel <= 8:
+            raise ControllerError("unknown pattern channel")
+        payload = {"v": 3, "channel": channel, "op": operation}
+        if operation == "pattern":
+            if (mode not in ("off", "solid", "blink", "unavailable") or type(mhz) is not int
+                    or (mode == "blink" and not 500 <= mhz <= 5000)
+                    or (mode != "blink" and mhz != 0)):
+                raise ControllerError("invalid pattern")
+            payload.update(mode=mode, mhz=mhz)
+        elif operation not in ("get", "keep"):
+            raise ControllerError("invalid pattern operation")
+        with self._lock:
+            reply = self._exchange(payload)
+        if not reply["ok"]:
+            raise ControllerError("pattern rejected by firmware")
+        if operation == "pattern" and (reply["mode"] != mode or reply["mhz"] != mhz or reply["stale"]):
+            raise ControllerError("pattern acknowledgment mismatch")
+        return reply
 
     @staticmethod
     def _channel(target):

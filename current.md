@@ -1,30 +1,37 @@
 # Current
 Updated: 2026-09-06.
-Local branch: `codex/led-display`, based on `origin/main` `e1e7506`.
+Branch: `codex/led-display`; baseline `608f107`, upstream `origin/main` `e1e7506`.
 
 ## Active objective
 
-Add only a read-only value-to-LED-pattern mapper for the thermal demo.
-No environmental simulation, ALICE decision changes, hardware access or deployment.
+Complete and push the user-authorized environmental demo software, following the
+[scope handoff](docs/handoffs/2026-09-06-environmental-demo-context.md).
+The user explicitly reauthorized pull and push after reviewing the scope.
+The pre-publication pull of `origin/codex/led-display` was already up to date.
 
 ## Current state
 
-- `dcamr/display/led_patterns.py` maps four supplied values to eight patterns.
-- Existing target/color mapping retained: yellow power, blue fan, red temperature,
-  white two-segment battery reserve.
-- `python3 -m lab.led_preview` prints the display contract without hardware access.
-- Existing thermal/environment work remains in the separate thermal-demo checkout.
-- [Display contract and next renderer boundary](docs/guides/led-display.md).
+- Thermal/energy backend, lifecycle, state/history and agent proposal API implemented.
+- Real ALICE signed fan requests, policy decisions, ledger execution and native
+  signed review integrated; first-light request schema remains unchanged.
+- Read-only Pi renderer and v3 firmware generate phase-preserving eight-LED patterns
+  with stale leases, readback, recovery and legacy SET compatibility.
+- Agent client, signed demo release generator and frontend contract delivered.
+- Operator page design remains with the teammate. No real fan control or deployment.
 
-## Verification
+## Evidence and limits
 
-Eight focused unit tests passed; preview CLI produced JSON; diff whitespace check
-passed. No timing loop, serial, firmware or physical acceptance is claimed.
-Upstream integration history and prior evidence are preserved in the
-[prior status](docs/handoffs/2026-09-06-before-led-display.md).
+Final Python integration: 459 passed, 30 skipped, 246 subtests; details in
+[validation](docs/reports/2026-09-06-environmental-demo-validation.md).
+Console checks: 135 tests and eight script tests, typecheck, lint and build passed.
+Eight browser tests passed. Actual firmware host tests passed. Rust fan-validator
+extraction: one passed; full native build blocked by unchanged Swift camera code
+and this machine's SDK. No camera use, board build, flashing or physical acceptance.
 
 ## Next steps
 
-1. Review the mapping and segment boundary behavior.
-2. Inspect the single-owner serial path before adding a phase-preserving renderer.
-3. Verify hardware separately before publication/deployment decisions.
+1. Teammate implements the operator page using the [contract](docs/contracts/environmental-demo-v1.md).
+2. Resolve existing native camera/SDK build compatibility in its owning workstream.
+3. Separately provision and verify physical Pi/XIAO operation; owner unassigned.
+
+[Run guide](docs/guides/environmental-demo.md) · [Tracker](docs/implementation-tracker.md)

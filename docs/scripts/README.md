@@ -21,3 +21,5 @@ Offline ledger quota maintenance: `python -m lab.audit_resize` (runtime stopped,
 new backup required, increase-only). See the [hardware runbook](../guides/first-light-hardware.md).
 
 Read-only LED preview: [guide](../guides/led-display.md), `python3 -m lab.led_preview`.
+
+Environmental demo: [run guide](../guides/environmental-demo.md); `python -m services.thermal_demo.server`. Local signed test release: `python -m lab.thermal_demo.build_release NEW_DIRECTORY`.

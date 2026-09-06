@@ -1,8 +1,9 @@
-# Read-only demo LED mapping
+# Read-only demo LED mapping and delivery
 
-This increment implements only supplied values -> eight pattern descriptions.
-No environmental model, agent, decision, network access, GPIO, serial writes,
-firmware changes, background worker or service installation is included.
+The original mapper remains pure: supplied values → eight pattern descriptions.
+The [environmental demo](environmental-demo.md) now connects it to the shared serial
+owner and v3 firmware scheduler. The LEDs remain read-only telemetry indicators.
+No service installation, firmware flashing or physical acceptance is implied.
 
 ## Input
 
@@ -54,18 +55,22 @@ python3 -m lab.led_preview --temperature-f 140 --fan-pct 80 --power-w 451.2 --ba
 python3 -m unittest discover -s tests -p test_led_patterns.py
 ```
 
-## Next increment: renderer, not part of this change
+## Renderer and firmware
 
-Consume these patterns without resetting phase on every telemetry update.
-A possible 10 Hz input refresh is independent of blink timing. At 5 Hz, each
-half-cycle lasts 100 ms. A nominal 200 Hz local timing loop provides 20 steps per
-half-cycle, but USB/OS scheduling cannot promise that precision. Inspect the
-current single-owner serial path and prefer firmware timing before implementation.
-Never start a second serial writer or translate every blink into an agent action.
+`dcamr.display.renderer.PatternRenderer` sends changed settings through the runtime's
+sole serial controller. V3 updates matching pairs atomically in firmware, preserves
+phase and independently drives the white segments. A 200 Hz polling scheduler
+produces edges, while the Pi samples nominally at 10 Hz. The
+[versioned contract](../contracts/esp-serial-protocol.md#version-3-environmental-patterns)
+specifies precedence, leases, unavailable double pulses and uncertain-write recovery.
 
 ## Verification
 
-Eight tests passed: channel/color agreement with existing configuration, endpoints,
+Original mapper verification: eight tests passed: channel/color agreement with existing configuration, endpoints,
 pair agreement, white boundaries/60% behavior, depletion monotonicity, clamping,
 stale/invalid input handling, and independent nonmutating projections. Preview CLI
 produced JSON successfully. No physical verification is claimed.
+
+Full requested scope: [environmental demo context](../handoffs/2026-09-06-environmental-demo-context.md).
+
+Current integration evidence: [validation report](../reports/2026-09-06-environmental-demo-validation.md).

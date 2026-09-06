@@ -8,6 +8,17 @@ export const RuntimeReviewStatusSchema = z.strictObject({
   ready: z.boolean(),
   reason: z.string().max(2000),
 });
+const DemoFanRequest = z.strictObject({
+  schema_version: z.literal('alice-demo-fan-v1'),
+  request_id: Hash,
+  client_request_id: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
+  agent_id: RequestId,
+  run_id: z.string().regex(/^[a-f0-9]{32}$/),
+  expected_revision: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  action: z.literal('set_demo_fan_pct'),
+  target: z.literal('DEMO-SERVER-01'),
+  parameters: z.strictObject({ fan_basis_points: z.number().int().min(0).max(10000) }),
+});
 export const RuntimeReviewSchema = z
   .strictObject({
     schema_version: z.literal('alice-runtime-review-v1'),
@@ -29,6 +40,7 @@ export const RuntimeReviewSchema = z
         parameters: z.strictObject({ state: z.enum(['on', 'off']) }),
         issued_at: z.iso.datetime(),
       })
+      .or(DemoFanRequest)
       .nullable(),
     decision: z.enum(['ALLOW', 'DENY', 'CHALLENGE', 'REJECTED']),
     review_state: z.enum(['PENDING', 'APPROVED', 'REJECTED']),

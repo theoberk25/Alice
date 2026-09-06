@@ -216,6 +216,8 @@ class ReviewAuthority:
             reason = 'REQUEST_DETAILS_UNAVAILABLE'
         elif decision['outcome'] != 'CHALLENGE':
             reason = 'MACHINE_DECISION_NOT_REVIEWABLE'
+        elif not self.runtime.request_is_current(request):
+            reason = 'EXECUTION_SCOPE_STALE'
         elif not owner:
             reason = 'AUTHORITY_NOT_LOCAL'
         elif not self.trust:
