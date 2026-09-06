@@ -389,6 +389,17 @@ export const useConsole = create<ConsoleState>((set, get) => ({
         if (e.decision.result === 'HOLD' && e.context_challenge.required) {
           get().log('HOLD_RECEIVED', 'Protected action remains blocked', e.decision_id);
           get().advance('REQUEST_CONTEXT', e.decision_id);
+          // Opt-in local popup rehearsal: allow real sign-in before a person
+          // requests the simulated response. Never alter remote transport.
+          if (get().mode === 'mock' && import.meta.env.VITE_ALICE_MANUAL_CONTEXT_DEMO === 'true') {
+            get().advance('REVIEW', e.decision_id);
+            get().log(
+              'MANUAL_CONTEXT_DEMO',
+              'Simulated context awaits technician request',
+              e.decision_id,
+            );
+            return;
+          }
           const generation = epoch;
           const challenge = deterministicClarification(e);
           set((s) => ({
@@ -682,6 +693,13 @@ export const useConsole = create<ConsoleState>((set, get) => ({
     get().log('CONTEXT_REQUESTED', 'Technician requested additional context', d.decision_id);
     try {
       await transport.requestClarification(challenge);
+      if (
+        get().mode === 'mock' &&
+        import.meta.env.VITE_ALICE_MANUAL_CONTEXT_DEMO === 'true' &&
+        get().flows[d.decision_id] === 'AWAITING_TECHNICIAN'
+      ) {
+        set((st) => ({ flows: { ...st.flows, [d.decision_id]: 'AWAITING_AGENT_RESPONSE' } }));
+      }
     } catch (err) {
       // Roll the marker back so the control returns rather than sticking "in flight".
       set((st) => {

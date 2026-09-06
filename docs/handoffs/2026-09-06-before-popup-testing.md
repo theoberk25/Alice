@@ -1,3 +1,8 @@
+# Checkpoint before popup-testing rebuild
+
+Historical snapshot from integration commit `498ebcd`.
+[Working rules](../../AGENTS.md) apply; see [current status](../../current.md).
+
 # Current
 Updated: 2026-09-06 EDT. Owners unassigned.
 Branch: `codex/main-redesign-integration`.
@@ -8,9 +13,7 @@ Preserved redesign: `db730710750787af9064b495c6a236e0b504b2fe`.
 ## Active objective
 
 Integrate the complete local redesign onto Theo's current main while preserving
-all teammate content, contracts and behavior. Integration is complete. The user
-now authorized a local .app rebuild for real-sign-in and simulated HOLD popup testing.
-[Popup setup/evidence](docs/reports/2026-09-06-popup-testing-app.md).
+all teammate content, contracts and behavior. Local integration and validation complete.
 Worktree: `artifacts/console/main-redesign-integration` within the original checkout.
 [Integration evidence](docs/reports/2026-09-06-main-redesign-integration.md).
 
@@ -24,15 +27,11 @@ Worktree: `artifacts/console/main-redesign-integration` within the original chec
 - Late telemetry alignment is included: battery units, LED roles and updated team
   docs/tracker row 035. [Team checkpoint](docs/handoffs/2026-09-06-before-telemetry-redesign-merge.md).
 - The original checkout, private settings/models/stores and running services remain
-  separate. The rebuilt integration app uses a private popup-testing profile;
-  the original Dock-linked bundle and live profile remain unchanged. No push/deploy.
+  separate. No push, deployment, or replacement of the Dock-linked app is authorized.
 
 ## Evidence and blockers
 
-Latest popup build: frontend192/scripts8/check and app build passed; default
-browser31 plus the opt-in popup case passed. Final app reopened; real Face ID
-service READY. Use sliders → Reset scenario to repeat context/approval.
-Historical integration: frontend190/scripts8/browser31/native62 passed;
+Validated integrated tree: frontend190/scripts8/browser31/native62 passed;
 biometrics176 passed (1 model skip), repository Python541 and266 subtests passed.
 Native2 opt-in tests ignored. Typecheck/lint/web build/native app build passed.
 No software blocker remains; prior source/team results remain historical.
@@ -43,7 +42,7 @@ The pre-merge checkpoints are preserved for both
 
 ## Next steps
 
-1. Test the opened popup-rehearsal app; use Development scenarios → Reset scenario.
+1. Review `codex/main-redesign-integration` against pinned team main `d5a0d56`.
 2. Perform real-camera/native appearance and physical-Pi operator acceptance.
 3. Publish or replace the Dock app only on explicit user authorization.
 

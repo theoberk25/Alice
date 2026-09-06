@@ -116,10 +116,13 @@ export function ClarificationTrack({ decision }: { decision: Decision }) {
   );
   const sent =
     !!response ||
+    !!s.contextRequests[contextDecision.decision_id] ||
     s.audit.some(
       (e) => e.type === 'AUTO_CLARIFICATION_SENT' && e.decision_id === contextDecision.decision_id,
     );
   const noContext = !contextDecision.context_challenge.required;
+  const manualPending =
+    s.mode === 'mock' && import.meta.env.VITE_ALICE_MANUAL_CONTEXT_DEMO === 'true' && !sent;
   const currentFlow =
     s.flows[s.latestDecisionByRequest[decision.request.request_id] ?? decision.decision_id] ?? flow;
   const reviewComplete = ['APPROVAL_SUBMITTED', 'REJECTED', 'RESOLVED'].includes(currentFlow);
@@ -141,9 +144,11 @@ export function ClarificationTrack({ decision }: { decision: Decision }) {
         ? 'not required'
         : sent
           ? 'complete'
-          : flow === 'AUTO_CONTEXT_REQUEST'
-            ? 'active'
-            : 'failed',
+          : manualPending
+            ? 'waiting'
+            : flow === 'AUTO_CONTEXT_REQUEST'
+              ? 'active'
+              : 'failed',
     ],
     [
       'Agent responded',

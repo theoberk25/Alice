@@ -2,6 +2,32 @@ import { expect, test } from '@playwright/test';
 
 const actionNames = ['Reject', 'Research', 'Request more context', 'Hold', 'Approve once'];
 
+test('popup rehearsal keeps context available and can reset after approval', async ({ page }) => {
+  test.skip(process.env.VITE_ALICE_MANUAL_CONTEXT_DEMO !== 'true', 'Opt-in popup rehearsal build');
+  await page.goto('/');
+  const context = page.getByRole('button', { name: 'Request more context', exact: true });
+  await expect(context).toBeEnabled();
+  await expect(page.getByText('AWAITING YOUR REQUEST', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Clarification progress')).not.toContainText('failed');
+  await page.clock.install();
+  await page.clock.runFor(30_000);
+  await expect(context).toBeEnabled();
+  await context.click();
+  await page.clock.runFor(1200);
+  await expect(page.getByRole('status').filter({ hasText: 'Reassessment pending' })).toBeVisible();
+  await expect(context).toBeDisabled();
+  await page.getByRole('button', { name: 'Approve once', exact: true }).click();
+  await page.getByRole('button', { name: 'Simulate pass', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Approval submitted', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Return to console' }).click();
+  await page.getByRole('button', { name: 'Development scenarios', exact: true }).click();
+  await page.getByRole('button', { name: 'Reset scenario', exact: true }).click();
+  await expect(context).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Approve once', exact: true })).toBeEnabled();
+});
+
 test('all five integrated rail actions fit without clipping or overlap', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');

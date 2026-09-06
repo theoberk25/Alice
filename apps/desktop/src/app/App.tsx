@@ -66,6 +66,8 @@ export default function App() {
   }, []);
   const d = s.decisions[s.selectedId];
   const remote = s.mode === 'remote';
+  const showScenarios =
+    import.meta.env.DEV || (!remote && import.meta.env.VITE_ALICE_MANUAL_CONTEXT_DEMO === 'true');
   const runtimeRequests = Object.values(s.runtime.requests);
   const locked = !s.technician && (s.biometricMode === 'arcface' || !s.ready);
   const available =
@@ -174,7 +176,7 @@ export default function App() {
                 ? 'CONSOLE ACTIVE'
                 : 'INITIALIZING'}
           </span>
-          {import.meta.env.DEV && (
+          {showScenarios && (
             <Tooltip content="Development scenarios">
               <CommandButton
                 className="icon-button"
@@ -187,7 +189,7 @@ export default function App() {
           )}
         </div>
       </nav>
-      {developer && !remote && !locked && import.meta.env.DEV && (
+      {developer && !remote && !locked && showScenarios && (
         <div className="dev-panel">
           <label>
             DEVELOPMENT SCENARIO{' '}
