@@ -112,3 +112,13 @@ The installed Goose configuration follows its
 and [per-profile path implementation](https://github.com/aaif-goose/goose/blob/v1.45.0/crates/goose/src/config/paths.rs).
 See the [host setup evidence](../reports/2026-09-06-local-agent-model-setup.md)
 for the exact installed versions, model checks and outstanding acceptance.
+
+## Integration dependency check
+
+The [main integration report](../reports/2026-09-06-local-agent-main-integration.md)
+records fresh validation against upstream `2aa5c34`. The separate biometric
+environment deliberately uses headless OpenCV; its MediaPipe install uses
+`requirements-live.txt --no-deps`. Therefore its `pip check` reports a missing
+`opencv-contrib-python` distribution even though the tested imports and ArcFace
+inference pass. Preserve the single provider; do not install a second cv2 package
+merely to clear that metadata warning. Root agent-environment `pip check` passes.
