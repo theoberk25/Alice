@@ -11,13 +11,13 @@ use serde_json::{json, Value};
 use std::{sync::MutexGuard, time::Duration};
 use tauri::State;
 use uuid::Uuid;
-fn lock(state: &AppState) -> Result<MutexGuard<'_, Inner>, String> {
+pub(crate) fn lock(state: &AppState) -> Result<MutexGuard<'_, Inner>, String> {
     state
         .0
         .lock()
         .map_err(|_| "Console state lock unavailable".into())
 }
-fn load_decision(s: &Inner, id: &str) -> Result<Value, String> {
+pub(crate) fn load_decision(s: &Inner, id: &str) -> Result<Value, String> {
     let raw: String =
         s.db.query_row(
             "SELECT payload FROM decision_cache WHERE decision_id=?1",
@@ -27,10 +27,10 @@ fn load_decision(s: &Inner, id: &str) -> Result<Value, String> {
         .map_err(|_| "Decision is not in the trusted local cache")?;
     serde_json::from_str(&raw).map_err(|e| e.to_string())
 }
-fn technician(s: &Inner, id: &str) -> Result<Technician, String> {
-    s.db.query_row("SELECT t.technician_id,t.username,t.display_name,t.role,t.enabled,EXISTS(SELECT 1 FROM face_enrollments f WHERE f.technician_id=t.technician_id) FROM technicians t WHERE technician_id=?1",[id],|r|Ok(Technician{technician_id:r.get(0)?,username:r.get(1)?,display_name:r.get(2)?,role:r.get(3)?,enabled:r.get(4)?,enrolled:r.get(5)?})).map_err(|_|"Technician identity not found".into())
+pub(crate) fn technician(s: &Inner, id: &str) -> Result<Technician, String> {
+    s.db.query_row("SELECT t.technician_id,t.username,t.display_name,t.role,t.enabled,EXISTS(SELECT 1 FROM face_enrollments f WHERE f.technician_id=t.technician_id) ,(SELECT format FROM face_enrollments f WHERE f.technician_id=t.technician_id) FROM technicians t WHERE technician_id=?1",[id],|r|Ok(Technician{technician_id:r.get(0)?,username:r.get(1)?,display_name:r.get(2)?,role:r.get(3)?,enabled:r.get(4)?,enrolled:r.get(5)?,enrollment_version:r.get(6)?})).map_err(|_|"Technician identity not found".into())
 }
-fn require_current_assessment(s: &Inner, decision: &Value) -> Result<(), String> {
+pub(crate) fn require_current_assessment(s: &Inner, decision: &Value) -> Result<(), String> {
     let request = decision["request"]["request_id"]
         .as_str()
         .ok_or("Missing request ID")?;
@@ -45,7 +45,7 @@ fn require_current_assessment(s: &Inner, decision: &Value) -> Result<(), String>
     }
     Ok(())
 }
-fn throttled(s: &Inner, key: &str) -> Result<(), String> {
+pub(crate) fn throttled(s: &Inner, key: &str) -> Result<(), String> {
     if s.failures
         .get(key)
         .is_some_and(|(count, time)| *count >= 5 && Utc::now().timestamp() - time < 30)
@@ -55,7 +55,7 @@ fn throttled(s: &Inner, key: &str) -> Result<(), String> {
         Ok(())
     }
 }
-fn failed(s: &mut Inner, key: &str) {
+pub(crate) fn failed(s: &mut Inner, key: &str) {
     let now = Utc::now().timestamp();
     let entry = s.failures.entry(key.into()).or_insert((0, now));
     if now - entry.1 >= 30 {
@@ -100,16 +100,7 @@ async fn biometrics(config: &Config, path: &str, payload: Option<Value>) -> Resu
     }
     Ok(data)
 }
-fn check_frames(frames: &[String], min: usize) -> Result<(), String> {
-    if frames.len() < min
-        || frames.len() > 10
-        || frames.iter().any(|f| f.len() > 2_000_000 || f.is_empty())
-    {
-        return Err("Invalid camera capture: provide 1–10 bounded JPEG frames".into());
-    }
-    Ok(())
-}
-fn issue_grant(
+pub(crate) fn issue_grant(
     s: &mut Inner,
     id: &str,
     request: &str,
@@ -196,6 +187,7 @@ pub async fn read_runtime_events(state: State<'_, AppState>, after: u64) -> Resu
 pub fn runtime_config(state: State<AppState>) -> Result<PublicConfig, String> {
     let s = lock(&state)?;
     Ok(PublicConfig {
+        biometric_policy: crate::biometric_sessions::POLICY,
         transport_mode: s.config.mode.clone(),
         biometric_mode: s.config.biometric_mode.clone(),
         llm_model: s.config.model.clone(),
@@ -216,6 +208,7 @@ pub fn demo_session(state: State<AppState>) -> Result<Technician, String> {
     if s.config.mode != "mock" || s.config.biometric_mode != "mock" {
         return Err("Simulated sessions are disabled outside mock transport mode".into());
     }
+    s.biometrics.revoke("TECHNICIAN_SESSION_CHANGED");
     s.technician = Some(Session {
         id: "TECH-DEMO".into(),
         expires_at: Utc::now().timestamp() + 28_800,
@@ -227,6 +220,7 @@ pub fn demo_session(state: State<AppState>) -> Result<Technician, String> {
         role: "Technician".into(),
         enabled: true,
         enrolled: true,
+        enrollment_version: None,
     })
 }
 #[tauri::command]
@@ -259,6 +253,7 @@ pub fn admin_login(
         return Err("Admin credentials rejected. Bootstrap first-run credentials through environment configuration.".into());
     }
     s.failures.remove("admin");
+    s.biometrics.revoke("ADMIN_SESSION_CHANGED");
     s.admin = Some(Session {
         id: username.clone(),
         expires_at: Utc::now().timestamp() + 900,
@@ -267,12 +262,15 @@ pub fn admin_login(
 }
 #[tauri::command]
 pub fn admin_logout(state: State<AppState>) -> Result<(), String> {
-    lock(&state)?.admin = None;
+    let mut s = lock(&state)?;
+    s.biometrics.revoke("ADMIN_LOGOUT");
+    s.admin = None;
     Ok(())
 }
 #[tauri::command]
 pub fn logout(state: State<AppState>) -> Result<(), String> {
     let mut s = lock(&state)?;
+    s.biometrics.revoke("LOGOUT");
     s.technician = None;
     s.admin = None;
     s.grants.clear();
@@ -333,6 +331,7 @@ pub fn set_technician_enabled(
         params![enabled, technician_id],
     )
     .map_err(|e| e.to_string())?;
+    s.biometrics.revoke("TECHNICIAN_OR_ENROLLMENT_CHANGED");
     s.grants.retain(|_, g| g.technician_id != technician_id);
     if !enabled && s.technician.as_ref().is_some_and(|t| t.id == technician_id) {
         s.technician = None;
@@ -345,133 +344,29 @@ pub fn set_technician_enabled(
 }
 #[tauri::command]
 pub async fn enroll_technician(
-    state: State<'_, AppState>,
-    technician_id: String,
-    frames: Vec<String>,
+    _state: State<'_, AppState>,
+    _technician_id: String,
+    _frames: Vec<String>,
 ) -> Result<Value, String> {
-    check_frames(&frames, 5)?;
-    let config = {
-        let s = lock(&state)?;
-        require_admin(&s)?;
-        technician(&s, &technician_id)?;
-        s.config.clone()
-    };
-    let result = biometrics(
-        &config,
-        "/enroll",
-        Some(json!({"technician_id":technician_id,"frames":frames})),
-    )
-    .await?;
-    let mut s = lock(&state)?;
-    require_admin(&s)?;
-    s.db.execute("INSERT INTO face_enrollments(technician_id,updated_at,provider) VALUES(?1,?2,'arcface') ON CONFLICT(technician_id) DO UPDATE SET updated_at=excluded.updated_at",params![technician_id,Utc::now().to_rfc3339()]).map_err(|e|e.to_string())?;
-    s.grants.retain(|_, g| g.technician_id != technician_id);
-    if s.technician.as_ref().is_some_and(|t| t.id == technician_id) {
-        s.technician = None;
-    }
-    db::audit(
-        &s.db,
-        "FACE_ENROLLMENT_UPDATED",
-        &json!({"technician_id":technician_id}),
-    )?;
-    Ok(result)
+    Err("RENDERER_FRAME_AUTHENTICATION_RETIRED: begin a native biometric session".into())
 }
+
 #[tauri::command]
 pub async fn remove_enrollment(
     state: State<'_, AppState>,
     technician_id: String,
 ) -> Result<(), String> {
-    let config = {
-        let s = lock(&state)?;
-        require_admin(&s)?;
-        s.config.clone()
-    };
-    biometrics(
-        &config,
-        "/remove",
-        Some(json!({"technician_id":technician_id})),
-    )
-    .await?;
-    let mut s = lock(&state)?;
-    require_admin(&s)?;
-    s.db.execute(
-        "DELETE FROM face_enrollments WHERE technician_id=?1",
-        [&technician_id],
-    )
-    .map_err(|e| e.to_string())?;
-    s.grants.retain(|_, g| g.technician_id != technician_id);
-    if s.technician.as_ref().is_some_and(|t| t.id == technician_id) {
-        s.technician = None;
-    }
-    db::audit(
-        &s.db,
-        "FACE_ENROLLMENT_REMOVED",
-        &json!({"technician_id":technician_id}),
-    )
+    crate::biometric_commands::remove_face_enrollment(state, technician_id).await
 }
 #[tauri::command]
 pub async fn technician_login(
-    state: State<'_, AppState>,
-    username: String,
-    frames: Vec<String>,
+    _state: State<'_, AppState>,
+    _username: String,
+    _frames: Vec<String>,
 ) -> Result<Technician, String> {
-    check_frames(&frames, 1)?;
-    let (config, t) = {
-        let s = lock(&state)?;
-        throttled(&s, &format!("login:{username}"))?;
-        let id: String =
-            s.db.query_row(
-                "SELECT technician_id FROM technicians WHERE username=?1",
-                [&username],
-                |r| r.get(0),
-            )
-            .map_err(|_| "Claimed identity is not enrolled or available")?;
-        let t = technician(&s, &id)?;
-        if !t.enabled || !t.enrolled {
-            return Err("Claimed identity is disabled or not enrolled".into());
-        }
-        db::audit(
-            &s.db,
-            "TECHNICIAN_LOGIN_ATTEMPT",
-            &json!({"technician_id":t.technician_id}),
-        )?;
-        (s.config.clone(), t)
-    };
-    let result = biometrics(
-        &config,
-        "/verify",
-        Some(json!({"technician_id":t.technician_id,"frames":frames})),
-    )
-    .await;
-    let mut s = lock(&state)?;
-    if !result.as_ref().is_ok_and(|r| r["result"] == "PASS") {
-        failed(&mut s, &format!("login:{username}"));
-        db::audit(
-            &s.db,
-            "TECHNICIAN_LOGIN_FAILURE",
-            &json!({"technician_id":t.technician_id}),
-        )?;
-        return Err(result
-            .err()
-            .unwrap_or("Face identity did not match. Login blocked.".into()));
-    }
-    let current = technician(&s, &t.technician_id)?;
-    if !current.enabled || !current.enrolled {
-        return Err("Identity became unavailable during verification".into());
-    }
-    s.failures.remove(&format!("login:{username}"));
-    s.grants.clear();
-    s.technician = Some(Session {
-        id: t.technician_id.clone(),
-        expires_at: Utc::now().timestamp() + 28_800,
-    });
-    db::audit(
-        &s.db,
-        "TECHNICIAN_LOGIN_SUCCESS",
-        &json!({"technician_id":t.technician_id}),
-    )?;
-    Ok(current)
+    Err("RENDERER_FRAME_AUTHENTICATION_RETIRED: begin a native biometric session".into())
 }
+
 #[tauri::command]
 pub fn cache_decision(state: State<AppState>, decision: Value) -> Result<(), String> {
     let mut s = lock(&state)?;
@@ -671,68 +566,15 @@ pub fn mock_verify(
 }
 #[tauri::command(rename_all = "snake_case")]
 pub async fn verify_face(
-    state: State<'_, AppState>,
-    technician_id: String,
-    decision_id: String,
-    request_id: String,
-    frames: Vec<String>,
+    _state: State<'_, AppState>,
+    _technician_id: String,
+    _decision_id: String,
+    _request_id: String,
+    _frames: Vec<String>,
 ) -> Result<Grant, String> {
-    check_frames(&frames, 1)?;
-    let config = {
-        let s = lock(&state)?;
-        if require_technician(&s)? != technician_id {
-            return Err("Technician mismatch".into());
-        }
-        throttled(&s, &technician_id)?;
-        let d = load_decision(&s, &decision_id)?;
-        require_current_assessment(&s, &d)?;
-        if d["decision"]["result"] != "HOLD" || d["request"]["request_id"] != request_id {
-            return Err("Invalid approval binding".into());
-        }
-        db::audit(
-            &s.db,
-            "STEP_UP_STARTED",
-            &json!({"decision_id":decision_id,"technician_id":technician_id}),
-        )?;
-        s.config.clone()
-    };
-    let result = biometrics(
-        &config,
-        "/verify",
-        Some(json!({"technician_id":technician_id,"frames":frames})),
-    )
-    .await;
-    let mut s = lock(&state)?;
-    if require_technician(&s)? != technician_id {
-        return Err("Technician session changed during capture".into());
-    }
-    let result = match result {
-        Ok(result) => result,
-        Err(error) => {
-            failed(&mut s, &technician_id);
-            db::audit(
-                &s.db,
-                "STEP_UP_FAILED",
-                &json!({"decision_id":decision_id,"technician_id":technician_id,"detail":"Face capture or identity service rejected verification"}),
-            )?;
-            return Err(error);
-        }
-    };
-    let outcome = if result["result"] == "PASS" {
-        "PASS"
-    } else {
-        "FAIL"
-    };
-    if outcome == "FAIL" {
-        failed(&mut s, &technician_id);
-    } else {
-        s.failures.remove(&technician_id);
-    }
-    let mut grant = issue_grant(&mut s, &decision_id, &request_id, outcome, "arcface")?;
-    grant.similarity = result["similarity"].as_f64();
-    grant.threshold = result["threshold"].as_f64();
-    Ok(grant)
+    Err("RENDERER_FRAME_AUTHENTICATION_RETIRED: begin a native biometric session".into())
 }
+
 #[tauri::command]
 pub fn submit_action(state: State<AppState>, action: Action) -> Result<Value, String> {
     let mut s = lock(&state)?;

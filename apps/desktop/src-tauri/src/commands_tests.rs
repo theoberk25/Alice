@@ -14,7 +14,7 @@ use serde_json::{json, Value};
 use std::{collections::HashMap, sync::Mutex};
 use tauri::Manager;
 
-fn fixture() -> Value {
+pub(crate) fn fixture() -> Value {
     let mut value: Value =
         serde_json::from_str(include_str!("../../../../fixtures/legacy/decision.json")).unwrap();
     value["event_type"] = json!("alice.decision");
@@ -25,7 +25,7 @@ fn fixture() -> Value {
     value["system"]["node"] = json!("ALICE-PI-01");
     value
 }
-fn app() -> (tauri::App<tauri::test::MockRuntime>, tempfile::TempDir) {
+pub(crate) fn app() -> (tauri::App<tauri::test::MockRuntime>, tempfile::TempDir) {
     let dir = tempfile::tempdir().unwrap();
     let config = Config {
         mode: "mock".into(),
@@ -55,6 +55,7 @@ fn app() -> (tauri::App<tauri::test::MockRuntime>, tempfile::TempDir) {
             admin: None,
             grants: HashMap::new(),
             failures: HashMap::new(),
+            biometrics: crate::biometric_sessions::Book::default(),
         })))
         .build(tauri::test::mock_context(tauri::test::noop_assets()))
         .unwrap();
@@ -75,7 +76,7 @@ fn action(proof: Option<String>) -> Action {
         mode: "mock".into(),
     }
 }
-fn reassessment() -> Value {
+pub(crate) fn reassessment() -> Value {
     let mut d = fixture();
     d["decision_id"] = json!("DEC-20260905-000185");
     d["reassessment"] = json!({"previous_decision_id":"DEC-20260905-000184","root_decision_id":"DEC-20260905-000184","sequence":1,"trigger":"AGENT_CONTEXT_RESPONSE"});
@@ -237,6 +238,7 @@ fn native_admin_gate_and_password_hash_work() {
         role: "Technician".into(),
         enabled: true,
         enrolled: false,
+        enrollment_version: None,
     };
     commands::save_technician(s.clone(), t).unwrap();
     commands::set_technician_enabled(s.clone(), "T1".into(), false).unwrap();
@@ -322,113 +324,100 @@ fn ollama_grammar_preserves_shape_without_large_string_repetitions() {
 }
 
 #[test]
-#[ignore = "requires the isolated real ArcFace service started by scripts/biometrics/smoke_native_identity.py"]
-fn real_identity_login_and_step_up_cross_the_native_boundary() {
+fn retired_frame_ipc_never_mints_enrollment_login_or_approval() {
     let (app, _dir) = app();
-    let s = app.state::<AppState>();
-    let capture_path = std::env::var("ALICE_TEST_CAPTURE_FILE").unwrap();
-    let captures: Value =
-        serde_json::from_str(&std::fs::read_to_string(capture_path).unwrap()).unwrap();
-    let enrollment: Vec<String> = serde_json::from_value(captures["enrollment"].clone()).unwrap();
-    let face: Vec<String> = serde_json::from_value(captures["face"].clone()).unwrap();
-    let blank: Vec<String> = serde_json::from_value(captures["blank"].clone()).unwrap();
-    {
-        let mut inner = s.0.lock().unwrap();
-        inner.config.biometric_mode = "arcface".into();
-        inner.config.biometric_token = std::env::var("ALICE_BIOMETRIC_TOKEN").unwrap();
-        inner.config.biometric_url = std::env::var("ALICE_BIOMETRIC_SERVICE_URL").unwrap();
-    }
-    assert!(commands::demo_session(s.clone()).is_err());
-    commands::admin_login(s.clone(), "test-admin".into(), "test-only-password".into()).unwrap();
-    commands::save_technician(
-        s.clone(),
-        Technician {
-            technician_id: "TECH-DEMO".into(),
-            username: "public-sample".into(),
-            display_name: "Public test sample".into(),
-            role: "Technician".into(),
-            enabled: true,
-            enrolled: false,
-        },
+    let state = app.state::<AppState>();
+    commands::admin_login(
+        state.clone(),
+        "test-admin".into(),
+        "test-only-password".into(),
     )
     .unwrap();
-    let health = tauri::async_runtime::block_on(commands::biometric_health(s.clone())).unwrap();
-    assert_eq!(health["status"], "READY");
-    tauri::async_runtime::block_on(commands::enroll_technician(
-        s.clone(),
-        "TECH-DEMO".into(),
-        enrollment,
-    ))
-    .unwrap();
-    assert!(tauri::async_runtime::block_on(commands::technician_login(
-        s.clone(),
-        "public-sample".into(),
-        blank.clone()
-    ))
-    .is_err());
-    assert!(s.0.lock().unwrap().technician.is_none());
-    let technician = tauri::async_runtime::block_on(commands::technician_login(
-        s.clone(),
-        "public-sample".into(),
-        face.clone(),
-    ))
-    .unwrap();
-    assert_eq!(technician.technician_id, "TECH-DEMO");
-    commands::set_technician_enabled(s.clone(), "TECH-DEMO".into(), false).unwrap();
-    assert!(commands::read_console_history(s.clone()).is_err());
-    commands::set_technician_enabled(s.clone(), "TECH-DEMO".into(), true).unwrap();
-    assert!(commands::read_console_history(s.clone()).is_err());
-    tauri::async_runtime::block_on(commands::technician_login(
-        s.clone(),
-        "public-sample".into(),
-        face.clone(),
-    ))
-    .unwrap();
-    commands::cache_decision(s.clone(), fixture()).unwrap();
-    // A real face login alone is never an approval grant.
-    assert!(commands::submit_action(s.clone(), action(None)).is_err());
-    assert!(tauri::async_runtime::block_on(commands::verify_face(
-        s.clone(),
-        "TECH-DEMO".into(),
-        "DEC-20260905-000184".into(),
-        "REQ-88291".into(),
-        blank
-    ))
-    .is_err());
-    assert!(s.0.lock().unwrap().grants.is_empty());
-    let grant = tauri::async_runtime::block_on(commands::verify_face(
-        s.clone(),
-        "TECH-DEMO".into(),
-        "DEC-20260905-000184".into(),
-        "REQ-88291".into(),
-        face,
-    ))
-    .unwrap();
-    assert_eq!(grant.provider, "arcface");
-    assert_eq!(grant.result, "PASS");
-    assert!(grant.similarity.unwrap() >= grant.threshold.unwrap());
-    let receipt = commands::submit_action(s.clone(), action(Some(grant.verification_id))).unwrap();
-    assert_eq!(receipt["execution_status"], "NOT_EXECUTED");
-    assert!(s.0.lock().unwrap().grants.is_empty());
-    let history = commands::read_console_history(s.clone()).unwrap();
-    for kind in [
-        "TECHNICIAN_LOGIN_FAILURE",
-        "TECHNICIAN_LOGIN_SUCCESS",
-        "STEP_UP_FAILED",
-        "STEP_UP_PASSED",
-        "ACTION_SUBMITTED",
-    ] {
-        assert!(
-            history["audit"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .any(|e| e["type"] == kind),
-            "Missing audit event {kind}"
-        );
+    state.0.lock().unwrap().config.biometric_mode = "arcface".into();
+    for frames in [vec!["injected".into()], vec!["image".into(); 5], Vec::new()] {
+        assert!(tauri::async_runtime::block_on(commands::enroll_technician(
+            state.clone(),
+            "T1".into(),
+            frames.clone()
+        ))
+        .unwrap_err()
+        .contains("RETIRED"));
+        assert!(tauri::async_runtime::block_on(commands::technician_login(
+            state.clone(),
+            "tech".into(),
+            frames.clone()
+        ))
+        .err()
+        .unwrap()
+        .contains("RETIRED"));
+        assert!(tauri::async_runtime::block_on(commands::verify_face(
+            state.clone(),
+            "T1".into(),
+            "D1".into(),
+            "R1".into(),
+            frames
+        ))
+        .err()
+        .unwrap()
+        .contains("RETIRED"));
     }
-    tauri::async_runtime::block_on(commands::remove_enrollment(s.clone(), "TECH-DEMO".into()))
-        .unwrap();
-    assert!(s.0.lock().unwrap().technician.is_none());
-    println!("Real ArcFace service → native enrollment → claimed-identity login → fresh request-bound approval passed. Test images only; live camera and liveness are not verified.");
+    assert!(commands::demo_session(state.clone()).is_err());
+    let inner = state.0.lock().unwrap();
+    assert!(inner.technician.is_none() && inner.grants.is_empty());
+    assert_eq!(
+        inner
+            .db
+            .query_row("SELECT COUNT(*) FROM face_enrollments", [], |r| r
+                .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+}
+
+#[test]
+fn logout_relogin_and_admin_lock_revoke_biometric_epochs() {
+    use crate::biometric_sessions::Purpose;
+    let (app, _dir) = app();
+    let state = app.state::<AppState>();
+    let id = {
+        let mut s = state.0.lock().unwrap();
+        s.biometrics
+            .begin(Purpose::Login, "TECH-DEMO".into(), "V2".into(), None)
+            .unwrap()
+            .session_id
+    };
+    commands::logout(state.clone()).unwrap();
+    commands::demo_session(state.clone()).unwrap();
+    assert_eq!(
+        state
+            .0
+            .lock()
+            .unwrap()
+            .biometrics
+            .get(&id)
+            .unwrap()
+            .view
+            .state,
+        "CANCELLED"
+    );
+    let id = {
+        let mut s = state.0.lock().unwrap();
+        s.biometrics
+            .begin(Purpose::Enrollment, "TECH-DEMO".into(), "V2".into(), None)
+            .unwrap()
+            .session_id
+    };
+    commands::admin_logout(state.clone()).unwrap();
+    assert_eq!(
+        state
+            .0
+            .lock()
+            .unwrap()
+            .biometrics
+            .get(&id)
+            .unwrap()
+            .view
+            .state,
+        "CANCELLED"
+    );
 }

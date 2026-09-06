@@ -27,6 +27,37 @@ pub fn open(config: &Config) -> Result<Connection, String> {
       CREATE TABLE IF NOT EXISTS technician_actions(action_id TEXT PRIMARY KEY,decision_id TEXT NOT NULL,payload TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS local_audit_events(id TEXT PRIMARY KEY,timestamp TEXT NOT NULL,event_type TEXT NOT NULL,payload TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);").map_err(|e|e.to_string())?;
+    // Metadata-only V1 migration: preserve every legacy enrollment row.
+    let columns = {
+        let mut q = conn
+            .prepare("PRAGMA table_info(face_enrollments)")
+            .map_err(|e| e.to_string())?;
+        let rows = q
+            .query_map([], |r| r.get::<_, String>(1))
+            .map_err(|e| e.to_string())?;
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?
+    };
+    if !columns.iter().any(|c| c == "format") {
+        conn.execute_batch("ALTER TABLE face_enrollments ADD COLUMN format TEXT NOT NULL DEFAULT 'IDENTITY_ONLY_V1';")
+            .map_err(|e| e.to_string())?;
+    }
+    if !columns.iter().any(|c| c == "generation") {
+        conn.execute_batch(
+            "ALTER TABLE face_enrollments ADD COLUMN generation TEXT NOT NULL DEFAULT 'legacy-v1';",
+        )
+        .map_err(|e| e.to_string())?;
+    }
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS face_activation_intents (
+        technician_id TEXT PRIMARY KEY REFERENCES technicians(technician_id),
+        generation TEXT NOT NULL, previous_generation TEXT NOT NULL, created_at TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS face_removal_intents (
+        technician_id TEXT PRIMARY KEY REFERENCES technicians(technician_id),
+        removal_id TEXT UNIQUE NOT NULL, active_generation TEXT NOT NULL,
+        pending_generation TEXT, pending_previous_generation TEXT, created_at TEXT NOT NULL);",
+    )
+    .map_err(|e| e.to_string())?;
     let count: i64 = conn
         .query_row("SELECT COUNT(*) FROM admin_accounts", [], |r| r.get(0))
         .map_err(|e| e.to_string())?;

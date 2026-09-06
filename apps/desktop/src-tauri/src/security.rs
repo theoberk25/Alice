@@ -30,6 +30,8 @@ pub struct Technician {
     pub role: String,
     pub enabled: bool,
     pub enrolled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enrollment_version: Option<String>,
 }
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
