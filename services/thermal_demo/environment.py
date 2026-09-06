@@ -169,17 +169,33 @@ class Environment:
             raise DemoError('Fan requests support hundredths of a percent')
         if type(body['expected_revision']) is not int:
             raise DemoError('expected_revision must be an integer')
+        action = {'request_id': rid, 'run_id': body['run_id'],
+                  'expected_revision': body['expected_revision'], 'agent_id': agent_id,
+                  'action': 'set_demo_fan_pct', 'target': 'DEMO-SERVER-01',
+                  'parameters': {'fan_pct': fan}}
+        with self.lock:
+            record, staged = self.stage(action)
+            if not staged:
+                return record
+            try:
+                result = self.gateway.submit(deepcopy(action))
+            except Exception:
+                self.requests[rid]['application'] = 'RECONCILIATION_REQUIRED'
+            else:
+                self._resolve(rid, result)
+            return deepcopy(self.requests[rid])
+
+    def stage(self, action):
+        """Reserve one already-normalized action before trusted ALICE admission."""
         with self.lock:
             self._advance()
-            action = {'request_id': rid, 'run_id': body['run_id'],
-                      'expected_revision': body['expected_revision'], 'agent_id': agent_id,
-                      'action': 'set_demo_fan_pct', 'target': 'DEMO-SERVER-01',
-                      'parameters': {'fan_pct': fan}}
+            rid = action['request_id']
             if rid in self.requests:
                 if self.requests[rid]['action'] != action:
                     raise DemoError('Request ID conflict')
-                return deepcopy(self.requests[rid])
-            if self.status != 'RUNNING' or body['run_id'] != self.run_id or body['expected_revision'] != self.revision:
+                return deepcopy(self.requests[rid]), False
+            if (self.status != 'RUNNING' or action['run_id'] != self.run_id
+                    or action['expected_revision'] != self.revision):
                 raise DemoError('Run is not current and running')
             if self.pending:
                 raise DemoError('Resolve the pending request first')
@@ -190,13 +206,19 @@ class Environment:
             record = {'action': action, 'decision': 'UNKNOWN', 'application': 'PENDING'}
             self.requests[rid], self.pending = record, rid
             self._event('REQUESTED', request_id=rid)
-            try:
-                result = self.gateway.submit(deepcopy(action))
-            except Exception:
-                record['application'] = 'RECONCILIATION_REQUIRED'
-            else:
-                self._resolve(rid, result)
-            return deepcopy(record)
+            return deepcopy(record), True
+
+    def finish_staged(self, rid, result):
+        with self.lock:
+            self._resolve(rid, result)
+            return deepcopy(self.requests[rid])
+
+    def cancel_staged(self, rid):
+        """Remove an envelope that ALICE rejected before authenticated admission."""
+        with self.lock:
+            if self.pending == rid and self.requests[rid]['decision'] == 'UNKNOWN':
+                del self.requests[rid]
+                self.pending = None
 
     def reconcile(self):
         with self.lock:

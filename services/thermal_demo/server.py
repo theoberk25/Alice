@@ -85,8 +85,9 @@ def make_server(environment, operator_token, agent_token=None, agent_id='demo-ag
 
         def do_POST(self):
             role, agent = self.identity()
+            signed_ingress = self.path == '/request' and runtime is not None
             required = 'agent' if self.path == '/demo/fan-requests' else 'operator'
-            if role != required:
+            if not signed_ingress and role != required:
                 return self.reply(403, {'error': 'Role not permitted'})
             try:
                 if self.headers.get('Transfer-Encoding'):
@@ -100,7 +101,7 @@ def make_server(environment, operator_token, agent_token=None, agent_id='demo-ag
                 raw = self.rfile.read(length)
                 if len(raw) != length:
                     raise DemoError('Incomplete request body')
-                body = (parse_json(raw) if self.path in ('/demo/review', '/review') else
+                body = (parse_json(raw) if self.path in ('/demo/review', '/review', '/request') else
                         json.loads(raw.decode('utf-8'), object_pairs_hook=_unique_object, parse_constant=_reject_number))
                 if self.path == '/demo/configure':
                     value = environment.configure(body)
@@ -110,6 +111,8 @@ def make_server(environment, operator_token, agent_token=None, agent_id='demo-ag
                     value = environment.control(self.path.rsplit('/', 1)[1])
                 elif self.path == '/demo/fan-requests':
                     value = environment.request_fan(body, agent)
+                elif self.path == '/request' and runtime:
+                    return self.reply(*runtime.submit_envelope(body))
                 elif self.path in ('/demo/review', '/review') and runtime:
                     # Operator token only permits transport; it cannot approve.
                     code, value = runtime.review(envelope=body)

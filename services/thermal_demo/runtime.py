@@ -93,6 +93,27 @@ class ThermalRuntime(FirstLightRuntime):
                 raise GatewayUnavailable('ALICE outcome requires reconciliation')
             return self.result(action)
 
+    def submit_envelope(self, envelope):
+        """Accept the same signed bytes already recorded by enterprise ingress."""
+        request = envelope.get('request') if type(envelope) is dict else None
+        try:
+            action = self.action(request)
+            if self.wire(action) != request:
+                raise ValueError
+        except (AttributeError, KeyError, TypeError, ValueError):
+            return self.handle_request(envelope)
+        with self._lock:
+            _, staged = self.environment.stage(action)
+            code, response = self.handle_request(envelope)
+            if request['request_id'] not in self._outcomes:
+                if staged:
+                    self.environment.cancel_staged(action['request_id'])
+                return code, response
+            result = self.result(action)
+            record = self.environment.finish_staged(action['request_id'], result)
+            return code, dict(response, demo_application=record['application'],
+                              client_request_id=action['request_id'])
+
     def result(self, action):
         with self._lock:
             wire = self.wire(action)

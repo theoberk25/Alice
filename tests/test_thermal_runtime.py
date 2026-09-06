@@ -218,6 +218,46 @@ def test_native_bridge_can_read_and_review_authenticated_demo(integrated):
             thread.join()
 
 
+def test_enterprise_signed_envelope_uses_request_route_and_preserves_identity(integrated):
+    import threading
+    from urllib.error import HTTPError
+    from urllib.request import Request, urlopen
+    from services.thermal_demo.server import make_server
+    env, rt, _, _, _, _ = integrated
+    server = make_server(env, 'operator-secret', agents={'cooling-agent-01': 'agent-secret'}, runtime=rt)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    action = {'request_id': 'enterprise-fan-1', 'run_id': env.run_id,
+              'expected_revision': env.revision, 'agent_id': 'cooling-agent-01',
+              'action': 'set_demo_fan_pct', 'target': 'DEMO-SERVER-01',
+              'parameters': {'fan_pct': 70}}
+    request = rt.wire(action)
+    key_id, key = rt.agent_keys['cooling-agent-01']
+    envelope = {'request': request, 'key_id': key_id,
+                'signature': base64.b64encode(key.sign(canonical_bytes(request))).decode()}
+    try:
+        req = Request(f'http://127.0.0.1:{server.server_port}/request',
+                      data=canonical_bytes(envelope), headers={'Content-Type': 'application/json'})
+        with urlopen(req, timeout=3) as response:
+            result = json.load(response)
+        assert result['request_id'] == request['request_id']
+        assert result['client_request_id'] == 'enterprise-fan-1'
+        assert result['decision'] == 'ALLOW' and result['demo_application'] == 'APPLIED'
+        assert env.model.fan_target_pct == 70
+
+        envelope['signature'] = base64.b64encode(b'x' * 64).decode()
+        envelope['request'] = dict(request, request_id='0' * 64,
+                                   client_request_id='invalid-enterprise')
+        bad = Request(f'http://127.0.0.1:{server.server_port}/request',
+                      data=canonical_bytes(envelope), headers={'Content-Type': 'application/json'})
+        with pytest.raises(HTTPError) as error:
+            urlopen(bad, timeout=3)
+        assert error.value.code == 401
+        assert 'invalid-enterprise' not in env.requests and env.pending is None
+    finally:
+        server.shutdown(); server.server_close(); thread.join()
+
+
 def test_server_cli_wires_usb_ledger_and_wazuh(monkeypatch, tmp_path):
     """Deployment CLI must preserve the existing USB/Wazuh trust boundary."""
     from services.thermal_demo import runtime as runtime_module
