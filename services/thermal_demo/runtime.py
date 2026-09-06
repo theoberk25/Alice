@@ -17,6 +17,22 @@ from dcamr.enforcement.serial_light_controller import SerialLightController
 from .environment import DemoError, GatewayUnavailable
 
 
+# Event suffix, ledger property, snapshot key, unit and origin for each plant
+# reading published per request. The first entry keeps the original suffix and
+# property so existing consumers of the fan-target readback are unaffected.
+# Temperature stays in Fahrenheit to match the technician tile thresholds.
+OBSERVED_PROPERTIES = (
+    ('', 'simulated_fan_target', 'fan_target_pct', 'percent', 'ACTUATOR_FEEDBACK'),
+    ('.fan-actual', 'simulated_fan_actual', 'fan_actual_pct', 'percent', 'ACTUATOR_FEEDBACK'),
+    ('.temperature', 'server_temperature', 'temperature_f', 'F', 'INDEPENDENT_SENSOR'),
+    ('.power', 'power_consumption', 'power_w', 'W', 'INDEPENDENT_SENSOR'),
+    ('.supply', 'power_supply', 'supply_w', 'W', 'INDEPENDENT_SENSOR'),
+    ('.battery', 'battery_reserve', 'battery_pct', 'percent', 'INDEPENDENT_SENSOR'),
+    ('.battery-wh', 'battery_remaining_wh', 'battery_remaining_wh', 'Wh', 'INDEPENDENT_SENSOR'),
+    ('.battery-draw', 'battery_draw', 'battery_draw_w', 'W', 'INDEPENDENT_SENSOR'),
+)
+
+
 class ThermalRuntime(FirstLightRuntime):
     """One process owns the plant, signed ALICE authority and optional serial port.
 
@@ -200,13 +216,18 @@ class ThermalRuntime(FirstLightRuntime):
         raw = json.dumps({'simulation': True, 'values': values}, sort_keys=True, allow_nan=False).encode()
         self._write_evidence(self._evidence_dir / f'{rid}.observed.json', raw)
         ref = rid + '.observed-evidence'
-        self._append(rid + '.observed', 'OBSERVED_STATE', correlation=correlation,
-            attribution=attribution, detail={'asset_id': 'DEMO-SERVER-01',
-                'sensor_id': 'demo-fan-target-readback', 'origin': 'ACTUATOR_FEEDBACK',
-                'property': 'simulated_fan_target', 'value': str(values['fan_target_pct']),
-                'unit': 'percent', 'quality': 'GOOD', 'correlation_absence_reason': None,
-                'source': source, 'evidence_ref': ref},
-            evidence=[{'ref': ref, 'sha256': sha256(raw).hexdigest(), 'source': source}])
+        digest = sha256(raw).hexdigest()
+        # The console derives its environment tiles from observations alone, so
+        # every plant property the technician sees has to be an auditable event.
+        # One evidence document backs them all; each property is its own reading.
+        for suffix, prop, key, unit, origin in OBSERVED_PROPERTIES:
+            self._append(rid + '.observed' + suffix, 'OBSERVED_STATE', correlation=correlation,
+                attribution=attribution, detail={'asset_id': 'DEMO-SERVER-01',
+                    'sensor_id': 'demo-' + prop.replace('_', '-'), 'origin': origin,
+                    'property': prop, 'value': str(values[key]),
+                    'unit': unit, 'quality': 'GOOD', 'correlation_absence_reason': None,
+                    'source': source, 'evidence_ref': ref},
+                evidence=[{'ref': ref, 'sha256': digest, 'source': source}])
         response.update(execution='COMPLETED' if accepted else 'FAILED',
                         observed_state=values['fan_target_pct'])
         self._record_outcome(rid, request_sha256, response)

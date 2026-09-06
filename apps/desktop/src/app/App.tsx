@@ -46,6 +46,11 @@ import {
   RuntimeHistory,
   RuntimeAudit,
 } from '../components/runtime/RuntimePanels';
+import {
+  EnvironmentPanel,
+  AgentActivityFeed,
+  HoldAnnouncement,
+} from '../components/runtime/RuntimeTelemetry';
 import { scenarioNames, type ScenarioName } from '../../../../fixtures/scenarios';
 import { isNative } from '../lib/native';
 type View = 'overview' | 'history' | 'audit' | 'admin';
@@ -254,11 +259,13 @@ export default function App() {
           {(!locked || view === 'admin') &&
             (view === 'overview' ? (
               <main className="dashboard">
+                {remote && <HoldAnnouncement onReview={() => setView('history')} />}
                 <aside className="left-column">
                   <div className="section-kicker">
                     <span>Operations network</span>
                   </div>
                   {remote ? <RuntimeAgents /> : <AgentsPanel />}
+                  {remote && <AgentActivityFeed />}
                   {remote ? <RuntimeHistory /> : <History />}
                   <div className="mission-card">
                     <span className="eyebrow">Current mission</span>
@@ -316,6 +323,7 @@ export default function App() {
                   <div className="section-kicker">
                     <span>Trust & verification</span>
                   </div>
+                  {remote && <EnvironmentPanel />}
                   {remote ? <RuntimeSystem /> : <SystemPanel />}
                   {remote ? (
                     <RuntimeEvidence />

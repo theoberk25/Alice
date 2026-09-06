@@ -6,3 +6,5 @@ export * from './lineage';
 
 export * from './runtime-feed';
 export * from './runtime-review';
+
+export * from './runtime-telemetry';
