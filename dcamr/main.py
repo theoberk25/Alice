@@ -44,9 +44,12 @@ LEDGER_KEY_ID = "first-light-ledger-key"
 AUTHORITY = {"product_mode": "OFFLINE", "connectivity": "DISCONNECTED",
              "execution_owner": "ALICE", "authority_interval_ref": "first-light-interval-1",
              "confirmation": "CONFIRMED"}
-# REQUEST..OBSERVED_STATE is at most 7 events; budget with margin so admission
-# is refused unless the ledger can hold this request's full outcome set.
-EVENTS_PER_REQUEST = 8
+# REQUEST..OBSERVED_STATE is at most 7 events for a light request. The thermal
+# runtime publishes one OBSERVED_STATE per plant property so the technician
+# console can derive its environment tiles from audited readings, which adds
+# seven more. Budget for the larger set with margin so admission is refused
+# unless the ledger can hold any request's full outcome set.
+EVENTS_PER_REQUEST = 16
 
 
 class StartupError(RuntimeError):

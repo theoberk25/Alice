@@ -12,6 +12,7 @@ import './styles/tokens.css';
 import './styles/global.css';
 import './styles/shell.css';
 import './styles/workspace.css';
+import './styles/telemetry.css';
 class ErrorBoundary extends React.Component<React.PropsWithChildren, { error: string }> {
   state = { error: '' };
   static getDerivedStateFromError(error: Error) {

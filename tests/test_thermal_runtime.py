@@ -83,7 +83,23 @@ def test_allow_ramp_energy_and_actual_display(integrated):
     assert patterns[1].hz == pytest.approx(3.65, abs=.001)
     events = list(rt.iter_events())
     assert [e['event_type'] for e in events] == ['REQUEST','ASSESSMENT','DECISION','EXECUTION_ATTEMPT',
-                                              'CONTROLLER_RECEIPT','EXECUTION_RESULT','OBSERVED_STATE']
+                                              'CONTROLLER_RECEIPT','EXECUTION_RESULT'] + ['OBSERVED_STATE']*8
+    # Every tile the technician console renders is backed by an audited reading.
+    observed = {e['detail']['property']: e['detail'] for e in events
+                if e['event_type'] == 'OBSERVED_STATE'}
+    assert set(observed) == {'simulated_fan_target', 'simulated_fan_actual', 'server_temperature',
+                             'power_consumption', 'power_supply', 'battery_reserve',
+                             'battery_remaining_wh', 'battery_draw'}
+    assert observed['server_temperature']['unit'] == 'F'
+    assert observed['server_temperature']['origin'] == 'INDEPENDENT_SENSOR'
+    assert observed['simulated_fan_actual']['origin'] == 'ACTUATOR_FEEDBACK'
+    # Readings are the plant at execution time, not the later snapshot above, so
+    # assert the invariants rather than equality with a state that kept moving.
+    assert float(observed['simulated_fan_target']['value']) == pytest.approx(70)
+    assert float(observed['power_supply']['value']) == pytest.approx(state['supply_w'])
+    assert float(observed['server_temperature']['value']) > 72
+    assert all(float(d['value']) == float(d['value']) for d in observed.values())
+    assert all(d['quality'] == 'GOOD' and d['asset_id'] == 'DEMO-SERVER-01' for d in observed.values())
     assert events[1]['detail']['kind'] == 'CONTEXTUAL_ML'
     assert events[1]['detail']['result'] == 'LOW' and events[1]['detail']['contextual'] is not None
     assert events[1]['provenance']['model']['sha256'] == rt.fan_model.sha256
