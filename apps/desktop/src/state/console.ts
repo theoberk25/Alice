@@ -536,7 +536,12 @@ export const useConsole = create<ConsoleState>((set, get) => ({
     transport =
       config.transport_mode === 'mock'
         ? new MockAliceTransport(scenario)
-        : new RemoteAliceTransport();
+        : // The feed retries forever; these only govern how fast a blip is
+          // reported. A dropped SSH tunnel takes seconds to re-establish, and
+          // the default 10s stale threshold showed a recovering feed as dead
+          // during a demo. Report staleness once a gap is long enough to be
+          // real, and allow a slow link more than one poll to answer.
+          new RemoteAliceTransport({ staleMs: 45_000, timeoutMs: 10_000 });
     const stop = await transport.connect(
       (event) => {
         if (generation === epoch) get().ingest(event);
