@@ -1,121 +1,224 @@
-> **Scope reconciliation:** the implemented governed environmental slice uses [metrics MCP :8790 → thermal service :8795](guides/machine-metrics-integration.md). Port :8792 remains reserved for the external agent-loop console. The cold-start/restore and cloud-outage storyline below is a future concept, not an instruction to zero or overwrite operator-entered values. LEDs in the environmental slice are telemetry indicators, not independently switched supplies.
+> **Current scope:** the implemented path is machine-metrics MCP `:8790` ->
+> governed thermal service `:8795` -> simulated plant -> eight LED telemetry
+> channels. The automatic cloud-to-local authority transfer described below is
+> still a target; loss of connectivity does not grant authority by itself.
 
-# Demo script
+# ALICE: three-minute industrial energy resilience demo
 
-The live demo, scripted beat by beat. This document is written in show order —
-Part 1 is the opening; the DDIL main act follows (Part 2, below).
+## The story
 
-> **One-line thesis:** with connectivity, a real cloud agent runs the hardware
-> and everything is fine. Cut the network and the cloud agent dies — but the
-> local agents keep the systems regulated and ALICE governs them. Part 1 sets up
-> the "before" so the cord-cut in Part 2 lands.
+America cannot industrialize at scale if every intelligent system operating
+physical infrastructure stops when its cloud connection disappears. ALICE is the
+local governance layer that keeps authorized agents accountable at the edge.
 
----
+We demonstrate that idea on an energy-and-cooling system. A cloud agent helps while
+the internet is available. We remove the cloud connection, but the powered local
+network, plant simulation, ALICE and local agents remain. Two local agents then
+disagree: one wants more cooling, while the other wants to preserve limited battery
+energy. ALICE holds the risky request for a technician instead of letting either
+agent act unchecked.
 
-## Part 1 — "Wake up the system" (first ~5 seconds)
+> **Thesis:** the cloud session can fail without taking the local control loop,
+> governance or decision history with it.
 
-**Purpose:** show, in one breath, that a **real Google agent (ADK + Gemini)**
-**wakes the whole system up**. The plant starts *cold* — every metric reads `0`
-/ `n/a` and all 8 LEDs are off. The one cloud message brings it online: it
-**restores each value to its last-known reading**, and the visible proof is the
-LEDs illuminating. No governance drama, no explanation — just "the cloud wakes
-the plant, it's fine."
+This is a simulation, not a production thermal controller. The fan, power curve
+and battery drain are illustrative, and the LEDs are read-only telemetry.
 
-> **⚠ Concept only — NOT implemented yet (blocked on others).** The cold-start →
-> restore-last-known-values behavior below is the **target**, captured here so we
-> don't lose it. It depends on wiring we don't own: the metrics MCP / Pi state
-> file (the running session's `services/light_mcp/`) must support a defined zeroed
-> boot state **and** a persisted "last-known" snapshot to restore from. **Don't
-> build this yet** — it needs those metrics/state changes to land first. What runs
-> **today** (verified — see below) is the stand-in: the agent calls
-> `startup_check()` and the 8 LEDs sweep on from off. The lights-going-on visual is
-> real; the "restore last-known metric values" part is future work.
+## Why it fits industrial technology
 
-### The beats (target)
+Industrial AI crosses a boundary that ordinary software does not: its decisions
+change machines, energy use and worker environments. Mining, drilling, agriculture,
+industrial hazard detection and distributed energy all need the same foundations:
+authenticated agents, bounded permissions, fresh local evidence, human review for
+risky actions and an audit trail that survives poor connectivity.
 
-| t | On screen | Operator | Cloud agent (Gemini) | System state |
-| --- | --- | --- | --- | --- |
-| 0s | Dashboard **cold** — metrics `0` / `n/a`, all 8 LEDs off | Types one line: *"Wake up the system."* | — | Asleep: values zeroed, lights off |
-| 1s | Trace shows a single tool call | — | Calls the wake tool once *(today: **`startup_check()`**)* | — |
-| 1–4s | Metrics populate to last-known values | — | — | Values restored; LEDs sweep on in sequence |
-| ~5s | Agent's reply line | — | Replies: *"Systems online — all supplies nominal."* | Live: metrics at last-known, all racks energized |
+This demo uses energy infrastructure as the first concrete wedge. The 450 W local
+supply and battery reserve act as a tiny microgrid boundary: when cooling demand
+exceeds local supply, stored energy covers the gap. Before producers can safely
+sell excess solar power or coordinate decentralized energy markets, local systems
+must be able to measure supply and demand, protect critical loads and resolve
+conflicting automated objectives without depending on a round trip to the cloud.
 
-That's the entire opening. Cut to Part 2.
+The repository implements the thermal/energy example only. Other industrial
+domains would require their own sensors, actions, permissions and safety controls;
+the demo shows the reusable governance pattern, not completed mining, drilling or
+agriculture products.
 
-### What it establishes (say it in one sentence, or let it be silent)
+## The eight lights
 
-Real cloud agent + connectivity = the system comes to life. The wake-up populates
-the very metrics (`fan_speed`, `server_temperature`, `power_consumption`) the local
-agents will regulate in Part 2 — so this opener is also the **setup** for the
-cord-cut: the audience watches the cloud bring the plant online, then lose it.
+The eight LEDs are four paired measurements:
 
-### The 8 lights (asset framing)
+| Color | Represents | Visual meaning |
+| --- | --- | --- |
+| Yellow pair | Total power draw | Faster blink = more watts |
+| Blue pair | Applied fan speed | Faster blink = more cooling effort |
+| Red pair | Server-component temperature | Faster blink = hotter |
+| White pair | Battery reserve, split into two 50% segments | A partial segment blinks faster as it empties |
 
-From [`services/light_mcp/machines.yaml`](../services/light_mcp/machines.yaml) —
-address them by role, not LED color, when narrating:
+The audience only needs one sentence: **red is the heat, blue is the response,
+yellow is its power cost, and white is the time remaining.**
 
-- Primary utility feed · Backup generator feed
-- Server rack A supply · Server rack B supply
-- Cooling plant supply · Auxiliary maintenance load
-- Communications rack supply · Security monitoring rack supply
+## Three-minute run of show
 
----
+### 0:00-0:20 - The industrial problem
 
-## The runnable stand-in lives in the standalone example folder
+Point to the running plant and lights.
 
-The verified Part-1 stand-in — a **real** Gemini agent calling a **real** MCP tool
-that drives the (mock) lights — is **not kept in this repo**. It lives in the
-standalone prototype rig **`test-simulation/cloud_agent/`** (at the workspace root,
-outside this git repo), next to the local-agent test simulation. That folder holds
-`lights_intro_server.py` (light-intro MCP on `:8794`, in-memory driver, canned
-`startup_check()` + `list_machines`/`get_status`), `intro_agent.py` (the ADK/Gemini
-agent `machine_ops_cloud_intro`), `run_intro.py` (headless runner that asserts the
-tool fired), and its own `README.md` with run steps.
+Say:
 
-**Why there and not here:** `startup_check` is a **placeholder** — it sweeps the
-LEDs on but does not restore last-known metric values. The real integration
-(`wake_system` restoring the persisted snapshot, below) belongs in the product once
-the metrics/state hooks land; until then the fake stays in the example rig, not the
-git-tracked product.
+> "America's next generation of mines, farms, factories and energy systems will
+> use autonomous agents. But physical infrastructure cannot become unsafe or
+> unaccountable when the cloud goes down. ALICE keeps trusted control local."
 
-Design choices carried in the example: `startup_check()` runs the whole 8-light
-sweep itself (canned, so a live model can't fumble a multi-step sequence on stage)
-and is **idempotent** (a Gemini 503 + model fallback re-ran it once, no ill effect).
-For the Pi, swap the in-memory driver for the real `EspSerialDriver` over the XIAO,
-or route through the governed ALICE ledger — agent and prompt unchanged.
+### 0:20-0:50 - Cloud connected
 
-**Ports (when the pieces run together):** `:8790` metrics MCP · `:8791` Goose ·
-`:8792` agent-loop web / test-sim console · `:8793` Decision-Brief MCP · `:8794`
-lights intro · `:11434` Ollama · `:8000` `adk web`.
+Start the simulation at **160 F, 80% fan and 60% battery**. At 80% fan the model
+draws **451.2 W** from a **450 W** external supply, so the battery has just started
+covering the gap.
 
-## To reach the target (wake-up / restore) — blocked on others
+1. The Gemini agent calls `get_metrics()` and describes the hot system.
+2. It proposes 90% fan through `set_fan_speed(90)`.
+3. In this environmental slice, the governed adapter checks the authenticated
+   request and current plant revision before the target can be applied. Actual fan
+   speed ramps rather than jumping instantly.
+4. Blue and yellow speed up. Red begins to slow as the temperature responds.
 
-The cold-start → restore-last-known opener needs work we don't own yet:
+Say:
 
-1. **Zeroed boot state.** The metrics MCP / Pi state file needs a defined cold
-   state — `fan_speed` / `server_temperature` / `power_consumption` at `0` (or
-   `n/a`), lights off — that the dashboard renders as "asleep."
-2. **A persisted last-known snapshot** to restore *from*, plus a single wake action
-   that writes those values back **and** turns the lights on.
-3. Only then does `startup_check` graduate into a real `wake_system` that restores
-   state instead of just sweeping the LEDs on.
+> "This is the basic industrial tradeoff: cooling protects equipment, but cooling
+> consumes energy. The agent requests a change; it never writes the fan directly."
 
-Push the metrics/state changes first; then this is a small follow-up on top of the
-stand-in above.
+### 0:50-1:15 - Remove the cloud, not the plant
 
----
+Disconnect the Opal router's WAN/repeater uplink. If the full network-transition
+setup is being used, power off the Opal only after the wired Pi, local-agent host
+and technician workstation have the static addresses specified in the
+[integrated runbook](guides/demo-runbook.md).
 
-## Transition → Part 2
+Do **not** unplug the display monitor: that only hides the evidence. The stage
+action should remove internet access while leaving the local equipment powered.
 
-After "systems normal," **cut the network** (unplug the Wi-Fi router). The Gemini
-cloud agent needs the internet and goes dark; the two local Qwen agents keep
-regulating on localhost. This is the hinge of the whole demo.
+Show the next Gemini call timing out or becoming unavailable, while local metrics
+and LED patterns continue to update.
 
-## Part 2 — DDIL: local agents hold the line (TBD)
+Say:
 
-> To be scripted. The two conflicting local agents ([thermal](../services/agent_loop/profiles/thermal.yaml)
-> raises `fan_speed` as temp climbs; [power](../services/agent_loop/profiles/power.yaml)
-> cuts it as draw crosses 430 W) oscillate `fan_speed` under ALICE governance —
-> the power agent's "kill the fans" cut is **Held** and the technician **rejects**
-> it (temperature recommendation wins). See
-> [`docs/agent-build/06-agent-loops.md`](agent-build/06-agent-loops.md).
+> "A similar loss of cloud access happened at Google in June 2025. A bad policy
+> update spread globally and caused API failures, including the Vertex Gemini API.
+> Some customers even lost cloud-hosted monitoring. Our cloud session is gone too,
+> but this industrial system, its telemetry and ALICE are still running locally."
+
+The target system now performs an explicit, authenticated handoff to local
+authority. Until that fence is implemented, label this as an operator-controlled
+demo transition; a dead network alone must never authorize a second controller.
+
+### 1:15-2:35 - Local agents hold the line
+
+1. The local cooling agent reads the same fresh plant state and maintains or
+   requests 90% fan. In the model, that is about **472.9 W**, so the battery supplies
+   roughly **22.9 W** above the external source. Red starts slowing, but yellow is
+   faster and white reserve is draining.
+2. The local power agent sees that energy cost and proposes a large fan reduction
+   to preserve the battery.
+3. Under the current signed demo policy, every power-agent fan request requires
+   review. ALICE records **CHALLENGE**; present that pending review as **HOLD**.
+4. The local explanation states the tradeoff: reducing the fan saves energy, but
+   removing cooling while the server is hot increases thermal risk. The LLM does
+   not approve or reject anything.
+5. The technician rejects the reduction. ALICE records the bound rejection and
+   leaves the last authorized fan target in force.
+
+Say:
+
+> "The cooling agent wants airflow. The power agent wants battery endurance.
+> This is what industrial autonomy looks like: multiple useful agents with
+> conflicting objectives. ALICE checks policy, holds the risky request, and asks
+> the technician."
+
+Do not claim that an Isolation Forest created this HOLD. The current environmental
+slice uses signed permissions and fresh plant evidence without a live contextual-
+model score.
+
+### 2:35-3:00 - Reconnect and close
+
+Restore the uplink. The cloud agent reads the new current state; it cannot reuse a
+stale pre-outage revision. The local record retains the cooling request, power-agent
+HOLD, technician rejection and resulting fan state. Where the integrated Wazuh
+path is configured, queued audit events upload without replacing local history.
+
+Say:
+
+> "The cloud returned to a system that never stopped accounting for its own
+> decisions. Today this is a cooling-and-energy model. The same local trust pattern
+> can support the mines, farms and factories America needs to operate at scale."
+
+## Presenter background: why the story is credible
+
+These examples enrich the narration; they do not need to be recited in full.
+
+### Google cloud-control failure - June 12, 2025
+
+Google reported that an invalid automated quota-policy change propagated globally
+and sent Service Control binaries into crash loops. Many Google Cloud and Workspace
+products returned API errors, including the Vertex Gemini API. Google also noted
+that some customers' monitoring ran on the same affected cloud, leaving them without
+a clear signal of what was happening. Most regions recovered within roughly two
+hours, with longer residual impact for some services.
+
+This is the model for the cable pull: we are not reproducing Google's root cause;
+we are reproducing its operational consequence—the remote agent is unreachable.
+
+[Google incident report](https://status.cloud.google.com/incidents/ow5i3PPK96RduMcb1SsW)
+
+### Google power-and-cooling failure - July 15, 2026
+
+Google reported an upstream electrical fault at a data center serving
+`europe-west4-a`. A backup-power transfer failed for part of the facility, a chiller
+controller dropped offline, chilled-water pumps did not restart, and the data hall
+reached **44 C**. Servers, storage systems and network devices were shut down to
+protect equipment, and customer recovery continued for hours after cooling returned.
+
+This incident supplies the energy context for the LEDs. Temperature, fan/cooling,
+power, battery margin and network availability are not separate stories: a failure
+in one can force decisions across all the others. Local control cannot survive a
+total loss of all power, but it can remain available through a remote-cloud outage
+for as long as the local network and energy reserve remain healthy.
+
+[Google power-and-cooling incident report](https://status.cloud.google.com/incidents/3BvH3LVGcupoYqV6F4Nw)
+
+### If judges ask how it expands
+
+- **Energy:** the implemented example governs competing cooling and reserve goals;
+  future adapters could add generation, storage, flexible loads and market signals.
+- **Mining and drilling:** remote equipment has intermittent connectivity and
+  expensive physical consequences, making local permissions and audit valuable.
+- **Hazard detection and worker wearables:** alerts must remain available locally,
+  while identity and evidence establish who or what triggered a response.
+- **Agriculture:** autonomous field equipment operates far from reliable broadband
+  and needs bounded local actions rather than unconditional cloud dependence.
+
+These are applications of the architecture, not features already in this checkout.
+Moving beyond the hackathon requires domain-specific hardware adapters, signed
+permissions, safety interlocks, calibrated models and field acceptance for each one.
+
+## Honest boundaries
+
+Working now: one thermal plant, shared metrics tools, authenticated fan proposals,
+signed ALICE decisions, review-required power-agent requests, local evidence and
+the defined LED projection.
+
+The environmental slice currently sends both cloud and local fan proposals through
+that governed adapter. In the full product architecture, enterprise systems own
+execution while ONLINE and ALICE becomes the local execution authority only after
+a fenced OFFLINE/DDIL handoff. The short demo must not imply two simultaneous
+controllers or present the slice's adapter topology as the completed handoff.
+
+Still target work: automatic outage detection, exclusive cloud/local authority
+handoff, the final operator page, full reconnection reconciliation and physical
+acceptance of the complete thermal-to-LED path. See the
+[environmental contract](contracts/environmental-demo-v1.md) and
+[LED guide](guides/led-display.md) for the current implementation.
+
+An older `startup_check()` prototype can sweep the eight lights after "Wake up the
+system," but it does not restore persisted metrics and is not the integrated path.
+For this three-minute plan, prefer the operator-configured live plant state.
