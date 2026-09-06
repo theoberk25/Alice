@@ -16,7 +16,7 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
-Xavier's `290699b` USB-serial light transport is integrated locally with the preserved
+Published `2aaf021` integrates Xavier's `290699b` USB-serial transport with the preserved
 snapshot/Wazuh/dashboard work. Hardware testing was reported on his development Mac;
 Pi serial deployment and joint acceptance remain pending. [Integration evidence](handoffs/2026-09-06-xavier-serial-integration.md).
 

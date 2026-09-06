@@ -83,3 +83,10 @@ Prior evidence and detailed lifecycle remain in the
 [Jared integration handoff](2026-09-06-jared-main-integration.md). All 118 tracker
 IDs/labels are retained. Future pushes can race with another teammate update, so
 fetch/check again if main advances after this integration's dry-run validation.
+
+## Publication
+
+User authorized pushing after successful tests and the push dry-run. Integration
+`2aaf021` was pushed to `origin/main` and independently confirmed by `git ls-remote`.
+Main was re-fetched before the fast-forward push. This publication performs no
+Pi deployment or firmware flashing; joint physical acceptance remains pending.

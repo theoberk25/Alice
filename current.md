@@ -1,14 +1,15 @@
 # Current
 
 Updated: 2026-09-06 UTC (September 5 EDT).
-Fetched Xavier's `origin/main` at `290699b`. Local branch: `codex/live-dashboard`.
+Published integration: `2aaf021` on `origin/main` (push and remote SHA confirmed).
+Local branch: `codex/live-dashboard`; includes Xavier's `290699b`.
 Our snapshot/Wazuh work is preserved in `8d8bdcc`; serial integration is verified locally.
-No push, remote deployment, Pi service or network configuration changes this session.
+User authorized publication; no remote deployment, Pi service or network changes.
 
 ## Active objective
 
-Integrate Xavier's USB-serial light node without losing SQL snapshot, Wazuh or
-live technician feed behavior. Prepare the combined code for the user's push.
+Verify the published serial/snapshot/Wazuh pipeline with Jared and Xavier on the
+configured Pi, USB and live technician Mac.
 [Joint acceptance](docs/integration/pi-technician-acceptance.md) ·
 [ESP/technician handoff](docs/integration/esp-technician-handoff.md).
 
@@ -47,7 +48,7 @@ script tests, typecheck/lint/build and one live local browser test passed.
 [Serial review fixes and evidence](docs/handoffs/2026-09-06-xavier-serial-integration.md).
 Rust remains unverified without Cargo; physical joint acceptance remains for Jared.
 
-1. User publishes merged code; Jared/Xavier pull while preserving private state.
+1. Jared/Xavier pull published main while preserving private state.
 2. Xavier rebuilds/flashes updated firmware; Jared coordinates serial selection
    without replacing USB history, keys or Wazuh config; run the request/retry check.
 3. Technician Mac joins demo network and connects tunnel/bridge; verify automatic
