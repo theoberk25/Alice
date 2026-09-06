@@ -171,3 +171,45 @@ execution-authority handoff and semantic evidence reconciliation remain unverifi
 The enterprise console's existing simulation audit cards and direct live-Pi feed
 are different sources. Inspect `alice-ledger-v1` in Wazuh/OpenSearch to see this
 synced stream; do not interpret the older 48 simulation records as Pi uploads.
+
+
+## Enterprise permissions → USB cache (local follow-up)
+
+The Pi now runs `alice-permissions-cache.timer` every approximately 30 seconds.
+Its separate oneshot service only owns enterprise cache files, never AuditLog or
+its SQLite connection. `cloud/permissions_cache.py` verifies the actual CURRENT
+release from `alice-permissions`: pinned issuer/site/key, Ed25519 signature,
+canonical payload hashes, validity interval, generation and revocation epoch.
+It rejects rollback and same-generation conflicts and retains the previous cache
+on download failure. Each file and the current pointer use fsync/atomic replacement.
+The public verification key and rollback anchor are stored outside USB.
+
+Live result: generation **44**, revocation epoch **8**, manifest SHA-256
+`35cf7df2f05d57584a3a9c464fbb1a0236849798d918edb8e3e640373ee844f2`.
+Files: `/mnt/alice-usb/enterprise-cache/permissions/000044/`.
+Pointer: `/mnt/alice-usb/enterprise-cache/permissions/current.json`.
+Anchor: `/home/pi/first-light/wazuh-sync/permissions-anchor.json`.
+Verification key: `/home/pi/first-light/trust/enterprise-permissions.pk`.
+Only the public demo authority key was installed; this is demonstration trust.
+The Pi service role now additionally reads the `alice-permissions` index.
+
+```sh
+systemctl status alice-permissions-cache.timer --no-pager
+journalctl -u alice-permissions-cache.service -n 10 --no-pager
+cat /mnt/alice-usb/enterprise-cache/permissions/current.json
+```
+
+This is **VERIFIED_CACHE_ONLY**, not runtime activation. The enterprise schema
+contains revocations, hard prohibitions and compatibility metadata that the current
+first-light resolver does not fully implement. It must not be pointed at this
+folder as an incidental configuration change. The active signed light release
+remains `/mnt/alice-usb/release`. Normal-behavior/model package download, compatible
+activation, expiry enforcement at decision time and SQL permission loading remain
+separate work. Expired packages are not newly cached; retaining an old cached file
+is not authorization to use expired grants. Offline protection against replacing
+both internal storage and USB is outside this checkpoint's threat model.
+
+Component tests cover valid install, idempotence, rollback, expiry, tampered data,
+wrong trust and offline retention. Live service returned success and cached the
+same hash as Wazuh while `alice-runtime` remained active. No new Markdown files
+were added for this increment, and the user requested local work without a push.

@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodically refresh ALICE enterprise permissions cache
+
+[Timer]
+OnBootSec=20
+OnUnitInactiveSec=30
+AccuracySec=2
+Unit=alice-permissions-cache.service
+
+[Install]
+WantedBy=timers.target

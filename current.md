@@ -2,10 +2,18 @@
 
 Updated: 2026-09-06 UTC (September 5 EDT).
 Baseline: main `44f4d73`, merged at `4eb6238` on `codex/wazuh-log-sync`.
-Objective: automatic Pi USB audit-ledger delivery into enterprise Wazuh.
+Objective: real enterprise-to-USB permissions caching, alongside automatic audit uploads.
 Teammates own Pi ↔ technician approval transport and enterprise cache publication.
 
 ## Implemented and observed
+
+- Enterprise permissions generation 44 / revocation epoch 8 downloaded from Wazuh
+  and signature/hash verified on USB. Timer polls about every 30 seconds.
+  Cache path `/mnt/alice-usb/enterprise-cache/permissions`; not runtime activation.
+
+- Created enterprise login `ssgt.a.okafor` and scoped ESP operator profile; reads
+  83 ledger events, denied user administration.
+  No new Pi grants or speculative voltage controls activated; three profile tests pass.
 
 - Existing AuditLog retained. Automatic in-process worker shares the owner lock;
   HTTPS runs outside it. Bounded scanning, retry/backoff and persistent receipts.
@@ -39,16 +47,17 @@ Live outage test was previously staged but not run: approval review rejected SSH
 execution because of account usage limits. No network mapping was changed by it.
 Live outage/reboot/unplug/power-loss tests remain; do not claim them passed.
 Real ML/physical actuator, semantic reconciliation, evidence-blob upload,
-enterprise snapshot publication and technician accept/prevent commands remain.
+full snapshot activation and technician accept/prevent commands remain.
 Uploader connectivity never changes first-light execution authority.
 
 ## Next steps
 
 1. Complete the staged live outage/recovery test; publication does not imply acceptance.
 2. Test service restart and missing-USB fail-closed behavior in a maintenance window.
-3. Teammates pull the published main checkpoint and follow the connection handoff.
+3. Local-only checkpoint before incoming ESP/dashboard work: fetch then merge on
+   this branch, resolve overlaps, and test before deployment. Do not reset to main.
 4. Teammates integrate authenticated, request-bound technician accept/prevent responses.
-5. Enterprise owner completes trusted permissions/baseline cache publication.
+5. Integrate full enterprise permission semantics and compatible baseline/model activation.
 
 [ESP/technician handoff](docs/integration/esp-technician-handoff.md) ·
 [Sync runbook](docs/integration/wazuh-audit-sync.md) ·

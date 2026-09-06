@@ -15,6 +15,16 @@ two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
 
+Local enterprise-download follow-up: real generation 44 permissions now verified
+and cached on USB by a 30-second systemd timer; rollback anchor stays internal.
+This is cache-only: first-light grants unchanged, full enterprise activation and
+normal-behavior/model synchronization remain. [Existing runbook](integration/wazuh-audit-sync.md).
+
+Sentinel operator: actual local indexer
+login `ssgt.a.okafor`, scoped read-only ALICE data role, and descriptive ESP profile
+provisioned. Authentication/read tests passed; security administration denied.
+No signed permissions, Pi grants, technician authority or task status changed.
+
 [ESP/technician connection handoff](integration/esp-technician-handoff.md) documents
 current service/storage paths, firmware interface, client setup and the recommended
 authenticated held-action response sequence. Recommendations do not change task status.

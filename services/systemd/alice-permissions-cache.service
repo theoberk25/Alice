@@ -1,0 +1,15 @@
+[Unit]
+Description=Verify enterprise permissions into ALICE USB cache
+Wants=network-online.target
+After=network-online.target
+RequiresMountsFor=/mnt/alice-usb
+
+[Service]
+Type=oneshot
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/Alice
+ExecStart=/home/pi/Alice/.venv/bin/python -m lab.sync_permissions_cache --config /home/pi/first-light/wazuh-sync/config.json --usb-root /mnt/alice-usb --public-key /home/pi/first-light/trust/enterprise-permissions.pk --anchor /home/pi/first-light/wazuh-sync/permissions-anchor.json
+UMask=0077
+NoNewPrivileges=true
+TimeoutStartSec=25
