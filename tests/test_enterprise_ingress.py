@@ -4,8 +4,10 @@ import pytest
 from lab.first_light.build_release import build
 from lab.first_light.terminal_client import build_envelope
 from dcamr.packages.package_verifier import load_release
-from services.enterprise_ingress import Gateway, IngressError, ReceiptSink, INDEX
+from services.enterprise_ingress import Gateway, IngressError, ReceiptSink, INDEX, pi_forwarder
 from cloud.wazuh_audit import DeliveryError
+from cloud.thermal_governed_client import build_wire_request, sign_envelope
+from lab.thermal_demo.build_release import build as build_thermal_release
 
 
 @pytest.fixture
@@ -13,6 +15,15 @@ def setup(tmp_path):
     build(tmp_path)
     release=load_release(tmp_path/'release',bytes.fromhex((tmp_path/'trust/manifest_public.hex').read_text().strip()))
     seed=bytes.fromhex((tmp_path/'client/term-agent-01-k1.seed').read_text().strip())
+    return release,seed
+
+
+@pytest.fixture
+def thermal_setup(tmp_path):
+    bundle=tmp_path/'thermal'
+    build_thermal_release(bundle)
+    release=load_release(bundle/'release',bytes.fromhex((bundle/'manifest-public.hex').read_text().strip()))
+    seed=bytes.fromhex((bundle/'cooling-agent-01-k1.seed').read_text().strip())
     return release,seed
 
 
@@ -80,3 +91,35 @@ def test_unknown_pi_outcome_keeps_receipt(setup):
     status,result=Gateway(release,Sink(),forward).submit(json.dumps(build_envelope(seed,state='on')).encode())
     assert status==502 and result['enterprise_receipt']['verified']
     assert result['error']=='PI_OUTCOME_UNKNOWN_CHECK_HISTORY'
+
+
+def test_thermal_envelope_is_receipted_then_forwarded_unchanged(thermal_setup):
+    release,seed=thermal_setup; sink=Sink(); forwarded=[]
+    request=build_wire_request(fan_pct=70,run_id='a'*32,expected_revision=4,
+                               agent_id='cooling-agent-01',client_request_id='cloud-thermal-1')
+    envelope=sign_envelope(seed,request,key_id='cooling-agent-01-k1')
+    raw=json.dumps(envelope,indent=2).encode()
+    def forward(value):
+        assert sink.calls
+        forwarded.append(value)
+        return 200,{'decision':'ALLOW','demo_application':'APPLIED'}
+    status,result=Gateway(release,sink,forward,request_schema='thermal').submit(raw)
+    assert status==200
+    assert result['enterprise_receipt']['verified'] is True
+    assert result['pi']['decision']=='ALLOW'
+    assert forwarded==[raw]
+
+
+def test_thermal_schema_rejects_light_envelope(setup):
+    release,seed=setup; sink=Sink()
+    with pytest.raises(IngressError):
+        Gateway(release,sink,lambda _:None,request_schema='thermal').submit(
+            json.dumps(build_envelope(seed,state='on')).encode())
+    assert not sink.calls
+
+
+def test_pi_forwarder_accepts_only_demo_lan_or_ssh_tunnel():
+    assert callable(pi_forwarder('http://127.0.0.1:18080'))
+    assert callable(pi_forwarder('http://192.168.50.20:8080'))
+    with pytest.raises(ValueError):
+        pi_forwarder('http://0.0.0.0:8080')

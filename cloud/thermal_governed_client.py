@@ -24,9 +24,8 @@ they agree so this cannot drift.
 Safety posture (same as the enterprise ingress client):
 - **No hardcoded destination.** The base URL is always supplied explicitly
   (arg or ``ALICE_THERMAL_REQUEST_URL``); nothing fires unless a caller gives
-  one. For the demo this is the Pi ``http://192.168.50.20:8080`` directly,
-  because the enterprise ingress on ``.50`` still enforces the first-light
-  lights schema and would reject this fan envelope. See
+  one. For the connected demo this is the enterprise ingress on ``.50``, which
+  records the unchanged envelope in Wazuh before forwarding it to ALICE. See
   docs/plans/2026-09-06-demo-part1-cloud-governed-ingress.md.
 - **request_id and signature are preserved end to end.**
 - Submits once, returns what came back; never retries a decision.
@@ -125,11 +124,17 @@ class FanRequestResult:
 
     @property
     def decision(self) -> str | None:
-        return (self.response or {}).get("decision")
+        response = self.response or {}
+        return response.get("decision") or (response.get("pi") or {}).get("decision")
 
     @property
     def demo_application(self) -> str | None:
-        return (self.response or {}).get("demo_application")
+        response = self.response or {}
+        return response.get("demo_application") or (response.get("pi") or {}).get("demo_application")
+
+    @property
+    def enterprise_receipt_verified(self) -> bool:
+        return bool(((self.response or {}).get("enterprise_receipt") or {}).get("verified"))
 
 
 def fetch_run_context(state_url: str, token: str, *, timeout: float = 5.0) -> dict[str, Any]:
@@ -264,7 +269,8 @@ def _main(argv: list[str] | None = None) -> int:
         return 0
     print(
         f"request_id: {result.request_id} client_request_id: {result.client_request_id} "
-        f"HTTP {result.http_status} decision={result.decision} application={result.demo_application}"
+        f"HTTP {result.http_status} receipt.verified={result.enterprise_receipt_verified} "
+        f"decision={result.decision} application={result.demo_application}"
     )
     print(json.dumps(result.response, indent=2))
     return 0

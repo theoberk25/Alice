@@ -61,6 +61,14 @@ def snapshot(request, window='all'):
             'nodes':response['aggregations']['nodes']['buckets']}
     except Exception:
         out['ledger']={'available':False,'source':'UNAVAILABLE','total':None,'rows':[],'nodes':[]}
+    try:
+        response=request('/alice-enterprise-ingress-v1/_search',{
+            'size':100,'track_total_hits':True,'sort':[{'received_at':'desc'}]})
+        out['enterprise']={'available':True,'source':'WAZUH_INDEXER',
+            'total':response['hits']['total']['value'],
+            'rows':[dict(x['_source'],document_id=x['_id']) for x in response['hits']['hits']]}
+    except Exception:
+        out['enterprise']={'available':False,'source':'UNAVAILABLE','total':None,'rows':[]}
     return browser_safe(out)
 
 

@@ -69,9 +69,9 @@ _INSTRUCTION = (
 ENTERPRISE_INGRESS_URL = os.getenv("ALICE_ENTERPRISE_INGRESS_URL")
 
 # Thermal governed path is OPT-IN too: only when ALICE_THERMAL_REQUEST_URL is set
-# do we add the signed fan-request tool. This is the contract the LIVE Pi accepts
-# (alice-demo-fan-v1 -> ThermalRuntime.submit_envelope), unlike the first-light
-# lights contract of the enterprise ingress tool above. See
+# do we add the signed fan-request tool. In connected mode this URL is the
+# enterprise ingress, which accepts the same alice-demo-fan-v1 envelope, writes
+# the Wazuh receipt, and forwards the unchanged signed bytes to the live Pi. See
 # docs/plans/2026-09-06-demo-part1-cloud-governed-ingress.md.
 THERMAL_REQUEST_URL = os.getenv("ALICE_THERMAL_REQUEST_URL")
 
@@ -96,6 +96,7 @@ def submit_governed_fan_request(fan_pct: float, run_id: str, expected_revision: 
     return {
         "request_id": result.request_id,
         "client_request_id": result.client_request_id,
+        "enterprise_receipt_verified": result.enterprise_receipt_verified,
         "decision": result.decision,
         "demo_application": result.demo_application,
         "http_status": result.http_status,

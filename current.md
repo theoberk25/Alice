@@ -1,7 +1,7 @@
 # Current
 Updated: 2026-09-06 EDT. Owners unassigned.
 Branch: `main`.
-Team baseline: `8a975850ed0d0620fa81bdd17f7a6f0c409b0d6f` (latest fetched main before this update).
+Team baseline: `41bbd045c35a2f8ebc59649d3ffb69394cd0fc4f` (latest fetched main before this update).
 Initial integration checkpoint: `4b1f67e`, based on previous team main `4531277`.
 Preserved redesign: `db730710750787af9064b495c6a236e0b504b2fe`.
 
@@ -39,6 +39,9 @@ authentication, vulnerabilities, MITRE ATT&CK, configuration assessment, file
 integrity and ALICE agent governance; actual Pi ledger evidence remains separate.
 Demo runbook now records thermal feed authentication and the agent's loopback MCP
 forward; disabled metrics pollers remain optional for direct MCP clients.
+The enterprise ingress now accepts the signed thermal fan contract, records and
+reads back its Wazuh receipt, retains it on Pi USB, then forwards unchanged through
+the enterprise host's SSH tunnel. The SIEM exposes those receipts as enterprise requests.
 
 ## Evidence and blockers
 
@@ -62,6 +65,7 @@ The pre-merge checkpoints are preserved for both
 2. Perform real-camera/native appearance and physical-Pi operator acceptance.
 3. User reviews/merges PR #7; keep the Dock app unchanged.
 4. Use the Wazuh-backed enterprise console for the connected-mode demo rehearsal.
+5. Live-test one cloud fan request through Wazuh, Pi decision, USB and ESP telemetry.
 
 [Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
 [Design sources](docs/guides/console/visual-sources.md) ·

@@ -76,3 +76,13 @@ def test_rejects_out_of_range_and_stale_run():
         tgc.build_wire_request(fan_pct=120, run_id="e" * 32, expected_revision=0, agent_id="cooling-agent-01")
     with pytest.raises(ValueError):
         tgc.build_wire_request(fan_pct=70, run_id="not-hex", expected_revision=0, agent_id="cooling-agent-01")
+
+
+def test_enterprise_wrapped_result_surfaces_receipt_and_pi_outcome():
+    result=tgc.FanRequestResult(request_id='a'*64,client_request_id='cloud-1',
+        envelope={},sent=True,http_status=200,response={
+            'enterprise_receipt':{'verified':True},
+            'pi':{'decision':'ALLOW','demo_application':'APPLIED'}})
+    assert result.enterprise_receipt_verified is True
+    assert result.decision=='ALLOW'
+    assert result.demo_application=='APPLIED'

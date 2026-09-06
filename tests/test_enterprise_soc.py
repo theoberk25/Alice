@@ -10,6 +10,7 @@ class SocTests(unittest.TestCase):
         self.assertFalse(data['alerts']['available'])
         self.assertIsNone(data['alerts']['total'])
         self.assertEqual(data['ledger']['rows'],[])
+        self.assertEqual(data['enterprise']['rows'],[])
 
     def test_stream_failure_is_independent(self):
         def query(path,body):
@@ -20,6 +21,8 @@ class SocTests(unittest.TestCase):
         self.assertFalse(data['alerts']['available'])
         self.assertTrue(data['ledger']['available'])
         self.assertEqual(data['ledger']['total'],2)
+        self.assertTrue(data['enterprise']['available'])
+        self.assertEqual(data['enterprise']['total'],2)
 
     def test_time_window_filters_alerts_only(self):
         calls=[]
@@ -27,6 +30,7 @@ class SocTests(unittest.TestCase):
         snapshot(query,'24h')
         self.assertEqual(calls[0][1]['query'],{'range':{'timestamp':{'gte':'now-24h'}}})
         self.assertNotIn('query',calls[1][1])
+        self.assertNotIn('query',calls[2][1])
 
     def test_invalid_window_rejected_without_query(self):
         with self.assertRaises(ValueError):snapshot(lambda *_:self.fail('Unexpected query'),'invalid')

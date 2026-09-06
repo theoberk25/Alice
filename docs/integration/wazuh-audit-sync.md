@@ -297,13 +297,13 @@ or establish technician approval transport.
 ## Signed enterprise LAN ingress (2026-09-06)
 
 `services.enterprise_ingress` listens on `192.168.50.50:8790`, POST `/request`.
-GET `/health` proves only listener availability. Clients send the existing signed
-first-light envelope (`request`, `key_id`, `signature`); no Wazuh credentials or
-Mac signing key are served. Signature, agent binding, strict request schema and
-freshness (300 seconds, five seconds future tolerance) are checked before writes.
-The strict request contract now admits eight-light actions and integer 0..100
-`set_fan_speed` requests for `SERVER-ROOM-FANS`. Ingress must load the same signed
-release generation as the Pi so fan agent keys and permissions agree.
+GET `/health` proves only listener availability. Clients send an existing signed
+envelope (`request`, `key_id`, `signature`); no Wazuh credentials or Mac signing
+key are served. `--schema light` preserves the original first-light schema and
+timestamp freshness checks. `--schema thermal` validates `alice-demo-fan-v1`,
+including its bound plant run and revision shape; the Pi independently rejects
+stale state. Ingress must load the same signed release as the selected Pi runtime
+so agent keys agree.
 
 A dedicated create-only index `alice-enterprise-ingress-v1` stores the original
 signed envelope. The dedicated `alice_enterprise_ingress` account can create/read
@@ -322,6 +322,27 @@ Launch from the checkout:
   --trust-key artifacts/local-state/merek-hold-release/public.hex \
   --wazuh-config artifacts/local-state/enterprise-ingress/wazuh.json
 ```
+
+For the governed fan demo, first forward the Pi's loopback thermal runtime on the
+enterprise host, then load an exact local copy of the Pi's signed thermal release:
+
+```sh
+ssh -N -o BatchMode=yes -o ExitOnForwardFailure=yes \
+  -L 127.0.0.1:18080:127.0.0.1:8080 pi@192.168.50.20
+
+.venv/bin/python -m services.enterprise_ingress \
+  --release /private/local/path/thermal-release \
+  --trust-key /private/local/path/manifest-public.hex \
+  --wazuh-config /private/local/path/wazuh.json \
+  --schema thermal --pi-url http://127.0.0.1:18080
+```
+
+The thermal cloud client sets `ALICE_THERMAL_REQUEST_URL` to
+`http://192.168.50.50:8790`. The ingress creates and reads back the Wazuh receipt,
+caches that receipt on the Pi USB over authenticated SSH, and only then forwards
+the unchanged signed fan envelope through the tunnel. The SIEM console's
+**Enterprise requests** view reads these receipts directly from
+`alice-enterprise-ingress-v1`.
 
 This demo config is private/ignored. Local Docker traffic connects to loopback
 while verifying the TLS certificate against `wazuh.indexer` and the pinned CA;

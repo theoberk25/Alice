@@ -11,14 +11,13 @@ This is discovery-verified as of 2026-09-06; do not assume, re-check each ✓ be
 
 ## Outcome / definition of done
 
-A single `set_light_state ESP-LIGHT-01 on` action, signed by the cloud agent's
+A single `set_demo_fan_pct` action, signed by the cloud agent's
 provisioned key, is:
 
 1. POSTed to the enterprise ingress at `http://192.168.50.50:8790/request`,
 2. verified there and written to Wazuh as an **enterprise receipt** (`verified:true`),
-3. forwarded to the Pi `/request` (`192.168.50.20:8080`), which returns a
-   decision — expected **CHALLENGE ⇒ HOLD** (`PERMISSION_REVIEW_REQUIRED`) for this
-   integration beat (HTTP **202**),
+3. forwarded unchanged through the enterprise host's SSH tunnel to the Pi thermal
+   `/request`, which returns the model-backed decision and application state,
 4. visible with the **same request_id** in the enterprise SIEM console (`.50:8787`)
    and in the technician console, with the Pi USB ledger holding the event chain.
 
@@ -32,9 +31,8 @@ Never resubmit the same request_id; a repeat returns the stored outcome.
 | Enterprise/SIEM Mac (Jared) | `192.168.50.50` | ingress `:8790`, SIEM console `:8787`, Wazuh | ingress `/health`=200 ✓ |
 | Pi | `192.168.50.20` | `alice-thermal-demo.service` `:8080` (loopback), decides | active ✓ |
 
-The ingress forwards to `http://192.168.50.20:8080` (hardcoded in
-`services/enterprise_ingress.py`). Pi `:8080` binds loopback on the Pi — **confirm
-the ingress can actually reach it** (see Risk 1).
+The Pi runtime binds loopback. The ingress therefore forwards to the enterprise
+host's `127.0.0.1:18080` SSH tunnel, never a broadly exposed Pi listener.
 
 ## Preconditions to confirm (do not skip)
 
@@ -49,10 +47,10 @@ the ingress can actually reach it** (see Risk 1).
 
 The cloud agent needs an `agent_id` and its **private Ed25519 seed (hex)** whose
 public half is trusted by **both** the ingress (`--keys`) and the Pi's signed
-release. Ask Theo where these live (this Mac / the Pi / `.50`). The docs use
-`elec-agent-01` (`key_id` = `elec-agent-01-k1`).
+release. Ask Theo where these live (this Mac / the Pi / `.50`). Use a fan-permitted
+thermal identity such as `cooling-agent-01` (`key_id` = `cooling-agent-01-k1`).
 
-- [ ] Obtain `ALICE_AGENT_ID` (e.g. `elec-agent-01`) and the seed file path.
+- [ ] Obtain `ALICE_AGENT_ID` (`cooling-agent-01`) and the seed file path.
 - [ ] Confirm the id is trusted on the Pi:
       `ssh pi@192.168.50.20 'python3 -c "import json;print(sorted(json.load(open(\"/mnt/alice-usb/thermal-release/terminal_keys.json\")).keys()) if isinstance(json.load(open(\"/mnt/alice-usb/thermal-release/terminal_keys.json\")),dict) else \"list\")"'`
       (adjust to the file's actual shape; you only need the **id names**, never the key bytes).
@@ -63,16 +61,14 @@ only by absolute path. Do **not** print seed contents.
 
 ### B2 — Wire the cloud agent env and restart `adk web`
 
-The `submit_governed_request` tool attaches **only** when
-`ALICE_ENTERPRISE_INGRESS_URL` is set (opt-in — see
-`cloud/adk_light_agent/agent.py`). The currently running `adk web` (`:8000`) has
-none of these set, so it has no governed tool yet.
+The `submit_governed_fan_request` tool attaches only when
+`ALICE_THERMAL_REQUEST_URL` is set before `adk web` starts.
 
 Edit `cloud/adk_light_agent/.env` (gitignored) to add:
 
 ```dotenv
-ALICE_ENTERPRISE_INGRESS_URL=http://192.168.50.50:8790
-ALICE_AGENT_ID=<provisioned id, e.g. elec-agent-01>
+ALICE_THERMAL_REQUEST_URL=http://192.168.50.50:8790
+ALICE_AGENT_ID=cooling-agent-01
 ALICE_AGENT_KEY_FILE=<absolute path to the private Ed25519 seed hex>
 ```
 
@@ -89,7 +85,7 @@ adk web --host 127.0.0.1 --port 8000
 **Rehearse with a dry run first (no send, validates signing):**
 
 ```bash
-.venv/bin/python -m cloud.enterprise_ingress_client --dry-run --state on --target ESP-LIGHT-01
+.venv/bin/python -m cloud.thermal_governed_client --dry-run --fan-pct 70
 ```
 
 **Then fire the real governed request.** Two equivalent surfaces — pick one:
@@ -97,14 +93,15 @@ adk web --host 127.0.0.1 --port 8000
 - Deterministic CLI (recommended for reliability):
 
   ```bash
-  .venv/bin/python -m cloud.enterprise_ingress_client \
-    --url http://192.168.50.50:8790 --state on --target ESP-LIGHT-01
-  # expect: HTTP 202  receipt.verified=True  decision=CHALLENGE
+  .venv/bin/python -m cloud.thermal_governed_client \
+    --url http://192.168.50.50:8790 --fan-pct 70 \
+    --run-id <current-run-id> --expected-revision <current-revision>
+  # expect an enterprise receipt plus the Pi decision/application
   ```
 
 - Live model (for the on-stage "agent decides" visual): in `adk web` (`:8000`),
-  pick `machine_ops_cloud`, prompt it to submit one governed request to turn
-  `ESP-LIGHT-01` on. It should call `submit_governed_request` exactly once and
+  pick `machine_ops_cloud`, prompt it to read metrics and increase the fan by
+  10 percentage points. It should call `submit_governed_fan_request` exactly once and
   report the enterprise receipt + decision. It must NOT resubmit.
 
 This is an **actuating, outward action** — get Theo's explicit go before firing
@@ -123,22 +120,19 @@ the non-dry-run submit.
 
 ## Risks / watch-outs
 
-1. **Ingress → Pi reachability.** The ingress targets `192.168.50.20:8080`, but the
-   Pi binds `:8080` to loopback. If the real submit returns a 5xx/`audit-not-ready`
-   or a connection error from the ingress side, the Pi is not reachable from `.50`;
-   coordinate with the Pi owner to expose/forward `:8080` for the ingress only
-   (never broadly), then retry with the **same** request_id.
+1. **Ingress → Pi reachability.** If submission returns a 502, verify the enterprise
+   host's `18080 → Pi 8080` SSH tunnel. Do not expose Pi port 8080 to the LAN.
 2. **401 unknown signature.** Means the agent's public key is not trusted by the
    ingress/Pi. Fix provisioning (B1); do not "retry" with a new id.
-3. **Opt-in tool missing.** If the model never calls `submit_governed_request`,
-   `ALICE_ENTERPRISE_INGRESS_URL` was not set before `adk web` started — restart it.
+3. **Opt-in tool missing.** If the model never calls `submit_governed_fan_request`,
+   `ALICE_THERMAL_REQUEST_URL` was not set before `adk web` started — restart it.
 4. **Idempotency.** One request_id, one outcome. To rehearse again, use a fresh
    request (new id), not a resubmit.
 
 ## References
 
 - Integration contract: [docs/integration/cloud-agent-enterprise-ingress.md](../integration/cloud-agent-enterprise-ingress.md)
-- Cloud client: [cloud/enterprise_ingress_client.py](../../cloud/enterprise_ingress_client.py)
+- Cloud client: [cloud/thermal_governed_client.py](../../cloud/thermal_governed_client.py)
 - Agent + opt-in tool: [cloud/adk_light_agent/agent.py](../../cloud/adk_light_agent/agent.py)
 - Ingress service: [services/enterprise_ingress.py](../../services/enterprise_ingress.py)
 - SIEM console + Wazuh seed: `scripts/lab/enterprise_sim/` (Jared `87fe559`)

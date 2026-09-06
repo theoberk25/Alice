@@ -55,10 +55,17 @@ class ReceiptSink:
 
 
 class Gateway:
-    def __init__(self, release, sink, forward, now=None, retain=None):
+    def __init__(self, release, sink, forward, now=None, retain=None, request_schema='light'):
         self.release, self.sink, self.forward = release, sink, forward
         self.retain = retain
-        self.validator = _request_validator()
+        if request_schema == 'light':
+            self.validator = _request_validator()
+        elif request_schema == 'thermal':
+            from services.thermal_demo.runtime import ThermalRuntime
+            self.validator = ThermalRuntime.request_validator()
+        else:
+            raise ValueError('Unsupported request schema')
+        self.request_schema = request_schema
         self.now = now or (lambda: datetime.now(timezone.utc))
 
     def submit(self, raw):
@@ -77,10 +84,11 @@ class Gateway:
                 raise IngressError(400, 'SCHEMA_VIOLATION')
             if req['agent_id'] != key.agent_id:
                 raise IngressError(401, 'AGENT_KEY_BINDING_MISMATCH')
-            issued = datetime.fromisoformat(req['issued_at'].replace('Z','+00:00'))
-            age = (self.now()-issued).total_seconds()
-            if not -5 <= age <= 300:
-                raise IngressError(401, 'EXPIRED_OR_FUTURE_REQUEST')
+            if self.request_schema == 'light':
+                issued = datetime.fromisoformat(req['issued_at'].replace('Z','+00:00'))
+                age = (self.now()-issued).total_seconds()
+                if not -5 <= age <= 300:
+                    raise IngressError(401, 'EXPIRED_OR_FUTURE_REQUEST')
         except IngressError:
             raise
         except (ValueError, TypeError, KeyError, TrustError):
@@ -99,8 +107,9 @@ class Gateway:
 
 
 def pi_forwarder(url):
-    if not url.startswith('http://192.168.50.20:8080') or url.rstrip('/') != 'http://192.168.50.20:8080':
-        raise ValueError('This demo ingress targets the fixed Pi LAN origin only')
+    allowed = {'http://192.168.50.20:8080', 'http://127.0.0.1:18080'}
+    if url.rstrip('/') not in allowed:
+        raise ValueError('Pi origin must be the fixed LAN address or its loopback SSH forward')
     opener = build_opener(ProxyHandler({}), NoRedirect())
     def forward(raw):
         try:
@@ -146,15 +155,20 @@ def make_server(host, port, gateway):
     return HTTPServer((host,port),Handler)
 
 
-def retain_on_pi(envelope, receipt):
+def retain_on_pi(envelope, receipt, *, request_schema='light'):
     import subprocess
     body={'envelope':envelope,'enterprise_receipt':{k:v for k,v in receipt.items() if k!='replay'}}
     raw=canonical_bytes(body)
+    if request_schema == 'thermal':
+        release = '/mnt/alice-usb/thermal-release'
+        trust = '/home/pi/first-light/thermal-demo/manifest-public.hex'
+    else:
+        release = '/mnt/alice-usb/release'
+        trust = '/home/pi/first-light/jared-2/trust/manifest_public.hex'
     command=['ssh','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','-o','ConnectTimeout=5',
              'pi@192.168.50.20',
              'cd /home/pi/Alice && .venv/bin/python -m dcamr.enterprise_receipts '
-             '--usb-root /mnt/alice-usb --release /mnt/alice-usb/release '
-             '--trust-key /home/pi/first-light/jared-2/trust/manifest_public.hex']
+             f'--usb-root /mnt/alice-usb --release {release} --trust-key {trust}']
     try:
         result=subprocess.run(command,input=raw,capture_output=True,timeout=15,check=True)
         saved=json.loads(result.stdout)
@@ -195,10 +209,16 @@ def main():
     p.add_argument('--wazuh-config',type=Path,required=True)
     p.add_argument('--host',default='192.168.50.50',choices=['192.168.50.50','127.0.0.1'])
     p.add_argument('--port',type=int,default=8790)
+    p.add_argument('--schema',choices=['light','thermal'],default='light')
+    p.add_argument('--pi-url',default='http://192.168.50.20:8080',
+                   choices=['http://192.168.50.20:8080','http://127.0.0.1:18080'])
     a=p.parse_args()
     release=load_release(a.release,bytes.fromhex(a.trust_key.read_text().strip()))
-    gateway=Gateway(release,ReceiptSink(local_indexer_client(a.wazuh_config)),
-                    pi_forwarder('http://192.168.50.20:8080'), retain=retain_on_pi)
+    gateway=Gateway(release, ReceiptSink(local_indexer_client(a.wazuh_config)),
+                    pi_forwarder(a.pi_url),
+                    retain=lambda envelope, receipt: retain_on_pi(
+                        envelope, receipt, request_schema=a.schema),
+                    request_schema=a.schema)
     server=make_server(a.host,a.port,gateway)
     print(f'Enterprise signed ingress http://{a.host}:{a.port}/request',flush=True)
     try:server.serve_forever()
