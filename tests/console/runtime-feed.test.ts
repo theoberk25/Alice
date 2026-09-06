@@ -121,3 +121,84 @@ it('supports contract-valid request IDs that match object prototype names', () =
   );
   expect(Object.values(state.requests).find((r) => r.id === 'constructor')?.events).toHaveLength(2);
 });
+
+// The bridge fetches `after - 1`, so a page includes the acknowledged head as
+// its first element. These fakes mirror that so the guard is exercised honestly.
+const pageFrom = (ledger: unknown[], after: number, size: number) =>
+  page(ledger.slice(Math.max(0, after - 1), Math.max(0, after - 1) + size));
+
+it('recovers through a paginated ledger instead of demanding the head on page one', async () => {
+  // A long ledger's first page cannot carry the acknowledged head. Treating
+  // that as a replaced ledger wedged the console after any interruption, which
+  // is exactly what a DDIL transition looks like.
+  const ledger = Array.from({ length: 12 }, (_, i) => event(i + 1));
+  let fail = false;
+  const read = vi.fn(async (after: number) => {
+    if (fail) throw new Error('Feed HTTP 502');
+    return pageFrom(ledger, after, 4);
+  });
+  const errors: string[] = [];
+  const remote = new RemoteAliceTransport({ read, pollMs: 20, staleMs: 5000, timeoutMs: 500 });
+  const stop = await remote.connect(
+    () => {},
+    (m) => errors.push(m),
+  );
+  await vi.waitFor(() => expect(read).toHaveBeenCalledWith(12, expect.anything()));
+  expect(errors).toHaveLength(0);
+  fail = true;
+  await vi.waitFor(() => expect(errors.some((m) => /502/.test(m))).toBe(true));
+  fail = false;
+  // Recovery restarts at 0 and must page forward rather than refuse.
+  await vi.waitFor(() =>
+    expect(read.mock.calls.filter(([a]) => a === 0).length).toBeGreaterThan(0),
+  );
+  await vi.waitFor(() => expect(read).toHaveBeenCalledWith(12, expect.anything()));
+  expect(errors.some((m) => /Acknowledged ledger head missing/.test(m))).toBe(false);
+  stop();
+});
+
+it('still refuses a swapped or rolled-back ledger during recovery', async () => {
+  // Relaxing the head check must not let a different ledger merge into
+  // retained history. mergeRuntimeFeed is what actually enforces that.
+  const ledger = Array.from({ length: 6 }, (_, i) => event(i + 1));
+  let swapped = false;
+  const read = vi.fn(async (after: number) => {
+    if (!swapped) return pageFrom(ledger, after, 8);
+    // Same sequences, different node: a replaced USB, not our ledger.
+    return page(ledger.map((e) => ({ ...(e as object), node_id: 'pi-2' })));
+  });
+  const errors: string[] = [];
+  const remote = new RemoteAliceTransport({ read, pollMs: 20, staleMs: 5000, timeoutMs: 500 });
+  const stop = await remote.connect(
+    () => {},
+    (m) => errors.push(m),
+  );
+  await vi.waitFor(() => expect(read).toHaveBeenCalledWith(6, expect.anything()));
+  expect(errors).toHaveLength(0);
+  swapped = true;
+  await vi.waitFor(() => expect(errors.length).toBeGreaterThan(0));
+  stop();
+});
+
+it('refuses a ledger whose content changed at an acknowledged sequence', async () => {
+  const ledger = Array.from({ length: 5 }, (_, i) => event(i + 1));
+  let rolled = false;
+  const read = vi.fn(async (after: number) => {
+    if (!rolled) return pageFrom(ledger, after, 8);
+    const forged = ledger.map((e, i) =>
+      i === 2 ? { ...(e as object), event_id: 'event-forged' } : e,
+    );
+    return page(forged);
+  });
+  const errors: string[] = [];
+  const remote = new RemoteAliceTransport({ read, pollMs: 20, staleMs: 5000, timeoutMs: 500 });
+  const stop = await remote.connect(
+    () => {},
+    (m) => errors.push(m),
+  );
+  await vi.waitFor(() => expect(read).toHaveBeenCalledWith(5, expect.anything()));
+  expect(errors).toHaveLength(0);
+  rolled = true;
+  await vi.waitFor(() => expect(errors.length).toBeGreaterThan(0));
+  stop();
+});

@@ -71,10 +71,21 @@ export class RemoteAliceTransport implements AliceTransport {
         ]);
         if (!active) return;
         const next = mergeRuntimeFeed(state, payload);
-        // Full recovery must still contain the old acknowledged head. A new USB
-        // or rolled-back ledger cannot be silently mixed into retained history.
+        // A new USB or rolled-back ledger cannot be silently mixed into
+        // retained history. Recovery restarts at the beginning, and the feed
+        // is paginated, so the first page of a long ledger legitimately does
+        // not carry the acknowledged head; demanding it there wedges the
+        // console after any interruption. Only a page that reaches that
+        // sequence without containing it proves the ledger diverged.
+        // mergeRuntimeFeed above still rejects an identity change, a
+        // hash-chain break or a conflicting duplicate on every page.
         const page = payload as { events: { sequence: number }[] };
-        if (state.cursor && !page.events.some((e) => e.sequence === state.cursor))
+        const reached = page.events.at(-1)?.sequence ?? 0;
+        if (
+          state.cursor &&
+          reached >= state.cursor &&
+          !page.events.some((e) => e.sequence === state.cursor)
+        )
           throw new Error('Acknowledged ledger head missing; explicit reconnect required');
         onEvent({ ...(payload as object), event_type: 'alice.runtime_feed' });
         state = next;
