@@ -64,8 +64,10 @@ def _request_validator():
 
 class FirstLightRuntime:
     def __init__(self, *, release_dir, trusted_manifest_key: bytes, data_dir,
-                 esp_base_url: str, usb_root=None, ledger_key_file=None, initialize_ledger=False):
+                 esp_base_url: str, usb_root=None, ledger_key_file=None, initialize_ledger=False,
+                 release_snapshot=False):
         self.storage = None
+        self.release_snapshot = release_snapshot
         if usb_root is not None:
             try:
                 self.storage = UsbStorage(usb_root, data_dir)
@@ -78,13 +80,17 @@ class FirstLightRuntime:
             except StorageUnavailable as exc:
                 raise StartupError(str(exc)) from exc
         try:
-            self.release = load_release(release_dir, trusted_manifest_key)
+            if release_snapshot:
+                from dcamr.packages.release_snapshot import load_snapshot
+                self.release = load_snapshot(release_dir, trusted_manifest_key)
+            else:
+                self.release = load_release(release_dir, trusted_manifest_key)
             self._validator = _request_validator()
         except Exception as exc:
             raise StartupError(f"release verification failed: {exc}") from exc
 
         data_dir = Path(data_dir)
-        if self.storage and not initialize_ledger and not (data_dir / "ledger.sqlite").is_file():
+        if (self.storage or release_snapshot) and not initialize_ledger and not (data_dir / "ledger.sqlite").is_file():
             raise StartupError("An existing USB ledger is required; explicit initialization is for first provisioning only")
         (data_dir / "evidence").mkdir(parents=True, exist_ok=True)
         self._evidence_dir = data_dir / "evidence"
@@ -154,6 +160,9 @@ class FirstLightRuntime:
                      for name in ("baseline", "model", "calibration", "snapshot")}
         artifacts["policy"] = {"id": self.release.bundle_id,
                                "sha256": self.release.manifest_sha256, "missing_reason": None}
+        if self.release_snapshot:
+            # Identify the verified signed content, not SQLite's physical layout.
+            artifacts["snapshot"] = dict(artifacts["policy"])
         artifacts["evidence"] = list(evidence)
         return artifacts
 
@@ -478,7 +487,10 @@ def make_server(runtime: FirstLightRuntime, host="0.0.0.0", port=8080):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--release", type=Path, required=True)
+    release_input = parser.add_mutually_exclusive_group(required=True)
+    release_input.add_argument("--release", type=Path, help="Signed first-light JSON release directory")
+    release_input.add_argument("--release-snapshot", type=Path,
+                               help="Verified first-light SQL input snapshot; existing ledger required")
     parser.add_argument("--trust-key", type=Path, required=True,
                         help="hex file with the trusted manifest public key")
     parser.add_argument("--data-dir", type=Path, required=True,
@@ -496,7 +508,9 @@ def main():
     parser.add_argument("--port", type=int, default=8080)
     args = parser.parse_args()
     trusted = bytes.fromhex(args.trust_key.read_text().strip())
-    runtime = FirstLightRuntime(release_dir=args.release, trusted_manifest_key=trusted,
+    runtime = FirstLightRuntime(release_dir=args.release_snapshot or args.release,
+                                release_snapshot=args.release_snapshot is not None,
+                                trusted_manifest_key=trusted,
                                 data_dir=args.data_dir, esp_base_url=args.esp_url,
                                 usb_root=args.usb_root, ledger_key_file=args.ledger_key_file,
                                 initialize_ledger=args.initialize_ledger)

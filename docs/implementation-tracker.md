@@ -15,14 +15,19 @@ two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
 
-Live dashboard slice: [configuration and field mapping](integration/live-dashboard.md).
+Live dashboard slice published to `origin/main` as `44f4d73`; push confirmed,
+no deployment performed. [Configuration and field mapping](integration/live-dashboard.md).
 The real local first-light runtime now feeds the existing technician dashboard
 automatically through validated authenticated transport. USB-backed SQL storage
 and no-fallback mount guards implement the user-approved offline storage direction.
-Remote biometric actions, enterprise snapshot publication, SIEM workers and
+Remote biometric actions, full enterprise snapshot synchronization, SIEM workers and
 physical Pi/USB acceptance remain pending. Verification is recorded in the
 [live handoff](handoffs/2026-09-06-live-dashboard.md). Task 082 becomes Partial;
 all task IDs and labels are preserved.
+
+The local [SQL input snapshot increment](handoffs/2026-09-06-release-snapshot.md)
+adds immutable signed first-light packaging and verified startup without replacing
+offline audit history. It is uncommitted; the published baseline remains above.
 
 ### Historical checkpoints
 
@@ -322,7 +327,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 010 | Load Policy Data from SD Card | Planned | Desired medium/path: USB `permissions/`. No discovery, authorized-permissions package load or activation exists; legacy policy keys/paths remain unchanged. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 011 | Load Normal Operations Data from SD Card | Planned | Current medium: USB `normal_behavior/`. The baseline byte loader exists, but no removable-media package load path is implemented. |
 | 012 | Load User Permissions from SD Card | Planned | Desired permissions input is USB `permissions/`; trusted user/agent identity and delegated permissions contracts/loaders remain unimplemented. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
-| 013 | Verify Package Signatures | Partial | [Package verifier][package-verifier] now verifies the first-light release: manifest Ed25519 signature plus per-payload sha256 digests, fail-closed at startup, with [tamper tests][first-light-tests]. Issuer trust provisioning, staging/activation, freshness and rollback checks remain unimplemented; the lab signing key is demonstration trust only. |
+| 013 | Verify Package Signatures | Partial | First-light directory and SQL snapshot inputs share Ed25519/digest verification. Immutable no-overwrite SQL publication and bounded read-only loading are implemented; [snapshot handoff](handoffs/2026-09-06-release-snapshot.md). General enterprise schema/coverage, trust provisioning, freshness, generation rollback protection and activation remain. |
 | 014 | Validate Package Versions | Partial | [Schema/profile versions][feature-validation] and baseline labels are checked. Package freshness, rollback prevention and compatible activation are not implemented. |
 
 ## Request admission and policy checks (015–024)
@@ -436,7 +441,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 089 | Reconcile Local Evidence with Cloud Evidence | Planned | The core [reconciliation component][reconciliation] is empty. Direct Pi comparison/upload and append-only findings remain. |
 | 090 | Detect Evidence Discrepancies | Planned | No local/cloud evidence discrepancy detector exists. |
 | 091 | Append Reconciliation Results | Partial | [Ledger finding append][audit] and [outbox tests][audit-outbox-tests] require original ID/hash and source attribution; reconciliation marker requires original ACK plus linked finding. Actual evidence fetching/comparison and enterprise reconciliation remain absent. |
-| 092 | Preserve Original Decision History | Partial | Original audit events remain immutable through live display and reconnect; late execution events update request projections without changing decision IDs or content. Reconciliation must append findings and acknowledgements. SIEM delivery and full reassessment exchange remain. [Live guide](integration/live-dashboard.md). |
+| 092 | Preserve Original Decision History | Partial | Original audit events remain immutable through display/reconnect and explicit snapshot selection at restart. Snapshot tests preserve old event bytes, replay outcomes and queued delivery state while a changed release governs new requests. [Snapshot handoff](handoffs/2026-09-06-release-snapshot.md). SIEM delivery and full reassessment exchange remain. |
 
 ## Package updates and connected recovery (093–107)
 

@@ -55,8 +55,8 @@ class Release:
     subjects: dict               # agent_id -> responsible user_id
 
 
-def _load_payload(directory: Path, name: str, expected_digest: str) -> dict:
-    raw = (directory / name).read_bytes()
+def _load_payload(documents: dict[str, bytes], name: str, expected_digest: str) -> dict:
+    raw = documents[name]
     if sha256(raw).hexdigest() != expected_digest:
         raise ReleaseError(f"payload digest mismatch: {name}")
     payload = json.loads(raw)
@@ -67,10 +67,24 @@ def _load_payload(directory: Path, name: str, expected_digest: str) -> dict:
 
 def load_release(path, trusted_manifest_key: bytes) -> Release:
     """Verify and parse a release directory; raise ReleaseError on any doubt."""
-    directory = Path(path)
     try:
-        manifest_raw = (directory / "manifest.json").read_bytes()
-        signature = (directory / "manifest.sig").read_bytes()
+        documents = {name: (Path(path) / name).read_bytes() for name in RELEASE_DOCUMENTS}
+    except OSError as exc:
+        raise ReleaseError("release documents unavailable") from exc
+    return load_release_documents(documents, trusted_manifest_key)
+
+
+RELEASE_DOCUMENTS = frozenset(("manifest.json", "manifest.sig", "grants.json",
+                               "subjects.json", "terminal_keys.json"))
+
+
+def load_release_documents(documents: dict[str, bytes], trusted_manifest_key: bytes) -> Release:
+    """Verify exactly the same signed bytes from a directory or SQL snapshot."""
+    if set(documents) != RELEASE_DOCUMENTS or any(type(v) is not bytes for v in documents.values()):
+        raise ReleaseError("unexpected release documents")
+    try:
+        manifest_raw = documents["manifest.json"]
+        signature = documents["manifest.sig"]
         manifest = json.loads(manifest_raw)
         unsigned = {key: value for key, value in manifest.items() if key != "signature"}
         Ed25519Verifier(trusted_manifest_key).verify(signature, _canonical_bytes(unsigned))
@@ -86,9 +100,9 @@ def load_release(path, trusted_manifest_key: bytes) -> Release:
     if set(digests) != set(required):
         raise ReleaseError("manifest digests do not cover the expected payloads")
     try:
-        grants_doc = _load_payload(directory, "grants.json", digests["grants.json"])
-        subjects_doc = _load_payload(directory, "subjects.json", digests["subjects.json"])
-        keys_doc = _load_payload(directory, "terminal_keys.json", digests["terminal_keys.json"])
+        grants_doc = _load_payload(documents, "grants.json", digests["grants.json"])
+        subjects_doc = _load_payload(documents, "subjects.json", digests["subjects.json"])
+        keys_doc = _load_payload(documents, "terminal_keys.json", digests["terminal_keys.json"])
     except ReleaseError:
         raise
     except (OSError, ValueError) as exc:

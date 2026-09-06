@@ -58,3 +58,6 @@ ledger and export outputs. See the [first-light handoff](../handoffs/2026-09-05-
 and [backend scope](../reports/2026-09-05-pi-backend-status.md). The console feed is
 read-only, authority is hard-coded and device behavior is mocked; real scoring,
 review/authority protocols and physical Pi/ESP acceptance remain.
+
+The first-light `publish_snapshot` command packages an already signed release as
+a new immutable SQL input artifact. See [snapshot commands and limits](../integration/release-snapshot.md).

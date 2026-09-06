@@ -3,8 +3,15 @@
 Status: local runtime/browser slice, 2026-09-06 UTC (September 5 EDT).
 Follow [AGENTS.md](../../AGENTS.md). Built on architecture checkpoint `417b9de`
 and merged teammate updates through `7081b6a`, on local `codex/live-dashboard`.
-The user authorized publishing this reviewed slice to main. Deployment and physical
-Pi/USB acceptance remain separate.
+Published to `origin/main` as `44f4d73` with explicit user authorization.
+No deployment was performed; physical Pi/USB acceptance remains pending.
+
+## Local snapshot continuation
+
+The [first-light SQL snapshot slice](release-snapshot.md) now packages and loads
+the existing signed release from SQL while preserving the separate audit ledger.
+It is not general enterprise SQL synchronization, automatic activation or SIEM
+delivery. The earlier scope statements below describe the published live-feed slice.
 
 ## Approved storage lifecycle
 
