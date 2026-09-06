@@ -93,7 +93,7 @@ execution remain separate. No fields were removed to simplify the presentation.
 | `npm run check` before UI changes | 134 tests + 8 script checks; typecheck, lint and build passed. |
 | Final `npm run check` | 145 tests in 16 files + 8 script checks; typecheck, lint and web build passed. |
 | `npm run test:rust` | 60 passed, 2 pre-existing opt-in tests ignored (real Ollama/local Rust→Python rehearsal). |
-| `PYTHONDONTWRITEBYTECODE=1 /Users/alexdaoud/Documents/Alice/services/biometrics/.venv/bin/python -B -m pytest services/biometrics/tests -q` | 165 passed, 1 existing opt-in test skipped; 2 dependency deprecation warnings. This is the repository `test:python` suite using the existing interpreter read-only because the new worktree has no Python venv. |
+| `PYTHONDONTWRITEBYTECODE=1 /Users/alexdaoud/Documents/Alice/services/biometrics/.venv/bin/python -B -m pytest services/biometrics/tests -q` | 165 passed, 1 model-dependent test skipped; 2 dependency deprecation warnings. This is the repository `test:python` suite using the existing interpreter read-only because the new worktree has no Python venv. The exact-model test skips because that model is not provisioned in the isolated worktree. |
 | `PLAYWRIGHT_BROWSERS_PATH=/private/tmp/alice-visual-overhaul/browsers npm run test:e2e` | 11 passed: 8 existing scenarios + 3 new visual/accessibility regressions. |
 | `PLAYWRIGHT_BROWSERS_PATH=/private/tmp/alice-visual-overhaul/browsers npx playwright test --config artifacts/console/visual-overhaul/capture.config.ts` | 2 visual capture passes, exact baseline and redesign. Capture harness and source snapshot are ignored local artifacts. |
 | `npm run build:app` | Native macOS ALICE.app bundle built successfully. |
@@ -112,12 +112,42 @@ annotation advisories. Build succeeds; warnings were not suppressed. Actual huma
 camera/enrollment→physical-Pi acceptance and real Ollama/hardware tests were not run.
 These are presentation/automated regression results, not deployed-system acceptance.
 
+## Integrated local main verification
+
+The feature was merged locally with `git merge --no-ff codex/dashboard-visual-overhaul`
+at `9a3e53eaf5c2a23b3dfb095f6485e115ac0812f2`. The following were rerun from
+`/Users/alexdaoud/Documents/Alice` after `npm ci` (zero audit vulnerabilities):
+
+| Command | Actual result |
+| --- | --- |
+| `npm run check` | 145 tests in 16 files + 8 script checks; typecheck, lint and web build passed. |
+| `npm run test:rust` | 60 passed, 2 existing opt-in tests ignored. |
+| `PYTHONDONTWRITEBYTECODE=1 npm run test:python` | 166 passed, 2 dependency warnings. The existing exact-model fixture is available in the original checkout. |
+| `PLAYWRIGHT_BROWSERS_PATH=/private/tmp/alice-visual-overhaul/browsers npm run test:e2e` | 11 passed. |
+| `npm run build:app` | Native macOS ALICE.app bundle built successfully from the integrated source. |
+| `git diff --check` | Passed; working tree clean after integration. |
+
+The Dock target was inspected and is the original checkout’s
+`apps/desktop/src-tauri/target/release/bundle/macos/ALICE.app`. Building from local
+main updated that exact bundle. ALICE was signed out, with no active capture/review,
+before the completed build was reopened; the redesigned native headings, controls
+and identity surface were visually verified. No Dock preference change or app
+relocation was needed. This confirms release UI integration, not real biometric
+authentication acceptance. Existing settings, enrollment and private data were preserved.
+The rebuilt executable SHA-256 is
+`a81571b55b5a671282fcb51c9e699c175b5b5183e18e277dc2f34bac5451c786`.
+
 ## Team integration and publication
 
 `upstream/main` remained `e1e7506` on the pre-integration fetch; no teammate conflicts
 or behavioral reconciliation were required. The baseline already includes merged
 native backend PR #5 and previous biometric PR #4. Their newer behavior was retained.
-The verified account has WRITE permission on `theoberk25/Alice`, so publication can
-use the identified `upstream` remote directly. Local integration and PR publication
-are the remaining delivery steps; local main must not be pushed and the remote PR
-must not be merged or deployed.
+The verified account has WRITE permission on `theoberk25/Alice`. The feature was
+pushed directly to the identified `upstream` remote and
+[PR #6](https://github.com/theoberk25/Alice/pull/6) was opened against team `main`.
+Local main was not pushed. The remote PR remains open and was not merged or deployed.
+
+This final documentation update records delivery after the tested local integration.
+It is also merged into local main; the application source is unchanged from the
+full integrated suite above. Both worktrees finish clean. The feature branch and
+`/Users/alexdaoud/Documents/alice-dashboard-visual-overhaul` remain for PR review.
