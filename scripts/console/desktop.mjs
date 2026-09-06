@@ -27,7 +27,16 @@ if (args[0] === 'dev') {
   }
 }
 process.env.ALICE_TRANSPORT_MODE ??= 'mock';
-const child = spawn(resolve(root, 'node_modules/.bin/tauri'), args, {
+const launch = args[0] === 'launch';
+const executable = launch
+  ? resolve(
+      root,
+      'apps/desktop/src-tauri/target/release/bundle/macos/ALICE.app/Contents/MacOS/alice-technician-console',
+    )
+  : resolve(root, 'node_modules/.bin/tauri');
+if (launch && !existsSync(executable))
+  throw new Error('Build ALICE.app first with npm run build:app.');
+const child = spawn(executable, launch ? args.slice(1) : args, {
   cwd: resolve(root, 'apps/desktop'),
   env: process.env,
   stdio: 'inherit',

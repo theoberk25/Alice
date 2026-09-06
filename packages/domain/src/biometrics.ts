@@ -1,10 +1,11 @@
-import type { Verification } from '@alice/contracts';
+import type { BiometricIntent, LiveBiometricSession } from '@alice/contracts';
 export interface IdentityClaim {
   technician_id: string;
   decision_id: string;
   request_id: string;
 }
 export interface BiometricVerifier {
-  verifyIdentity(claim: IdentityClaim, frames: string[]): Promise<Verification>;
-  verifyAuthenticity?(frames: string[]): Promise<{ result: 'PASS' | 'FAIL' | 'NOT_CONFIGURED' }>;
+  begin(intent: BiometricIntent): Promise<LiveBiometricSession>;
+  read(sessionId: string): Promise<LiveBiometricSession>;
+  cancel(sessionId: string): Promise<void>;
 }

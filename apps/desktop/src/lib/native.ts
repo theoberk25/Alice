@@ -12,6 +12,7 @@ export interface RuntimeConfig {
   ollama_url: string;
   biometric_url: string;
   admin_configured: boolean;
+  biometric_policy?: 'alice.live-face.v3';
 }
 export async function runtimeConfig(): Promise<RuntimeConfig> {
   if (isNative) return nativeCall('runtime_config');

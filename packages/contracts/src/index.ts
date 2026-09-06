@@ -4,3 +4,4 @@ export * from './legacy/schemas';
 export * from './adapters/legacy';
 
 export * from './alice/runtime';
+export * from './biometrics';

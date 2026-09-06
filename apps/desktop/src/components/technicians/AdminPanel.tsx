@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ShieldCheck, Plus, ScanFace } from 'lucide-react';
 import { Panel, Badge } from '@alice/ui';
 import { nativeCall, isNative } from '../../lib/native';
@@ -12,12 +12,14 @@ export function AdminPanel() {
     [busy, setBusy] = useState(false),
     [technicians, setTechnicians] = useState<Technician[]>([]),
     [enrolling, setEnrolling] = useState<Technician>(),
+    [editingId, setEditingId] = useState<string>(),
     [draft, setDraft] = useState({
       technician_id: '',
       username: '',
       display_name: '',
       role: 'Technician',
     });
+  const operation = useRef(false);
   async function refresh() {
     const identities = await nativeCall<Technician[]>('list_technicians');
     setTechnicians(identities);
@@ -28,6 +30,8 @@ export function AdminPanel() {
     }
   }
   async function run(work: () => Promise<void>) {
+    if (operation.current) return;
+    operation.current = true;
     setBusy(true);
     setError('');
     try {
@@ -35,6 +39,7 @@ export function AdminPanel() {
     } catch (e) {
       setError(String(e));
     } finally {
+      operation.current = false;
       setBusy(false);
     }
   }
@@ -44,10 +49,10 @@ export function AdminPanel() {
         {!authorized ? (
           <div className="admin-login">
             <Badge tone="information">ADMINISTRATOR ACCESS</Badge>
-            <h2>Enroll the human at the boundary.</h2>
+            <h2>Set up Face ID.</h2>
             <p>
-              Local administration manages technician identities and face enrollments. Your
-              bootstrap account is configured through the native environment.
+              Sign in as an administrator to manage identities and enroll a face for each
+              technician.
             </p>
             <form
               className="stack-form"
@@ -97,8 +102,10 @@ export function AdminPanel() {
               <h3>Enrolled technicians</h3>
               <button
                 className="small-button"
+                disabled={busy}
                 onClick={() =>
                   void run(async () => {
+                    setEnrolling(undefined);
                     await nativeCall('admin_logout');
                     setAuthorized(false);
                   })
@@ -120,14 +127,24 @@ export function AdminPanel() {
                     {t.enabled ? 'ENABLED' : 'DISABLED'}
                   </Badge>
                   <Badge tone={t.enrolled ? 'healthy' : 'warning'}>
-                    {t.enrolled ? 'ENROLLED' : 'NO FACE'}
+                    {t.enrolled ? (t.enrollment_version ?? 'ENROLLED') : 'NO FACE'}
                   </Badge>
-                  <button className="small-button" onClick={() => setEnrolling(t)}>
-                    <ScanFace size={14} /> {t.enrolled ? 'Re-enroll' : 'Enroll face'}
+                  <button
+                    className="small-button"
+                    disabled={busy || !!enrolling || !t.enabled}
+                    onClick={() => {
+                      setError('');
+                      setEnrolling(t);
+                    }}
+                  >
+                    <ScanFace size={14} /> {t.enrolled ? 'Begin re-enrollment' : 'Begin enrollment'}
                   </button>
                   <button
                     className="small-button"
+                    disabled={busy || !!enrolling}
                     onClick={() => {
+                      setError('');
+                      setEditingId(t.technician_id);
                       setDraft({
                         technician_id: t.technician_id,
                         username: t.username,
@@ -140,6 +157,7 @@ export function AdminPanel() {
                   </button>
                   <button
                     className="small-button"
+                    disabled={busy || !!enrolling}
                     onClick={() =>
                       void run(async () => {
                         await nativeCall('set_technician_enabled', {
@@ -152,19 +170,19 @@ export function AdminPanel() {
                   >
                     {t.enabled ? 'Disable' : 'Enable'}
                   </button>
-                  {t.enrolled && (
-                    <button
-                      className="danger-button"
-                      onClick={() =>
-                        void run(async () => {
-                          await nativeCall('remove_enrollment', { technicianId: t.technician_id });
-                          await refresh();
-                        })
-                      }
-                    >
-                      Remove face
-                    </button>
-                  )}
+                  <button
+                    className="danger-button"
+                    disabled={busy}
+                    onClick={() =>
+                      void run(async () => {
+                        await nativeCall('remove_enrollment', { technicianId: t.technician_id });
+                        if (enrolling?.technician_id === t.technician_id) setEnrolling(undefined);
+                        await refresh();
+                      })
+                    }
+                  >
+                    {t.enrolled ? 'Remove face' : 'Discard pending enrollment'}
+                  </button>
                 </div>
               ))}
             </div>
@@ -172,18 +190,19 @@ export function AdminPanel() {
               <section className="enrollment-capture">
                 <h3>Enroll {enrolling.display_name}</h3>
                 <p>
-                  Five live camera frames will be checked for a single, sufficiently clear face. Raw
-                  images are not stored.
+                  Look forward to begin, then slowly move your head in a circle. The scan fills as
+                  each view is captured. Your existing enrollment remains available until the new
+                  one is saved.
                 </p>
                 <CameraCapture
-                  busy={busy}
-                  count={5}
-                  onCapture={(frames) =>
+                  intent={{ purpose: 'ENROLLMENT', technician_id: enrolling.technician_id }}
+                  onCancel={() => setEnrolling(undefined)}
+                  onRecovered={async () => {
+                    await refresh();
+                    setEnrolling(undefined);
+                  }}
+                  onComplete={() =>
                     run(async () => {
-                      await nativeCall('enroll_technician', {
-                        technicianId: enrolling.technician_id,
-                        frames,
-                      });
                       const session = useConsole.getState();
                       if (session.technician?.technician_id === enrolling.technician_id)
                         session.setTechnician(undefined);
@@ -192,9 +211,6 @@ export function AdminPanel() {
                     })
                   }
                 />
-                <button className="text-button" onClick={() => setEnrolling(undefined)}>
-                  Cancel enrollment
-                </button>
               </section>
             ) : (
               <form
@@ -206,12 +222,19 @@ export function AdminPanel() {
                       technician: { ...draft, enabled: true, enrolled: false },
                     });
                     await refresh();
-                    setEnrolling(t);
+                    if (!editingId && t.enabled) setEnrolling(t);
+                    setEditingId(undefined);
+                    setDraft({
+                      technician_id: '',
+                      username: '',
+                      display_name: '',
+                      role: 'Technician',
+                    });
                   });
                 }}
               >
                 <h3>
-                  <Plus size={16} /> Add or update technician
+                  <Plus size={16} /> {editingId ? 'Edit technician' : 'Add technician'}
                 </h3>
                 <div className="form-grid">
                   {(['technician_id', 'username', 'display_name', 'role'] as const).map((key) => (
@@ -219,6 +242,8 @@ export function AdminPanel() {
                       {key.replaceAll('_', ' ')}
                       <input
                         required
+                        maxLength={100}
+                        disabled={busy || (key === 'technician_id' && !!editingId)}
                         value={draft[key]}
                         onChange={(e) => setDraft({ ...draft, [key]: e.target.value })}
                       />
@@ -226,8 +251,26 @@ export function AdminPanel() {
                   ))}
                 </div>
                 <button className="primary-button" disabled={busy}>
-                  Save identity & enroll face
+                  {busy ? 'Saving…' : editingId ? 'Save identity' : 'Save identity & enroll face'}
                 </button>
+                {editingId && (
+                  <button
+                    type="button"
+                    className="text-button"
+                    disabled={busy}
+                    onClick={() => {
+                      setEditingId(undefined);
+                      setDraft({
+                        technician_id: '',
+                        username: '',
+                        display_name: '',
+                        role: 'Technician',
+                      });
+                    }}
+                  >
+                    Cancel editing
+                  </button>
+                )}
               </form>
             )}
           </>

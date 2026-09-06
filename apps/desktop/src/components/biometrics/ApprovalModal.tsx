@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import type { Verification } from '@alice/contracts';
 import { Fingerprint, ShieldCheck, ShieldX, ScanFace, LockKeyhole, Check, X } from 'lucide-react';
 import { Modal, Badge } from '@alice/ui';
 import { useConsole } from '../../state/console';
@@ -21,26 +22,33 @@ export function ApprovalModal({
   const required = d.decision.biometric_required_for_approval;
   const superseded = latestDecisionByRequest[d.request.request_id] !== selectedId;
   const [score, setScore] = useState<{ similarity: number; threshold: number }>();
+  const submitting = useRef(false);
+  const [submissionPending, setSubmissionPending] = useState(false);
   function close() {
-    if (state === 'VERIFYING') return;
+    if (submitting.current) return;
     if (state !== 'SUBMITTED' && !superseded) advance('CANCEL');
     onClose();
   }
-  async function verify(frames: string[], result?: 'PASS' | 'FAIL') {
+  async function verify(frames: string[], result?: 'PASS' | 'FAIL', supplied?: Verification) {
+    if (submitting.current) return;
+    submitting.current = true;
+    setSubmissionPending(true);
     setState('VERIFYING');
     setError('');
-    advance('VERIFY');
-    log('STEP_UP_STARTED', 'Fresh verification for this exact held request', selectedId);
     try {
-      const proof = await verifyFace(
-        {
-          technician_id: technician!.technician_id,
-          decision_id: d.decision_id,
-          request_id: d.request.request_id,
-        },
-        frames,
-        result,
-      );
+      if (useConsole.getState().flows[selectedId] !== 'BIOMETRIC_VERIFYING') advance('VERIFY');
+      log('STEP_UP_STARTED', 'Fresh verification for this exact held request', selectedId);
+      const proof =
+        supplied ??
+        (await verifyFace(
+          {
+            technician_id: technician!.technician_id,
+            decision_id: d.decision_id,
+            request_id: d.request.request_id,
+          },
+          frames,
+          result,
+        ));
       if (useConsole.getState().latestDecisionByRequest[d.request.request_id] !== selectedId)
         throw new Error('This assessment was superseded. Close and review the current assessment.');
       if (proof.similarity !== undefined && proof.threshold !== undefined)
@@ -70,22 +78,35 @@ export function ApprovalModal({
         'Verification or submission failed; no execution authorization confirmed',
         selectedId,
       );
+      // A consumed/failed native proof requires CameraCapture to offer a fresh session.
+      if (supplied) throw e;
+    } finally {
+      submitting.current = false;
+      setSubmissionPending(false);
     }
   }
   async function confirm() {
+    if (submitting.current) return;
+    submitting.current = true;
+    setSubmissionPending(true);
     setState('VERIFYING');
+    setError('');
     try {
       await act('APPROVE_ONCE', undefined, selectedId);
       setState('SUBMITTED');
     } catch (e) {
       setError(String(e));
       setState('FAILED');
+    } finally {
+      submitting.current = false;
+      setSubmissionPending(false);
     }
   }
   return (
     <Modal
       title={state === 'SUBMITTED' ? 'Approval submitted' : 'Verify to approve once'}
       onClose={close}
+      closeDisabled={submissionPending}
     >
       <div className="verification-intro">
         <Badge tone={biometricMode === 'mock' ? 'warning' : 'information'}>
@@ -106,7 +127,9 @@ export function ApprovalModal({
             : state === 'FAILED'
               ? 'The request remains held. A fresh successful verification is required.'
               : required
-                ? 'A new facial verification is required for this consequential action.'
+                ? biometricMode === 'mock'
+                  ? 'Use the simulated controls to test this approval.'
+                  : 'The camera checks your saved face automatically for this action. No head turns needed.'
                 : 'Upstream ALICE does not require facial step-up for this request.'}
         </p>
       </div>
@@ -190,7 +213,24 @@ export function ApprovalModal({
               </div>
             </div>
           ) : required ? (
-            <CameraCapture busy={state === 'VERIFYING'} onCapture={(frames) => verify(frames)} />
+            <CameraCapture
+              intent={{
+                purpose: 'APPROVAL',
+                technician_id: technician!.technician_id,
+                decision_id: d.decision_id,
+                request_id: d.request.request_id,
+              }}
+              onStarted={() => {
+                setState('VERIFYING');
+                if (useConsole.getState().flows[selectedId] !== 'BIOMETRIC_VERIFYING')
+                  advance('VERIFY');
+              }}
+              onComplete={async (session) => {
+                if (!session.verification) throw new Error('Native approval grant is missing.');
+                await verify([], undefined, session.verification);
+              }}
+              onCancel={close}
+            />
           ) : (
             <button
               className="primary-button"
@@ -213,7 +253,11 @@ export function ApprovalModal({
           )}
           <div className="identity-boundary">
             <Fingerprint size={16} />
-            <span>Identity matching only. Liveness is not configured.</span>
+            <span>
+              {biometricMode === 'mock'
+                ? 'Simulated identity only. No live controls run.'
+                : 'A fresh Face ID check is required for this exact request.'}
+            </span>
             <LockKeyhole size={14} />
           </div>
         </>

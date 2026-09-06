@@ -53,11 +53,15 @@ export function Modal({
   children,
   onClose,
   wide = false,
+  closeDisabled = false,
+  className = '',
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
+  closeDisabled?: boolean;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -67,16 +71,21 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className={`modal ${wide ? 'modal-wide' : ''}`}
+      className={`modal ${wide ? 'modal-wide' : ''} ${className}`}
       onCancel={(event) => {
         event.preventDefault();
-        onClose();
+        if (!closeDisabled) onClose();
       }}
       aria-label={title}
     >
       <div className="modal-heading">
         <h2>{title}</h2>
-        <button className="icon-button" aria-label="Close dialog" onClick={onClose}>
+        <button
+          className="icon-button"
+          aria-label="Close dialog"
+          disabled={closeDisabled}
+          onClick={onClose}
+        >
           <X size={18} />
         </button>
       </div>
