@@ -30,6 +30,10 @@ Key `/home/pi/first-light/pi-data/ledger_key.seed`; private sync config
 as inactive backup, along with `~/first-light/pre-auto-sync-backup/`.
 Stop systemd before maintenance; do not start a second tmux runtime or CLI writer.
 Mock ESP remains in its original tmux session and is not boot-persistent.
+Physical light node: XIAO ESP32-S3 on the Pi's USB port, selected with
+`--esp-serial` (branch `xiao-serial-light`, not merged). It has no network
+interface and no IP, so the earlier plan to give the ESP `192.168.50.40` and
+an HTTP endpoint does not apply to it.
 
 ## Evidence and blockers
 
@@ -46,7 +50,8 @@ Uploader connectivity never changes first-light execution authority.
 
 1. Complete the staged live outage/recovery test; publication does not imply acceptance.
 2. Test service restart and missing-USB fail-closed behavior in a maintenance window.
-3. Teammates pull the published main checkpoint and follow the connection handoff.
+3. Teammates pull the published main checkpoint and follow the connection handoff;
+   the ESP is USB-serial on the Pi, not an HTTP endpoint on the LAN.
 4. Teammates integrate authenticated, request-bound technician accept/prevent responses.
 5. Enterprise owner completes trusted permissions/baseline cache publication.
 

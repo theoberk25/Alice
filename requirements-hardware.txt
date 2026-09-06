@@ -1,0 +1,5 @@
+# Physical ESP serial link only. Do not add these to the default Pi runtime,
+# contract or audit requirements: the HTTP transport and every existing test
+# must keep working with none of this installed.
+-r requirements-audit.txt
+pyserial==3.5
