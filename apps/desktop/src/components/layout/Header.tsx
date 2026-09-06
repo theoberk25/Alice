@@ -9,7 +9,7 @@ export function Header({
   onIdentity: () => void;
   onSettings: () => void;
 }) {
-  const { status, mode, biometricMode, technician, llm } = useConsole();
+  const { status, mode, biometricMode, technician, llm, runtime, feed } = useConsole();
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
@@ -34,12 +34,14 @@ export function Header({
         <span className="eyebrow">ENFORCEMENT NODE</span>
         <strong>
           <Radio size={12} />
-          {status?.node ?? 'AWAITING NODE'}
+          {mode === 'remote'
+            ? (runtime.events.at(-1)?.node_id ?? 'AWAITING NODE')
+            : (status?.node ?? 'AWAITING NODE')}
         </strong>
       </div>
       <div className="topbar-network">
         <Badge tone={!status ? 'neutral' : status.mode === 'DDIL' ? 'warning' : 'healthy'}>
-          {status?.mode ?? 'UNKNOWN'}
+          {mode === 'remote' ? `FEED ${feed.state.toUpperCase()}` : (status?.mode ?? 'UNKNOWN')}
         </Badge>
         <span className="topbar-cloud">
           {status?.connections.cloud ? <Radio size={12} /> : <WifiOff size={12} />} CLOUD{' '}
@@ -62,9 +64,11 @@ export function Header({
         <span>
           <strong>{technician?.display_name ?? 'Sign in'}</strong>
           <small>
-            {biometricMode === 'mock'
-              ? 'SIMULATED SESSION'
-              : (technician?.role ?? 'IDENTITY REQUIRED')}
+            {mode === 'remote' && biometricMode === 'mock'
+              ? 'READ-ONLY PREVIEW'
+              : biometricMode === 'mock'
+                ? 'SIMULATED SESSION'
+                : (technician?.role ?? 'IDENTITY REQUIRED')}
           </small>
         </span>
       </button>

@@ -157,6 +157,42 @@ fn issue_grant(
     Ok(grant)
 }
 #[tauri::command]
+pub async fn read_runtime_events(state: State<'_, AppState>, after: u64) -> Result<Value, String> {
+    {
+        let s = lock(&state)?;
+        if s.config.mode != "remote" {
+            return Err("Runtime feed is only available in remote mode".into());
+        }
+    }
+    if after > 9_007_199_254_740_991 {
+        return Err("Invalid feed cursor".into());
+    }
+    // Fixed configuration only: renderer cannot choose a host or obtain the token.
+    let (base, token) = crate::config::feed_config(
+        &std::env::var("ALICE_FEED_URL").unwrap_or_default(),
+        &std::env::var("ALICE_FEED_TOKEN").unwrap_or_default(),
+    )?;
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(6))
+        .redirect(reqwest::redirect::Policy::none())
+        .no_proxy()
+        .build().map_err(|_| "Feed client unavailable")?;
+    let mut response = client.get(format!("{base}/events?after={after}"))
+        .bearer_auth(token).send().await.map_err(|_| "Runtime bridge unavailable")?;
+    if !response.status().is_success() {
+        return Err(format!("Runtime feed HTTP {}", response.status().as_u16()));
+    }
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response.chunk().await.map_err(|_| "Runtime feed interrupted")? {
+        if bytes.len() + chunk.len() > 16 * 1024 * 1024 {
+            return Err("Runtime feed exceeds supported size".into());
+        }
+        bytes.extend_from_slice(&chunk);
+    }
+    serde_json::from_slice(&bytes).map_err(|_| "Invalid runtime feed JSON".into())
+}
+
+#[tauri::command]
 pub fn runtime_config(state: State<AppState>) -> Result<PublicConfig, String> {
     let s = lock(&state)?;
     Ok(PublicConfig {

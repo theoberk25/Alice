@@ -52,6 +52,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::runtime_config,
+            commands::read_runtime_events,
             commands::demo_session,
             commands::admin_login,
             commands::admin_logout,

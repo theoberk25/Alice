@@ -2,6 +2,11 @@
 
 ## Current integration direction
 
+The [live dashboard and USB SQL slice](live-dashboard.md) now implements read-only
+first-light runtime history and incremental display. USB is the user-confirmed
+offline database medium. Physical Pi/USB acceptance, enterprise snapshot
+publication and writable biometric response integration remain pending.
+
 User-confirmed (2026-09-05): ML classification stays on the Pi; held-action accept
 or deny is decided on the local Mac after biometric verification. Merek's next
 session builds the backend data flow, enabling Alex to connect workstation scripts

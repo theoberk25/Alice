@@ -25,7 +25,9 @@
     "biometrics": "node scripts/biometrics/biometrics.mjs",
     "format": "prettier --write apps/desktop/src apps/desktop/*.ts packages/contracts packages/domain packages/ui fixtures/scenarios tests/console scripts/console scripts/biometrics/*.mjs *.json *.ts *.js",
     "contracts:generate": "node scripts/console/generate-contracts.mjs",
-    "test:scripts": "node --test scripts/console/tests/*.test.mjs"
+    "test:scripts": "node --test scripts/console/tests/*.test.mjs",
+    "demo:live": "node scripts/console/live-demo.mjs",
+    "test:e2e:runtime": "playwright test --config playwright.runtime.config.ts"
   },
   "dependencies": {
     "@fontsource/barlow-condensed": "^5.2.6",

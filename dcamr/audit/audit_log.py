@@ -115,8 +115,9 @@ def _trigger(table, operation):
 class AuditLog:
     """Explicit initialize/open lifecycle; bounded reads and serialized writes.
 
-    Paths must be provisioned on non-removable local storage by deployment. This
-    module cannot reliably infer mount/removability or authenticate caller claims.
+    Paths must be provisioned on protected local storage by deployment. The DDIL
+    runtime now guards a mounted USB volume per the user-approved configuration;
+    this recorder itself does not infer mount/removability or authenticate callers.
     Quota covers conservative database+journal allocation, not other directory
     contents. Recovery is a restricted recorder API, not reserved admission credit.
     """

@@ -8,8 +8,8 @@ of a request_id return the recorded outcome and never execute twice. Everything
 else fails closed with DENY/refuse. Scope, placement and preserved-work rules
 follow AGENTS.md; the full runtime plan grows these seams later.
 
-The ledger path must be Pi-internal non-removable storage (AuditLog contract),
-never the USB export target. GET /events is the read-only technician feed.
+The DDIL ledger and evidence live on the selected mounted USB. The private
+signing key stays on the Pi. GET /events is the read-only technician feed.
 """
 
 import argparse
@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import os
 from pathlib import Path
 import threading
 import time
@@ -26,10 +27,12 @@ import uuid
 from jsonschema import Draft202012Validator, FormatChecker
 
 from dcamr.audit.audit_log import AuditLog, MAX_ATTEMPTS  # noqa: F401 (export for tools)
+from dcamr.audit.audit_log import StorageError, SealingError
 from dcamr.audit.event_contract import (MAX_EVENT_BYTES, canonical_bytes,
                                         contextual_projection)
 from dcamr.audit.signing import Ed25519Signer, Ed25519Verifier, TrustStore, TrustError
 from dcamr.decision_model import decide
+from dcamr.usb_storage import UsbStorage, StorageUnavailable
 from dcamr.enforcement.enforcement_gateway import ControllerError, LightController
 from dcamr.packages.package_verifier import load_release
 from dcamr.policy_engine.policy_engine import find_permission
@@ -61,7 +64,19 @@ def _request_validator():
 
 class FirstLightRuntime:
     def __init__(self, *, release_dir, trusted_manifest_key: bytes, data_dir,
-                 esp_base_url: str):
+                 esp_base_url: str, usb_root=None, ledger_key_file=None, initialize_ledger=False):
+        self.storage = None
+        if usb_root is not None:
+            try:
+                self.storage = UsbStorage(usb_root, data_dir)
+                if (ledger_key_file is None
+                        or Path(ledger_key_file).resolve().is_relative_to(Path(usb_root).resolve())
+                        or not Path(ledger_key_file).is_file()):
+                    raise StorageUnavailable("Provision a private ledger key outside USB")
+                if not Path(release_dir).resolve().is_relative_to(Path(usb_root).resolve()):
+                    raise StorageUnavailable("DDIL release must be on the selected USB")
+            except StorageUnavailable as exc:
+                raise StartupError(str(exc)) from exc
         try:
             self.release = load_release(release_dir, trusted_manifest_key)
             self._validator = _request_validator()
@@ -69,13 +84,15 @@ class FirstLightRuntime:
             raise StartupError(f"release verification failed: {exc}") from exc
 
         data_dir = Path(data_dir)
+        if self.storage and not initialize_ledger and not (data_dir / "ledger.sqlite").is_file():
+            raise StartupError("An existing USB ledger is required; explicit initialization is for first provisioning only")
         (data_dir / "evidence").mkdir(parents=True, exist_ok=True)
         self._evidence_dir = data_dir / "evidence"
         self._boot_id = "boot-" + uuid.uuid4().hex[:12]
         self._lock = threading.Lock()
         self.controller = LightController(esp_base_url)
 
-        seed_path = data_dir / "ledger_key.seed"
+        seed_path = Path(ledger_key_file) if ledger_key_file else data_dir / "ledger_key.seed"
         if not seed_path.exists():
             seed_path.touch(mode=0o600)
             seed_path.write_text(uuid.uuid4().bytes.hex() + uuid.uuid4().bytes.hex() + "\n")
@@ -149,13 +166,17 @@ class FirstLightRuntime:
 
     def _append(self, event_id, event_type, *, correlation, attribution, detail,
                 evidence=()):
+        if self.storage:
+            self.storage.check()
         value = {"event_id": event_id, "event_type": event_type,
                  "correlation": correlation, "attribution": attribution,
                  "authority": dict(AUTHORITY), "provenance": self._provenance(evidence),
                  "detail": detail}
         result = self.ledger.append(value)
         if not result.persisted:
-            raise RuntimeError("audit append not persisted")
+            raise StorageError("audit append not persisted")
+        if result.sealing_error:
+            raise SealingError("audit sealing failed; execution requires recovery")
         return result.event
 
     # -------------------------------------------------------- outcome memory
@@ -186,6 +207,8 @@ class FirstLightRuntime:
                 self._outcomes[request_id]["response"]["observed_state"] = detail["value"]
 
     def iter_events(self, after=0):
+        if self.storage:
+            self.storage.check()
         while True:
             page = self.ledger.read(after=after, limit=64)
             if not page:
@@ -203,7 +226,16 @@ class FirstLightRuntime:
 
     def handle_request(self, envelope: dict):
         with self._lock:
-            return self._handle_request(envelope)
+            try:
+                if self.storage:
+                    self.storage.check()
+                return self._handle_request(envelope)
+            except (StorageUnavailable, StorageError, SealingError, OSError):
+                if self.storage:
+                    self.storage.failed = True
+                # Execution may already have begun. Never invent a DENY outcome.
+                return 503, {"error": "Storage unavailable; outcome requires reconciliation",
+                             "reason_code": "STORAGE_UNAVAILABLE"}
 
     def _handle_request(self, envelope):
         # 1. Authenticate: identity derives from the verified key, never from
@@ -277,7 +309,7 @@ class FirstLightRuntime:
             request_id=request_id, input_sha256=request_sha256,
             request_at_ms=int(time.time() * 1000))
         evidence_path = self._evidence_dir / f"{request_id}.assessment.json"
-        evidence_path.write_bytes(assessment_bytes)
+        self._write_evidence(evidence_path, assessment_bytes)
         assessment_id = f"{request_id}.a1"
         dispatch = {"assessment_id": assessment_id, "request_id": request_id,
                     "request_sha256": request_sha256, "input_sha256": request_sha256,
@@ -321,6 +353,8 @@ class FirstLightRuntime:
                      detail={"command_ref": f"{request_id}.command",
                              "command_sha256": sha256(command_bytes).hexdigest(),
                              "outcome": "ATTEMPTED", "reason_codes": []})
+        if self.storage:
+            self.storage.check()
         try:
             receipt = self.controller.execute(request["parameters"])
             receipt_outcome = "ACCEPTED" if receipt.accepted else "REJECTED"
@@ -350,7 +384,7 @@ class FirstLightRuntime:
         observed = self.controller.observe()
         observed_bytes = json.dumps({"state": observed.state}).encode("utf-8")
         observed_ref = f"observed-evidence-{request_id}"
-        (self._evidence_dir / f"{request_id}.observed.json").write_bytes(observed_bytes)
+        self._write_evidence(self._evidence_dir / f"{request_id}.observed.json", observed_bytes)
         value = None
         if observed.available:
             value = "1" if observed.state == "on" else "0"
@@ -373,6 +407,19 @@ class FirstLightRuntime:
         self._record_outcome(request_id, request_sha256, response)
         self.ledger.seal()
         return 200, response
+
+    def _write_evidence(self, path, data):
+        if self.storage:
+            self.storage.check()
+        with path.open('wb') as output:
+            output.write(data)
+            output.flush()
+            os.fsync(output.fileno())
+        directory = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
 
     def close(self):
         self.ledger.close()
@@ -420,7 +467,10 @@ def make_server(runtime: FirstLightRuntime, host="0.0.0.0", port=8080):
                         after = int(pair[6:])
                     except ValueError:
                         return self._reply(400, {"error": "invalid after"})
-            events = list(runtime.iter_events(after=after))
+            try:
+                events = list(runtime.iter_events(after=after))
+            except (StorageUnavailable, StorageError, SealingError, OSError):
+                return self._reply(503, {"error": "USB ledger unavailable"})
             self._reply(200, {"events": events})
 
     return ThreadingHTTPServer((host, port), Handler)
@@ -432,14 +482,24 @@ def main():
     parser.add_argument("--trust-key", type=Path, required=True,
                         help="hex file with the trusted manifest public key")
     parser.add_argument("--data-dir", type=Path, required=True,
-                        help="Pi-internal non-removable storage for ledger + evidence")
+                        help="Writable USB directory for SQL ledger and evidence")
+    storage = parser.add_mutually_exclusive_group(required=True)
+    storage.add_argument("--usb-root", type=Path, help="Existing mounted USB root; no local fallback")
+    storage.add_argument("--local-test-storage", action="store_true",
+                         help="Explicit local test directory; not physical USB acceptance")
+    parser.add_argument("--ledger-key-file", type=Path,
+                        help="Provisioned private key outside USB; required with --usb-root")
+    parser.add_argument("--initialize-ledger", action="store_true",
+                        help="Explicit first provisioning only; never substitutes for a missing SQL snapshot")
     parser.add_argument("--esp-url", required=True)
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
     args = parser.parse_args()
     trusted = bytes.fromhex(args.trust_key.read_text().strip())
     runtime = FirstLightRuntime(release_dir=args.release, trusted_manifest_key=trusted,
-                                data_dir=args.data_dir, esp_base_url=args.esp_url)
+                                data_dir=args.data_dir, esp_base_url=args.esp_url,
+                                usb_root=args.usb_root, ledger_key_file=args.ledger_key_file,
+                                initialize_ledger=args.initialize_ledger)
     server = make_server(runtime, args.host, args.port)
     print(f"first-light runtime listening on {server.server_address}")
     try:

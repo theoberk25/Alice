@@ -17,8 +17,9 @@ Differences from the newer contracts are identified below.
 **Current coordination:** Theo and Jared are configuring the Pi; Xavi is working
 on hardware. After the architecture is corrected, Merek will build the backend
 integration that carries data end to end, enabling Alex to adapt the workstation
-scripts and dashboard to real incoming data. This session updates documentation;
-backend implementation and connected acceptance are next-session work.
+scripts and dashboard to real incoming data. The local live-dashboard slice now connects the real first-light runtime through a
+validated read-only bridge; physical Pi acceptance remains pending. See the
+[live integration guide](docs/integration/live-dashboard.md).
 
 ## System responsibilities
 
@@ -186,13 +187,22 @@ It is a starting boundary to inspect, not a drop-in replacement for the console'
 core ledger records and enterprise-simulator records need explicit validated
 mappings. Shared names do not establish interchangeable envelopes or hash rules.
 
-Before coding, agree the event/response contracts with Alex and the Pi team, then
-choose transport, authentication, deployment location and recovery behavior. Do
-not infer a new server location from the empty `services/backend/` directory.
+The implemented read-only display boundary uses the versioned runtime feed, a
+loopback authenticated bridge and SSH forwarding for physical Pi access. See the
+[live integration guide](docs/integration/live-dashboard.md) for configuration,
+mapping gaps and recovery. Remote biometric responses still require agreement
+and implementation. The empty `services/backend/` directory does not dictate deployment.
 The [console integration guide](docs/integration/technician-console.md) retains
 native identity, currentness and proof requirements for this work.
 
 ## Trusted storage, serialization and models
+
+**Approved storage correction (2026-09-06 UTC):** the USB is the offline SQL data
+medium, not merely an export destination. Before DDIL it carries a consistent
+synchronized snapshot; during DDIL the Pi appends activity and decisions there.
+On reconnect, original events are delivered to SIEM with acknowledgements and
+linked reconciliation findings, never rewritten to erase the offline history.
+
 
 Theo's plan adds useful runtime requirements beyond the earlier inventory. Some
 choices are proposals that conflict with the existing implementation and therefore
@@ -202,7 +212,7 @@ need an explicit migration decision.
 | --- | --- | --- |
 | Internal representation | Frozen native records; package-versioned codebook indices; one deterministic CBOR codec at boundaries, JSON for human/console projection. | Current request/assessment/audit paths use JSON-compatible contracts and canonical JSON bytes. CBOR/codebooks are not implemented; preserve old hash/record decoding across any migration. Benchmark size/CPU before claiming the plan's estimates. |
 | Signed releases | ONLINE pull → verify signature/digests → stage → validate → atomic activate; OFFLINE uses accepted cached inputs. | First-light verifies a demo release at startup. Full activation, expiry, revocations and rollback handling remain. Evidence feeds cannot become permission authority. |
-| Storage isolation | Read-only signed-input partition; distinct writable output storage; secrets outside the signed-input medium. | The existing ledger requires protected non-removable local storage. Theo's removable audit/WAL proposal needs reconciliation; USB export cannot replace the only authoritative record. Mounts, update ownership and removal behavior need agreement with the Pi/hardware team. |
+| Storage isolation | Read-only signed-input partition; distinct writable output storage; secrets outside the signed-input medium. | User-confirmed correction: USB holds the latest synchronized SQL snapshot entering DDIL and the Pi writes new offline audit data onto that USB. The runtime now supports guarded USB SQLite/evidence paths, with the signing key outside USB and no local fallback. Reconciliation preserves original history. Enterprise snapshot publication and SIEM workers remain unimplemented; see the [live guide](docs/integration/live-dashboard.md). |
 | Audit and outbox | Durable intent before execution; distinguish audit-capacity failure from upload backlog pressure. | Reuse the SQLite/hash-chain/Ed25519 ledger. Do not introduce a second CBOR logger/WAL by assumption. Theo's bounded delivery ring must not discard unacknowledged source history; gap markers are not permission to lose evidence. |
 | Signing library | The older plan proposes PyNaCl and rejects cryptography for its target image. | Existing audit and first-light signing use cryptography. No library replacement is approved here; assess compatibility and Pi packaging before changing trust code. |
 | Model deployment | Mac-exported, hash-verified forest arrays; pure-Python Pi traversal; no pickle/joblib model loading. | Models currently fit/score in Mac Python components. Export/load and parity are future work. Keep profile, model, calibration and PRE/POST observation bindings explicit. |
@@ -248,7 +258,7 @@ The earlier reference's “only anomaly implemented” statement no longer appli
 | Existing component | What it establishes | What it does not establish |
 | --- | --- | --- |
 | Anomaly and assessment libraries | Strict feature/context validation, fitted-model experiments, PRE/POST scoring and assessment bindings | Deployable forest artifact, real sensor baselines or the connected Mac held-action response path |
-| Durable ledger | SQLite canonical events, hash chain, Ed25519 checkpoints, evidence references and delivery bookkeeping | Complete runtime recovery, production trust provisioning or enterprise delivery |
+| Durable ledger | USB-configurable SQLite canonical events, hash chain, Ed25519 checkpoints, evidence references and delivery bookkeeping | Complete runtime recovery, production trust provisioning or enterprise delivery |
 | First-light runtime | Signed terminal request, verified demo release, exact PERMIT grant, labelled fixture assessment, durable attempt, mock-light command/readback and USB export | Real scoring, general permissions, real authority transfer, hardware acceptance or workstation integration |
 | Technician workstation | React/Tauri UI, fixture transport, immutable lineage, native review guards, local ArcFace/Ollama boundaries | Connected Pi event stream, remote review proof or execution confirmation; remote transport fails closed |
 | Enterprise lab | Synthetic releases/activity, Wazuh configuration and development views | Production permissions service or trusted live synchronization |

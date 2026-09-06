@@ -1,6 +1,6 @@
 # ALICE implementation tracker
 
-Updated: 2026-09-05. Scope: the ALICE repository.
+Updated: 2026-09-06 UTC. Scope: the ALICE repository.
 
 This preserves all 118 user-supplied task labels in their original order. IDs
 `001`–`118` are stable: update status/evidence without renumbering or silently
@@ -14,6 +14,17 @@ The current increment adds the [local Decision Evidence Ledger][audit-guide];
 two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
+
+Live dashboard slice: [configuration and field mapping](integration/live-dashboard.md).
+The real local first-light runtime now feeds the existing technician dashboard
+automatically through validated authenticated transport. USB-backed SQL storage
+and no-fallback mount guards implement the user-approved offline storage direction.
+Remote biometric actions, enterprise snapshot publication, SIEM workers and
+physical Pi/USB acceptance remain pending. Verification is recorded in the
+[live handoff](handoffs/2026-09-06-live-dashboard.md). Task 082 becomes Partial;
+all task IDs and labels are preserved.
+
+### Historical checkpoints
 
 Architecture correction from Theo's supplied older plan: the root document now
 defines the intended Pi pipeline and backend/live-workstation data flow. User
@@ -95,8 +106,8 @@ this assessment is not silently substituted for `alice.decision`.
 - **Planned** — the requested behavior is not implemented in this checkout.
   A PRD proposal or empty skeleton is not completion evidence.
 
-Current totals: **12 Done component, 38 Partial,
-68 Planned**. These are task-status counts, not a percentage of product
+Current totals: **12 Done component, 39 Partial,
+67 Planned**. These are task-status counts, not a percentage of product
 readiness or an estimate of remaining effort.
 
 The current model increment is a [general contextual Isolation Forest][context-guide]
@@ -388,20 +399,20 @@ workflows run with explicit no-unintended-execution assertions.
 | 062 | Record Baseline Metadata | Done component | [Baseline loader][baseline] records payload identity/version and verified expected byte digest; [FeatureBatch][feature-types] preserves them. Enclosing package identity stays separate. |
 | 063 | Record Evidence Metadata | Partial | [Ledger contract][audit-schema] and [tests][audit-contract-tests] record bounded evidence references/digests, source identity, verification, freshness and availability. Evidence collection, authentication, retention and verification are not implemented. |
 | 064 | Record Connectivity State | Partial | [Ledger][audit-guide] captures supplied mode/connectivity/owner/interval/confirmation with events. [Tests][audit-contract-tests] enforce claim consistency; no live connectivity detector or endpoint authority transfer exists. |
-| 065 | Write Tamper-Evident Audit Record | Partial | [SQLite ledger][audit] implements canonical append-only history, hash validation, Ed25519 checkpoints, independent anchors, quotas/reserve and durable outbox metadata; [storage][audit-tests] and [integrity tests][audit-integrity-tests] cover failure/restart. Full live audit coverage, admission/enforcement and Pi acceptance remain absent. Tamper-evident under documented storage/key assumptions; whole-store rollback needs an independent anchor. |
+| 065 | Write Tamper-Evident Audit Record | Partial | Existing SQLite/hash-chain/Ed25519 ledger retained. USB runtime guards, durable evidence writes and unavailable responses added; no logger rewrite. [Live handoff](handoffs/2026-09-06-live-dashboard.md). Physical USB/power-loss and independent rollback-anchor deployment remain. |
 
 ## Dashboard, technician and execution (066–076)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 066 | Export Raw Decision Data to Dashboard | Partial | [Serializable anomaly contract][contract] and [mock replay][anomaly-replay] exist. The integrated console renders supplied fixtures, but no complete live core decision/event transport is connected. |
-| 067 | Export Live Pi Status to Dashboard | Planned | No actual Pi status endpoint or authenticated telemetry transport is connected to the console; reported console status views currently consume fixtures. |
+| 066 | Export Raw Decision Data to Dashboard | Partial | Real first-light ledger history/increments now reach the existing dashboard through a validated authenticated bridge and remote transport. Numeric risk/full request fields remain unavailable instead of invented. [Mapping and local acceptance](integration/live-dashboard.md). Physical Pi and richer producers remain. |
+| 067 | Export Live Pi Status to Dashboard | Planned | The live display reports feed reachability/staleness and retained authority metadata honestly. Current Pi hardware/engine/cloud/SIEM readiness telemetry is still unavailable; no status fields are inferred from HTTP success. |
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | Target clarified: local Mac resolves held actions to accept/deny after biometric verification; Merek's backend must deliver that bound response to the Pi. No real receiver is connected; authentication, proof/currentness checks and receipts remain. |
 | 070 | Require Technician Authentication for Approval | Planned | Local ArcFace enrollment/login and native approval grants exist. Target held-action accept/deny choice is biometric-gated on the Mac; both response paths and Pi-verifiable proof bound to current request/assessment/authority need agreement and acceptance. |
 | 071 | Execute Approved Action | Partial | The [enforcement gateway][enforcement] now commands the first-light ESP light over HTTP (receipt and state readback separated; idempotency owned by the runtime), verified against a mock ESP in [tests][first-light-tests]. The real ESP firmware contract, endpoint fence and general action execution remain; ONLINE enterprise control remains direct. |
 | 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
-| 073 | Record Action Execution Result | Partial | [Ledger][audit-guide] persists separate supplied execution attempts, controller receipts/results and sensor observations with identity/time/evidence binding. [Tests][audit-contract-tests] preserve UNKNOWN outcomes. No controller execution, authenticated result receiver or sensor driver is connected. |
+| 073 | Record Action Execution Result | Partial | Runtime records controller receipt, execution result and observed state separately; live dashboard updates these after the immutable decision. Real local runtime/mock-controller browser acceptance passed; physical endpoint and sensor acceptance remain. [Live handoff](handoffs/2026-09-06-live-dashboard.md). |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |
 | 075 | Compare Expected vs Actual Result | Planned | No expected-versus-observed execution-outcome comparison exists. |
 | 076 | Flag Post-Execution Anomalies | Partial | [POST_ACTION scoring][context-model] requires a separately trained profile/context and at least one temporally valid resulting-state feature. [Tests][context-model-tests] cover post timing and scoring; real execution/sensor ingestion, outcome validation and response remain unimplemented. |
@@ -415,7 +426,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 079 | Continue Local Policy Enforcement | Planned | OFFLINE authorized-permission enforcement remains unimplemented. ONLINE enterprise direct control is intentionally not replaced by a Pi policy gate. |
 | 080 | Continue Local Anomaly Scoring | Partial | [Local lab scoring][training] runs real Isolation Forest offline, alongside [feature checks][feature-tests]. Live Pi inference for OFFLINE governance and authority-mode orchestration remain unimplemented. |
 | 081 | Continue Local Context Push-Back | Planned | No real OFFLINE core context exchange runs. Console fixture automation does not establish agent routing, bounded retries or a single authoritative challenge loop. |
-| 082 | Continue Local Dashboard Output | Planned | No real core/console event transport exists in either product mode. The integrated console implements local UI and DDIL fixture behavior; this does not supply a live core event producer. |
+| 082 | Continue Local Dashboard Output | Partial | Existing dashboard now loads runtime ledger history and polls incremental events automatically, with reconnect, duplicate/conflict and malformed-input handling. Local runtime/mock-ESP browser acceptance passed; physical Pi/USB and full DDIL authority lifecycle remain. [Live guide](integration/live-dashboard.md). |
 | 083 | Cache Unverified External Evidence Requests | Planned | No bounded persistent external-evidence request cache exists. |
 | 084 | Detect Cloud Reconnection | Planned | No direct Pi/enterprise reconnection detector or authenticated readiness check exists. |
 | 085 | Exit DDIL Mode | Planned | No fenced return to ONLINE enterprise execution exists; outstanding local commands/approvals must not remain valid after transfer. |
@@ -425,7 +436,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 089 | Reconcile Local Evidence with Cloud Evidence | Planned | The core [reconciliation component][reconciliation] is empty. Direct Pi comparison/upload and append-only findings remain. |
 | 090 | Detect Evidence Discrepancies | Planned | No local/cloud evidence discrepancy detector exists. |
 | 091 | Append Reconciliation Results | Partial | [Ledger finding append][audit] and [outbox tests][audit-outbox-tests] require original ID/hash and source attribution; reconciliation marker requires original ACK plus linked finding. Actual evidence fetching/comparison and enterprise reconciliation remain absent. |
-| 092 | Preserve Original Decision History | Partial | [Durable ledger][audit] retains original canonical events through restart, delivery and linked findings; [history tests][audit-tests] reject ordinary edits and verify tamper evidence. Public decision production/lineage and console integration remain separate. |
+| 092 | Preserve Original Decision History | Partial | Original audit events remain immutable through live display and reconnect; late execution events update request projections without changing decision IDs or content. Reconciliation must append findings and acknowledgements. SIEM delivery and full reassessment exchange remain. [Live guide](integration/live-dashboard.md). |
 
 ## Package updates and connected recovery (093–107)
 

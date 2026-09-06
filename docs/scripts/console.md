@@ -16,3 +16,10 @@ launchers in a copied checkout with spaces and an unrelated working directory.
 The console imports only its own contracts and services; script consolidation
 does not give the renderer access to core policy or execution implementations.
 See the [console guide](../guides/technician-console.md).
+
+## Live runtime integration
+
+See [live dashboard setup](../integration/live-dashboard.md) for the authenticated
+bridge, USB SQL runtime, remote preview/native configuration and browser test.
+The Vite proxy lives with the desktop app; `python -m services.runtime_feed` runs
+the read-only bridge. Neither creates a second backend database.

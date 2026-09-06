@@ -1,55 +1,53 @@
 # Current
 
-Updated: 2026-09-05
-Local baseline: `33b35cf`; includes main `d6e7e55` and prior documentation/layout work.
-Review branch: `codex/integrate-team-layout`; architecture correction and handoff.
-User authorized branch publication to github.com/theoberk25/Alice after the correction.
-Earlier checkpoint `011abf1` remains separate; do not replay its obsolete layout.
+Updated: 2026-09-06 UTC (September 5 EDT).
+Baseline: `417b9de`; main teammate updates through `7081b6a` merged in `8e1154d`.
+Working branch: `codex/live-dashboard`. User authorized publication to main;
+no deployment is included.
 
-## Current objective
+## Active objective
 
-Use the corrected architecture and next-session handoff to begin backend setup
-in the next session. The current task publishes the review branch and prepares
-the session prompt; it does not implement the backend. Start with [AGENTS.md](AGENTS.md).
+Review the implemented USB SQL / live technician dashboard slice and hand its
+configuration to Jared and Alex. [Runbook and mappings](docs/integration/live-dashboard.md).
 
-## Confirmed architecture and coordination
+## Confirmed design and implemented scope
 
-- **Pi: ML classification. Local Mac: held-action accept/deny after biometric
-  verification. Pi: validate the bound response and enforce execution prerequisites.**
-  A hard prohibition remains binding; LLM prose/biometrics cannot override it.
-- Theo and Jared are configuring the Pi; Xavi is working on hardware.
-- Merek will build end-to-end backend data flow after architecture alignment;
-  Alex will adapt workstation scripts/transport/dashboard to the agreed live contract.
-- Root architecture now defines target pipeline, backend flows, storage/model and
-  reliability requirements, current implementation limits and the source map.
-- Theo's older plan is preserved as reference, not executable instructions. CBOR,
-  codebooks, signing-library changes and removable audit storage require agreement.
-- First-light remains a signed-request/fixture-assessment/mock-ESP slice; the console
-  has working fixture workflows but its remote transport is not connected.
-- All 118 tracker IDs/statuses stay unchanged: 12 done components, 38 partial, 68 planned.
+- **USB carries the current synchronized SQL snapshot into DDIL; the Pi writes
+  new offline events to USB.** SIEM reconciliation preserves original events and
+  appends findings/acknowledgements. This corrects the former internal-only assumption.
+- Existing SQLite/hash-chain/Ed25519 ledger retained. Runtime now guards the USB
+  mount, keeps its signing key outside USB, and fails closed on lost storage.
+- Real runtime `/events` → authenticated local bridge → remote transport → Alex's
+  existing dashboard. History/incremental updates/reconnect and late results work.
+- Missing scores/mission/request fields, connectivity and verification stay unknown.
+  Fixture assessment and mock controller labels persist. No live-mode demo fallback.
+- Pi owns classification; Mac resolves held accept/deny after biometric verification;
+  Pi validates execution prerequisites. Remote response delivery remains unavailable.
+- Merek owns backend integration; Theo/Jared configure Pi; Xavi hardware; Alex dashboard.
 
-## Next session
+## Evidence and limits
 
-1. Confirm request/classification, Mac accept/deny proof and hardware-result bindings
-   with Alex and the Pi/hardware team, preserving the confirmed decision ownership.
-2. Check Theo/Jared's Pi readiness and Xavi's device interface; select backend host,
-   transport, authentication and replay/currentness contracts before implementing.
-3. Merek builds the backend connection using the existing runtime/ledger boundaries.
-4. Alex connects workstation scripts and the live dashboard, preserving native
-   identity, immutable lineage and stale-response guards.
-5. Validate one connected request/review/result flow and both biometric-gated held
-   responses, then extend context, recovery and enterprise synchronization.
+276 Python tests plus 226 subtests; 73 frontend tests; 5 script tests; typecheck,
+lint and production build passed. Live browser acceptance: 1 passed; existing
+mock review browser tests: 5 passed. User saw synthetic SQLite events update the
+actual dashboard automatically. Rust tests could not run because cargo is absent.
+Physical Pi/USB, real ML/controller and biometric response acceptance are not claimed.
+[Detailed evidence and prior checkpoint](docs/handoffs/2026-09-06-live-dashboard.md).
 
-## Verification and limits
+## Current configuration / blockers
 
-Documentation checks passed: 713 local links/headings, byte-identical reference copy,
-118 tracker rows preserved, current.md within limits and no runtime/archive changes.
-Prior 265 Python tests (zero skips), launcher and console checks are historical;
-no new runtime, native, camera, Pi/hardware or live-enterprise acceptance is claimed.
-[Alignment and next-session handoff](docs/handoffs/2026-09-05-theo-architecture-alignment.md) ·
-[Previous verification](docs/handoffs/2026-09-05-team-layout-review.md).
+Pi `alice-pi-01`, SSH `pi@192.168.50.20`; read-only connection attempt timed out.
+USB `/dev/sda1`, UUID `6C1A-C6EA`, not mounted; proposed `/mnt/alice-usb`.
+Filesystem and physical durability unverified. Enterprise SQL snapshot publication,
+general policy SQL loading and SIEM reconciliation worker remain unimplemented.
 
-## Start here
+## Next steps
 
-[Rules](AGENTS.md) · [Architecture](architecture.md) · [Docs](docs/README.md) ·
+1. Publish the reviewed checkpoint to main under the user's explicit authorization.
+2. Jared verifies Pi reachability, USB filesystem/mount, release and private key setup.
+3. Run native Rust checks and physical Pi/USB/controller acceptance from the runbook.
+4. Integrate the enterprise snapshot publisher and SIEM reconciliation independently.
+5. Agree and implement the bound biometric accept/deny response path with Alex.
+
+[Rules](AGENTS.md) · [Architecture](architecture.md) ·
 [Tracker](docs/implementation-tracker.md) · [Scripts](docs/scripts/README.md)
