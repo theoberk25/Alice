@@ -16,6 +16,15 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
+Local merge `bf6fee0` preserves main `d3502e3` and Jared's SIEM/cache work.
+Physical Pi USB-serial light-on now passed: ALLOW/COMPLETED/on, external D0 LED
+visually confirmed by Jared, seven events delivered to Wazuh. All 97 original
+canonical events preserved; 104 total. Python: 357 passed plus 261 subtests.
+npm check passed typecheck/lint, 73 frontend tests, 5 script tests and build.
+[Deployment and evidence](integration/esp-technician-handoff.md).
+No push; firmware was not reflashed, real ML and remote human approval remain.
+
+
 Enterprise presentation now includes live alert metrics/search, endpoint evidence
 and actual Wazuh Pi audit records. Demo inventory and unavailable EDR responses are
 labelled explicitly; no permissions or task completion statuses changed.
@@ -37,7 +46,7 @@ authenticated held-action response sequence. Recommendations do not change task 
 
 Published `2aaf021` integrates Xavier's `290699b` USB-serial transport with the preserved
 snapshot/Wazuh/dashboard work. Hardware testing was reported on his development Mac;
-Pi serial deployment and joint acceptance remain pending. [Integration evidence](handoffs/2026-09-06-xavier-serial-integration.md).
+That checkpoint predates the successful Pi physical light-on acceptance below. [Integration evidence](handoffs/2026-09-06-xavier-serial-integration.md).
 
 Integrated locally from Jared's `origin/main` checkpoint `ef413b6` and the preserved
 SQL snapshot checkpoint `73dfa91`. [ESP/technician handoff](integration/esp-technician-handoff.md)
@@ -46,8 +55,8 @@ and [Wazuh runbook](integration/wazuh-audit-sync.md) define the provisioned path
 Jared's [automatic USB proof](reports/2026-09-06-automatic-usb-wazuh-sync.md) reports
 seven new events delivered from physical ext4 USB, reaching 83 Wazuh records,
 with identical retry causing no extra mock-controller command. These are Jared's
-observations; this Mac's SSH connection currently times out. Live outage/reboot,
-physical actuator and semantic reconciliation acceptance remain pending.
+historical observations. SSH and physical light-on now work; live outage/reboot
+and semantic reconciliation acceptance remain pending.
 
 Our [signed SQL input snapshot](integration/release-snapshot.md), existing audit
 history and live dashboard are retained alongside the automatic owner-integrated
@@ -442,9 +451,9 @@ workflows run with explicit no-unintended-execution assertions.
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | Target clarified: local Mac resolves held actions to accept/deny after biometric verification; Merek's backend must deliver that bound response to the Pi. No real receiver is connected; authentication, proof/currentness checks and receipts remain. |
 | 070 | Require Technician Authentication for Approval | Planned | Local ArcFace enrollment/login and native approval grants exist. Target held-action accept/deny choice is biometric-gated on the Mac; both response paths and Pi-verifiable proof bound to current request/assessment/authority need agreement and acceptance. |
-| 071 | Execute Approved Action | Partial | HTTP light adapter and XIAO USB-serial adapter share existing receipt/observation contracts. Serial, snapshot, Wazuh and replay integration tests pass; Xavier reports development-Mac LED tests. Pi serial deployment, updated firmware flashing and crash-window physical acceptance remain. [Integration handoff](handoffs/2026-09-06-xavier-serial-integration.md). |
+| 071 | Execute Approved Action | Partial | HTTP light adapter and XIAO USB-serial adapter share existing receipt/observation contracts. Serial, snapshot, Wazuh and replay integration tests pass; Xavier reports development-Mac LED tests. Pi serial deployment and operator light-on passed with Jared visually confirming the LED; updated firmware flashing and crash-window physical acceptance remain. [Integration handoff](handoffs/2026-09-06-xavier-serial-integration.md). |
 | 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
-| 073 | Record Action Execution Result | Partial | Runtime records controller receipt, execution result and observed state separately; live dashboard updates these after the immutable decision. Real local runtime/mock-controller browser acceptance passed; physical endpoint and sensor acceptance remain. [Live handoff](handoffs/2026-09-06-live-dashboard.md). |
+| 073 | Record Action Execution Result | Partial | Runtime records controller receipt, execution result and observed state separately; live dashboard updates these after the immutable decision. Real local runtime/mock-controller browser acceptance passed; physical serial light-on receipt and visual LED acceptance now passed; independent sensor acceptance remains. [Live handoff](handoffs/2026-09-06-live-dashboard.md). |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |
 | 075 | Compare Expected vs Actual Result | Planned | No expected-versus-observed execution-outcome comparison exists. |
 | 076 | Flag Post-Execution Anomalies | Partial | [POST_ACTION scoring][context-model] requires a separately trained profile/context and at least one temporally valid resulting-state feature. [Tests][context-model-tests] cover post timing and scoring; real execution/sensor ingestion, outcome validation and response remain unimplemented. |

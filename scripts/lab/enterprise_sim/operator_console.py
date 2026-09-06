@@ -1,5 +1,6 @@
 """Local authenticated-agent demo workbench; no enterprise permission publisher."""
 import argparse
+import html
 import json
 import secrets
 import threading
@@ -14,7 +15,7 @@ PAGE = '''<!doctype html><meta charset="utf-8"><title>Sentinel operator</title>
 <style>body{background:#101820;color:#e7eef6;font:17px system-ui;max-width:1000px;margin:45px auto;padding:20px}button,a{padding:12px;margin:8px;color:#071b25;background:#66d9bc;border:0;border-radius:6px;font:inherit}pre{white-space:pre-wrap;background:#1d2a37;padding:18px;border-radius:8px}small{color:#afbfce}</style>
 <h1>Sentinel · SSgt A. Okafor</h1><p>Electrician · elec-agent-01 · ESP-LIGHT-01</p>
 <p>Signed action → Pi permissions check → USB audit → Wazuh upload</p>
-<p><strong>Current controller: mock ESP.</strong> This does not actuate the team's physical grid.</p>
+<p><strong>Controller: CONTROLLER_LABEL.</strong> Device feedback reports the driven output; visually confirm the external LED.</p>
 <button onclick="act('on')">Turn light on</button><button onclick="act('off')">Turn light off</button>
 <a href="http://127.0.0.1:8787/" target="_blank">Enterprise overview</a>
 <p id="message">Ready. Actions use your provisioned agent key on this Mac.</p>
@@ -37,6 +38,7 @@ def main():
     p.add_argument('--credentials',type=Path,required=True)
     p.add_argument('--pi-url',default='http://192.168.50.20:8080')
     p.add_argument('--port',type=int,default=8789)
+    p.add_argument('--controller-label',default='Unverified controller')
     a=p.parse_args()
     for f in (a.key_file,a.credentials):
         if f.is_symlink() or f.stat().st_mode & 0o077: p.error('Private files must be mode 0600')
@@ -69,7 +71,7 @@ def main():
                 if len(known)>100:known.pop(next(iter(known)))
             self.reply(200,known[rid])
         def do_GET(self):
-            if self.path=='/':return self.reply(200,PAGE.replace('TOKEN',token),True)
+            if self.path=='/':return self.reply(200,PAGE.replace('TOKEN',token).replace('CONTROLLER_LABEL',html.escape(a.controller_label)),True)
             from urllib.parse import urlsplit,parse_qs
             rid=parse_qs(urlsplit(self.path).query).get('id',[''])[0]
             with lock: result=known.get(rid)

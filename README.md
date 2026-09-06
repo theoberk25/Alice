@@ -6,12 +6,12 @@ permissions, behavioral assessment, technician review and durable evidence so a
 local action can be understood, reviewed and eventually reconciled upstream.
 
 **Current delivery:** a first-light signed terminal request can run through the
-USB-backed Pi runtime to a mock ESP, with automatic verified audit delivery to
+USB-backed Pi runtime to a physical USB-serial XIAO ESP32-S3 light, with automatic verified audit delivery to
 Wazuh and a native technician console. The full product loop is still being integrated.
 Moving code into the shared layout does not make the live system complete.
 
 The intended decision split is **Pi ML classification → local Mac held-action
-accept/deny after biometric verification → Pi validation/enforcement**. Physical ESP integration and authenticated held-action responses are next; use the
+accept/deny after biometric verification → Pi validation/enforcement**. Physical light-on is verified; authenticated held-action responses are next; use the
 [ESP/technician handoff](docs/integration/esp-technician-handoff.md) and
 [automatic Wazuh runbook](docs/integration/wazuh-audit-sync.md).
 

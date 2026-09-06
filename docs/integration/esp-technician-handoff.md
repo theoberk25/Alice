@@ -12,7 +12,7 @@ recommendations below are not claims that remote approval or grid control exists
 | Pi runtime | Port 8080; `/request`, `/events`, `/sync-status` | Signed first-light requests and read-only history/status |
 | USB | `/mnt/alice-usb/pi-data/ledger.sqlite`, sibling `evidence/` | Real new events stored and automatically uploaded |
 | Signed release | `/mnt/alice-usb/release/` | Existing first-light JSON grants, not general enterprise SQL permissions |
-| Available physical controller | XIAO ESP32-S3 via `--esp-serial` | Xavier reports real LED/readback on a development Mac. Pi deployment remains pending per the [hardware runbook](../guides/first-light-hardware.md); the last reported Pi service still used the HTTP mock |
+| Available physical controller | XIAO ESP32-S3 via `--esp-serial` | Pi deployed and external LED visually confirmed by Jared; see physical acceptance below |
 | Wazuh indexer | Jared Mac `192.168.50.50:9200`, TLS name `wazuh.indexer` | 83 records at last observed test, including seven from USB |
 | Technician | Theo's Mac; use the SSH tunnel below | Dashboard transport setup is separate from Wazuh credentials |
 
@@ -168,7 +168,7 @@ Recommended implementation sequence for the owning teammates:
 ## Acceptance order and remaining checks
 
 First: known-permitted light action → USB ledger → dashboard → Wazuh, with identical
-retry causing no extra actuation. This passed against the mock; physical ESP remains.
+retry causing no extra actuation. Mock retry acceptance passed previously. Physical light-on acceptance now passed below; a physical replay test remains.
 Then: denied action causes no actuation; authenticated human resolves a held action;
 Wazuh-only outage preserves local decisions and pending events; reconnect uploads
 without duplicates; restart preserves outcomes; missing USB refuses execution.
@@ -186,3 +186,38 @@ and read-only `python -m lab.first_light.check_pipeline` from the Pi checkout.
 It compares an existing request across the runtime, USB SQL and optional Wazuh
 without submitting, uploading or opening another ledger writer. Dashboard arrival
 and physical/replay actuation counts remain separate operator checks.
+
+## Physical acceptance — September 5 EDT / September 6 UTC
+
+Merged main `d3502e3` into Jared's preserved local branch at `bf6fee0`.
+Sentinel operator at http://127.0.0.1:8789 submitted request
+`4bc40a85-4c49-4a52-842c-5f6171f41af2`: HTTP 200, ALLOW,
+PERMITTED_NORMAL_AUTO, COMPLETED, observed state `on`.
+**Jared confirmed the external D0 LED visibly lit.** The LED was left on.
+All seven request events reached Wazuh; the USB ledger now has 104 events.
+The 97 original canonical event blobs were compared with the stopped-service
+backup and are byte-identical.
+
+The live Pi uses pyserial 3.5 and
+`/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_A4:CB:8F:D2:6E:EC-if00`.
+The systemd override
+`/etc/systemd/system/alice-runtime.service.d/60-physical-esp.conf`
+replaces the base ExecStart's HTTP mock flag with `--esp-serial <by-id path>`,
+retaining all storage, trust and Wazuh arguments. It adds the dialout group.
+The base unit remains intact. The old mock process is idle and unused.
+Existing firmware responded with boot ID `b3f47bd1`; it was not reflashed,
+so this does not certify it matches the latest hardened firmware source.
+
+Before deployment, the stopped Pi's source, release, ledger and unit were backed
+up in `/home/pi/first-light/pre-serial-backup/`. Do not restore that ledger over
+new events. For a transport rollback, stop the runtime, move only the named
+override outside the unit directory, reload systemd and restart with the known
+mock available. Do not use a blanket systemctl revert that removes other overrides.
+
+The operator accepts `--controller-label 'Physical XIAO ESP32-S3 via Pi USB serial'`;
+this label describes configuration and is not hardware attestation.
+Combined Python verification: 357 tests plus 261 subtests passed.
+`npm ci && npm run check` passed typecheck, lint, 73 frontend tests,
+5 script tests and production build. Native biometric checks were not rerun.
+Remote technician accept/prevent transport, real ML integration and live
+outage/reboot/unplug acceptance remain separate. Changes remain local, not pushed.

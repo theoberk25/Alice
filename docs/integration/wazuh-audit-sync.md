@@ -257,3 +257,15 @@ The shared `verify_stored(event)` method performs only exact-content GET verific
 The [joint acceptance helper](pi-technician-acceptance.md) uses it without uploading
 or mutating delivery state. Existing physical service deployment remains unchanged
 until the operator pulls and performs a coordinated restart.
+
+## Physical ESP delivery acceptance
+
+September 5 EDT / September 6 UTC: operator request
+`4bc40a85-4c49-4a52-842c-5f6171f41af2` ran through the USB-backed Pi to
+the physical serial XIAO. Jared visually confirmed the external LED on.
+Seven events automatically reached Wazuh; worker reported IDLE, delivered 7,
+last event ending `.observed`, and no error. USB ledger total: 104.
+All 97 predeployment canonical events were byte-identical to the backup.
+See the [existing ESP handoff](esp-technician-handoff.md) for configuration,
+backup and validation. This does not activate cached generation 44 permissions
+or establish technician approval transport.
