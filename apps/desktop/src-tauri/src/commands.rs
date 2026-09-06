@@ -149,12 +149,16 @@ pub(crate) fn issue_grant(
 }
 #[tauri::command]
 pub async fn read_runtime_events(state: State<'_, AppState>, after: u64) -> Result<Value, String> {
-    {
+    let authenticated = {
         let s = lock(&state)?;
         if s.config.mode != "remote" {
             return Err("Runtime feed is only available in remote mode".into());
         }
-    }
+        (
+            require_technician(&s)?,
+            s.biometrics.authority_epoch.clone(),
+        )
+    };
     if after > 9_007_199_254_740_991 {
         return Err("Invalid feed cursor".into());
     }
@@ -167,18 +171,32 @@ pub async fn read_runtime_events(state: State<'_, AppState>, after: u64) -> Resu
         .timeout(Duration::from_secs(6))
         .redirect(reqwest::redirect::Policy::none())
         .no_proxy()
-        .build().map_err(|_| "Feed client unavailable")?;
-    let mut response = client.get(format!("{base}/events?after={after}"))
-        .bearer_auth(token).send().await.map_err(|_| "Runtime bridge unavailable")?;
+        .build()
+        .map_err(|_| "Feed client unavailable")?;
+    let mut response = client
+        .get(format!("{base}/events?after={after}"))
+        .bearer_auth(token)
+        .send()
+        .await
+        .map_err(|_| "Runtime bridge unavailable")?;
     if !response.status().is_success() {
         return Err(format!("Runtime feed HTTP {}", response.status().as_u16()));
     }
     let mut bytes = Vec::new();
-    while let Some(chunk) = response.chunk().await.map_err(|_| "Runtime feed interrupted")? {
+    while let Some(chunk) = response
+        .chunk()
+        .await
+        .map_err(|_| "Runtime feed interrupted")?
+    {
         if bytes.len() + chunk.len() > 16 * 1024 * 1024 {
             return Err("Runtime feed exceeds supported size".into());
         }
         bytes.extend_from_slice(&chunk);
+    }
+    let s = lock(&state)?;
+    if require_technician(&s)? != authenticated.0 || s.biometrics.authority_epoch != authenticated.1
+    {
+        return Err("TECHNICIAN_SESSION_CHANGED".into());
     }
     serde_json::from_slice(&bytes).map_err(|_| "Invalid runtime feed JSON".into())
 }
@@ -271,6 +289,7 @@ pub fn admin_logout(state: State<AppState>) -> Result<(), String> {
 pub fn logout(state: State<AppState>) -> Result<(), String> {
     let mut s = lock(&state)?;
     s.biometrics.revoke("LOGOUT");
+    s.runtime_review.invalidate();
     s.technician = None;
     s.admin = None;
     s.grants.clear();

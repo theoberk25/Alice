@@ -31,6 +31,7 @@ pub struct Intent {
     pub technician_id: Option<String>,
     pub decision_id: Option<String>,
     pub request_id: Option<String>,
+    pub runtime_action: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -83,6 +84,10 @@ pub struct Attempt {
     pub preview: Option<Arc<Mutex<crate::biometric_capture::PreviewSlot>>>,
     pub capture_failure: Option<Arc<Mutex<Option<String>>>>,
     pub last_poll: Instant,
+    // Authority state is separate from the public terminal evidence. Consuming
+    // a grant must not make a successful APPROVAL view schema-invalid.
+    pub authority_consumed: bool,
+    pub authority_revoked: bool,
 }
 
 impl Attempt {
@@ -109,6 +114,16 @@ impl Attempt {
         }
         self.view.state = state.into();
         self.view.reason = reason.into();
+    }
+    pub fn revoke(&mut self, reason: &str) {
+        self.authority_revoked = true;
+        self.finish("CANCELLED", reason);
+        if self.view.state == "SUCCEEDED" {
+            self.view.state = "CANCELLED".into();
+            self.view.reason = reason.into();
+        }
+        self.view.technician = None;
+        self.view.verification = None;
     }
     pub fn valid(&mut self, epoch: &str, now: Instant) -> Result<(), String> {
         let failure = self
@@ -163,13 +178,7 @@ impl Book {
     pub fn revoke(&mut self, reason: &str) {
         self.authority_epoch = Uuid::new_v4().to_string();
         if let Some(s) = self.current.as_mut() {
-            s.finish("CANCELLED", reason);
-            s.view.technician = None;
-            s.view.verification = None;
-            if s.view.state == "SUCCEEDED" {
-                s.view.state = "CANCELLED".into();
-                s.view.reason = reason.into();
-            }
+            s.revoke(reason);
         }
     }
     pub fn begin(
@@ -217,6 +226,8 @@ impl Book {
             preview: None,
             capture_failure: None,
             last_poll: now,
+            authority_consumed: false,
+            authority_revoked: false,
         });
         Ok(view)
     }

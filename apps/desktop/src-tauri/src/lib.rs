@@ -6,6 +6,7 @@ mod commands;
 mod commands_tests;
 mod config;
 mod db;
+mod runtime_review;
 mod security;
 use config::Config;
 use rusqlite::Connection;
@@ -18,6 +19,7 @@ pub struct Inner {
     pub technician: Option<Session>,
     pub admin: Option<Session>,
     pub grants: HashMap<String, Grant>,
+    pub runtime_review: runtime_review::Book,
     pub biometrics: biometric_sessions::Book,
     pub failures: HashMap<String, (u32, i64)>,
 }
@@ -51,6 +53,7 @@ pub fn run() {
                 admin: None,
                 grants: HashMap::new(),
                 failures: HashMap::new(),
+                runtime_review: runtime_review::Book::default(),
                 biometrics: biometric_sessions::Book::default(),
             })));
             Ok(())
@@ -75,6 +78,11 @@ pub fn run() {
             biometric_commands::recover_face_enrollment,
             commands::runtime_config,
             commands::read_runtime_events,
+            runtime_review::read_runtime_review,
+            runtime_review::submit_runtime_review,
+            runtime_review::read_runtime_submission,
+            runtime_review::reconcile_runtime_submission,
+            runtime_review::runtime_review_status,
             commands::demo_session,
             commands::admin_login,
             commands::admin_logout,

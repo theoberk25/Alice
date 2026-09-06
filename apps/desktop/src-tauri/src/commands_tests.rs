@@ -55,6 +55,7 @@ pub(crate) fn app() -> (tauri::App<tauri::test::MockRuntime>, tempfile::TempDir)
             admin: None,
             grants: HashMap::new(),
             failures: HashMap::new(),
+            runtime_review: crate::runtime_review::Book::default(),
             biometrics: crate::biometric_sessions::Book::default(),
         })))
         .build(tauri::test::mock_context(tauri::test::noop_assets()))
