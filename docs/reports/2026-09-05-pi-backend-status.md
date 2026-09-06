@@ -1,9 +1,20 @@
 # Pi backend status — first-light slice (2026-09-05)
 
 Status report per the working agreements in [AGENTS.md](../../AGENTS.md).
-Branch: `first-light-test` (local). This describes the Pi-side backend as
-implemented for the first integration test — one OFFLINE terminal action
-(`set_light_state -> ESP-LIGHT-01`) — not the full runtime plan.
+This describes the Pi-side backend as implemented for the first integration
+test — one OFFLINE terminal action (`set_light_state -> ESP-LIGHT-01`) — not
+the full runtime plan. Test evidence and the network runbook live in the
+[test log](2026-09-05-first-light-test-log.md).
+
+**Update, end of day:** the slice is now **proven on hardware and live over
+the network**, not just on the Mac. The Pi (`alice-pi-01`, 192.168.50.20 on
+the offline switch) runs the runtime + mock ESP; all 6 first-light tests pass
+on the Pi; nine signed requests from three SIEM-provisioned identities
+(SSgt Okafor, MSgt Reyes, and the denied apprentice account) were decided,
+executed, ledgered and rendered live on the ALICE workstation console, whose
+remote transport now consumes the Pi's read-only `GET /events` feed. Jared's
+enterprise SIEM console gained a clearly-labelled live-edge lab tab. Idempotent
+retry and the deny path were both demonstrated end to end.
 
 ## Completed and ready now
 
@@ -63,8 +74,8 @@ after seal and reopen. Details:
 
 - **Physical ESP** — no real firmware exists; the HTTP contract
   (`POST/GET /light`) is an open coordination item and only the mock has been
-  exercised. Hardware acceptance on the Pi is pending (code has run on Mac
-  only so far; the Pi itself is still being provisioned).
+  exercised. (The Pi itself is now provisioned and proven; the ESP is the
+  last physical piece.)
 - **Real assessment** — the assessment is a wiring fixture, not detection. No
   model export/loading, feature extraction, scoring or anomaly-driven review
   runs on the Pi.
@@ -85,3 +96,48 @@ after seal and reopen. Details:
 - **Schema breadth** — the request schema pins the single first-light
   action/target; widening to the general action catalog is a coordinated
   contract change.
+
+## Roadmap: from first light to autonomous agents, fully automated
+
+Ordered so each step is independently demoable and none rewrites what exists.
+
+1. **Real ESP + observed-state truth.** Land the firmware HTTP contract, point
+   `--esp-url` at hardware, and treat the readback as an independent sensor
+   (today it is actuator feedback). This closes the physical loop.
+2. **Widen the action catalog.** Grow `action_request.json` and the audit
+   REQUEST detail (coordinated `audit_event.json` change with the ledger
+   owner) so events carry action/target/parameters explicitly — removing the
+   dashboards' display-only echo — then add grants for the enterprise-sim
+   actions (`read_meter`, `set_voltage_setpoint`, …) with real parameter
+   bounds, prohibitions evaluated before grants, conditions, validity windows
+   and revocations from Jared's bundle format.
+3. **Real agents instead of the terminal client.** Give each LLM/automation
+   agent a provisioned key and have it submit signed requests through the same
+   `POST /request` pipeline — the runtime already derives identity from the
+   key, so agent autonomy adds no new trust. An MCP/A2A adapter in front of
+   the envelope builder makes any agent framework a client.
+4. **Real assessment.** Export the contextual Isolation Forest to the Pi,
+   replace `assessment_fixture` with live scoring behind the same
+   `contextual_projection` call, and route `ELEVATED/HIGH` (and
+   `REVIEW_REQUIRED` grants) to a HOLD state instead of deny.
+5. **Technician approval path.** Add HOLD/REQUEST_CONTEXT decision states and
+   an authenticated technician action endpoint; the workstation console
+   already has the Approve/Hold/Reject UI and biometric gate — its transport
+   needs the write half, gated by technician identity, every action ledgered
+   as TECHNICIAN_ACTION.
+6. **Automate the lifecycle.** systemd units for the runtime and export on
+   the Pi (replacing tmux), USB auto-discovery for release staging/activation
+   with generation and rollback checks in `package_verifier`, a scheduled
+   `usb_export`/delivery worker draining the ledger outbox, and a watchdog.
+7. **ONLINE mode + reconnection.** Authority transfer with an endpoint-held
+   fence, enterprise sync of releases/baselines on reconnect, publishing the
+   DDIL ledger upstream (the SIEM console's edge-node view already reads that
+   record), and reconciliation findings — completing the two-mode product
+   loop.
+8. **Hardening throughout.** Real trust roots instead of demo keys, TLS and
+   client auth on the runtime surface, trusted-clock evidence, quota/retention
+   policy, and concurrency beyond the single-request lock.
+
+Steps 1–3 produce "agents acting under governance, automated" — the demo
+narrative extended to real actors. Steps 4–5 make the review loop real, and
+6–8 make it a product rather than a lab bench.
