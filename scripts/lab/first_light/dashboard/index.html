@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALICE // Technician Console</title>
+<!--
+  First-light technician dashboard (read-only, lab tooling per AGENTS.md).
+  Polls the Pi runtime's GET /events ledger projection. No approval verbs
+  exist on this surface. Endpoint override: ?pi=host:port
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Oxanium:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#0a0f0d; --panel:#0f1613; --panel2:#121b17; --line:#1d2b24;
+    --ink:#c8d6cd; --dim:#5f7268; --faint:#38473f;
+    --phos:#54f28b; --phos-dim:#1d5c38; --amber:#ffb347; --alert:#ff5d5d;
+    --cyan:#5fd7d7;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --disp:"Oxanium",var(--mono);
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{height:100%}
+  body{
+    background:var(--ground); color:var(--ink); font:13px/1.5 var(--mono);
+    background-image:
+      radial-gradient(1200px 500px at 70% -10%, rgba(84,242,139,.05), transparent 60%),
+      repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,.14) 2px 4px);
+  }
+  ::selection{background:var(--phos-dim);color:#fff}
+
+  header{
+    display:flex;align-items:center;gap:18px;padding:14px 20px;
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0d1411,#0a0f0d);
+    position:sticky;top:0;z-index:5;
+  }
+  .brand{font:700 19px var(--disp);letter-spacing:.14em;color:#eaf5ee}
+  .brand em{font-style:normal;color:var(--phos)}
+  .sub{font-size:10px;color:var(--dim);letter-spacing:.28em;text-transform:uppercase}
+  .spacer{flex:1}
+  .pill{border:1px solid var(--line);padding:4px 11px;border-radius:2px;
+        font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+        background:var(--panel)}
+  .pill b{color:var(--ink);font-weight:500}
+  .pill.mode{border-color:var(--amber);color:var(--amber)}
+  #link.ok{border-color:var(--phos-dim);color:var(--phos)}
+  #link.ok::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--phos);margin-right:7px;box-shadow:0 0 8px var(--phos);
+    animation:blink 2s infinite}
+  #link.bad{border-color:var(--alert);color:var(--alert)}
+  @keyframes blink{50%{opacity:.35}}
+
+  main{display:grid;grid-template-columns:minmax(340px,3fr) minmax(300px,2fr);
+       gap:16px;padding:16px 20px;max-width:1500px;margin:0 auto}
+  @media(max-width:900px){main{grid-template-columns:1fr}}
+  h2{font:600 11px var(--disp);letter-spacing:.3em;text-transform:uppercase;
+     color:var(--dim);margin-bottom:10px}
+  h2 b{color:var(--phos);font-weight:600}
+
+  /* request cards */
+  .card{border:1px solid var(--line);background:var(--panel);margin-bottom:14px;
+        animation:arrive .4s ease-out}
+  @keyframes arrive{from{opacity:0;transform:translateY(6px)}}
+  .card-head{display:flex;align-items:center;gap:12px;padding:10px 14px;
+             border-bottom:1px solid var(--line);background:var(--panel2)}
+  .rid{font-size:11px;color:var(--cyan)}
+  .verdict{margin-left:auto;font:700 12px var(--disp);letter-spacing:.2em;padding:3px 12px;border-radius:2px}
+  .verdict.ALLOW{color:#08130c;background:var(--phos);box-shadow:0 0 14px rgba(84,242,139,.35)}
+  .verdict.DENY{color:#fff;background:var(--alert);box-shadow:0 0 14px rgba(255,93,93,.3)}
+  .verdict.PENDING{color:var(--amber);border:1px solid var(--amber)}
+
+  .who{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+       gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+  .who div{background:var(--panel);padding:8px 14px}
+  .who .k{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+  .who .v{color:var(--ink);font-weight:500}
+  .who .v small{display:block;color:var(--dim);font-size:10px}
+
+  .pipe{display:flex;flex-wrap:wrap;gap:0;padding:12px 14px 4px}
+  .stage{position:relative;padding:5px 12px 5px 18px;margin:0 0 8px;
+         font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+         color:var(--faint);border:1px solid var(--line);border-left:none;
+         clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%,9px 50%)}
+  .stage:first-child{border-left:1px solid var(--line);padding-left:12px;
+         clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%)}
+  .stage.done{color:var(--phos);background:rgba(84,242,139,.07);border-color:var(--phos-dim)}
+  .stage.deny{color:var(--alert);background:rgba(255,93,93,.08);border-color:#5c2222}
+  .detail{padding:6px 14px 12px;color:var(--dim);font-size:11px}
+  .detail b{color:var(--ink);font-weight:500}
+  .lamp{float:right;font-size:11px;letter-spacing:.15em;color:var(--faint);margin-top:-4px}
+  .lamp.on{color:var(--amber);text-shadow:0 0 12px rgba(255,179,71,.8)}
+
+  /* ledger tape */
+  #tape{border:1px solid var(--line);background:var(--panel);
+        max-height:calc(100vh - 130px);overflow:auto;position:sticky;top:74px}
+  .row{display:grid;grid-template-columns:44px 88px 1fr;gap:10px;
+       padding:7px 12px;border-bottom:1px solid #14201a;font-size:11px;
+       animation:arrive .3s ease-out}
+  .row .seq{color:var(--faint)}
+  .row .type{letter-spacing:.06em}
+  .row .meta{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .t-REQUEST{color:var(--cyan)} .t-ASSESSMENT{color:var(--amber)}
+  .t-DECISION{color:var(--phos)} .t-REJECTION{color:var(--alert)}
+  .t-EXECUTION_ATTEMPT,.t-CONTROLLER_RECEIPT,.t-EXECUTION_RESULT{color:var(--ink)}
+  .t-OBSERVED_STATE{color:var(--amber)}
+  .empty{padding:40px;text-align:center;color:var(--faint);letter-spacing:.2em;font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand">ALICE<em>/</em>DCAMR</div>
+    <div class="sub">technician console — first light</div>
+  </div>
+  <span class="pill mode">MODE <b>OFFLINE / DDIL</b></span>
+  <span class="pill">NODE <b id="node">alice-pi-01</b></span>
+  <span class="spacer"></span>
+  <span class="pill">EVENTS <b id="count">0</b></span>
+  <span class="pill">RTT <b id="rtt">—</b></span>
+  <span class="pill" id="link">LINK <b id="linktxt">CONNECTING</b></span>
+</header>
+
+<main>
+  <section>
+    <h2>ACTION REQUESTS <b id="reqcount"></b></h2>
+    <div id="cards"><div class="empty">AWAITING LEDGER DATA</div></div>
+  </section>
+  <section>
+    <h2>LEDGER TAPE <b>READ-ONLY</b></h2>
+    <div id="tape"><div class="empty">NO EVENTS</div></div>
+  </section>
+</main>
+
+<script>
+const PI = new URLSearchParams(location.search).get("pi") || "192.168.50.20:8080";
+const BASE = "http://" + PI + "/events?after=";
+
+// SIEM roster (from lab.enterprise_sim.scenario — display data only)
+const ROSTER = {
+  "ssgt.a.okafor":{name:"SSgt A. Okafor",unit:"899-CES/POWER-PRO",role:"electrician"},
+  "msgt.d.reyes":{name:"MSgt D. Reyes",unit:"899-CES/POWER-PRO",role:"power production supervisor"},
+  "a1c.r.delgado":{name:"A1C R. Delgado",unit:"899-CES/POWER-PRO",role:"apprentice"},
+  "capt.j.whitfield":{name:"Capt J. Whitfield",unit:"899-CES/ENERGY",role:"energy manager"},
+  "theo-test":{name:"Theo (test)",unit:"first-light-lab",role:"test operator"},
+};
+const STAGES = ["REQUEST","ASSESSMENT","DECISION","EXECUTION_ATTEMPT","CONTROLLER_RECEIPT","EXECUTION_RESULT","OBSERVED_STATE"];
+const requests = new Map();   // request_id -> {events:[], order}
+let after = 0, total = 0, order = 0;
+
+const $ = id => document.getElementById(id);
+
+function user(id){ const u = ROSTER[id]; return u ? `${u.name}<small>${u.unit} · ${u.role}</small>` : (id||"—"); }
+
+function render(){
+  $("count").textContent = total;
+  $("reqcount").textContent = requests.size ? `(${requests.size})` : "";
+  const cards = [...requests.values()].sort((a,b)=>b.order-a.order).map(r=>{
+    const by = Object.fromEntries(r.events.map(e=>[e.event_type,e]));
+    const first = r.events[0], att = first.attribution;
+    const decision = by.DECISION?.detail, rejection = by.REJECTION?.detail;
+    const verdict = decision ? decision.outcome : rejection ? "DENY" : "PENDING";
+    const reasons = (decision||rejection||{}).reason_codes?.join(" · ") || "";
+    const observed = by.OBSERVED_STATE?.detail;
+    const lampOn = observed?.value === "1";
+    const denied = !!rejection;
+    const stages = STAGES.map(s=>{
+      if (s==="REQUEST" && by.REQUEST) return `<span class="stage done">REQUEST</span>`;
+      if (denied && s==="ASSESSMENT") return `<span class="stage deny">REJECTED</span>`;
+      const cls = by[s] ? "done" : "";
+      const label = {EXECUTION_ATTEMPT:"EXECUTE",CONTROLLER_RECEIPT:"RECEIPT",EXECUTION_RESULT:"RESULT",OBSERVED_STATE:"OBSERVED"}[s]||s;
+      return (denied && !by[s]) ? "" : `<span class="stage ${cls}">${label}</span>`;
+    }).join("");
+    const assessment = by.ASSESSMENT?.detail;
+    return `<div class="card">
+      <div class="card-head">
+        <span class="rid">⬢ ${first.correlation.request_id}</span>
+        <span class="verdict ${verdict}">${verdict}</span>
+      </div>
+      <div class="who">
+        <div><div class="k">agent</div><div class="v">${att.agent_id||"—"}</div></div>
+        <div><div class="k">responsible user</div><div class="v">${user(att.responsible_user_id)}</div></div>
+        <div><div class="k">action → target</div><div class="v">set_light_state → ESP-LIGHT-01</div></div>
+        <div><div class="k">authority</div><div class="v">${first.authority.execution_owner}<small>${first.authority.product_mode} · ${first.authority.confirmation}</small></div></div>
+      </div>
+      <div class="pipe">${stages}</div>
+      <div class="detail">
+        ${assessment?`assessment <b>${assessment.status}/${assessment.result}</b> <b style="color:var(--amber)">FIXTURE</b> · `:""}
+        ${reasons?`reasons <b>${reasons}</b> · `:""}
+        ${by.EXECUTION_RESULT?`execution <b>${by.EXECUTION_RESULT.detail.outcome}</b>`:""}
+        ${observed?`<span class="lamp ${lampOn?"on":""}">${lampOn?"◉ LIGHT ON":"○ LIGHT OFF"}</span>`:""}
+      </div>
+    </div>`;
+  }).join("");
+  $("cards").innerHTML = cards || `<div class="empty">AWAITING LEDGER DATA</div>`;
+}
+
+function tapeRow(e){
+  const div = document.createElement("div");
+  div.className = "row";
+  const d = e.detail, meta =
+    d.outcome ? d.outcome + (d.reason_codes?.length ? " · " + d.reason_codes.join(",") : "") :
+    d.status ? `${d.status}/${d.result}` :
+    d.property ? `${d.property}=${d.value}` : "";
+  div.innerHTML = `<span class="seq">${String(e.sequence).padStart(3,"0")}</span>
+    <span class="type t-${e.event_type}">${e.event_type.replaceAll("_"," ")}</span>
+    <span class="meta">${e.time.recorded_at||""} · ${e.attribution.agent_id||e.attribution.actor_kind} · ${meta}</span>`;
+  const tape = $("tape");
+  if (tape.firstChild?.className === "empty") tape.innerHTML = "";
+  tape.prepend(div);
+}
+
+async function poll(){
+  const t0 = performance.now();
+  try{
+    const res = await fetch(BASE + after, {cache:"no-store"});
+    const {events} = await res.json();
+    $("rtt").textContent = (performance.now()-t0).toFixed(0)+"ms";
+    $("link").className = "pill ok"; $("linktxt").textContent = "LIVE";
+    for (const e of events){
+      after = Math.max(after, e.sequence); total++;
+      tapeRow(e);
+      const rid = e.correlation.request_id;
+      if (rid){
+        if (!requests.has(rid)) requests.set(rid, {events:[], order:order++});
+        requests.get(rid).events.push(e);
+      }
+    }
+    if (events.length) render();
+  }catch(err){
+    $("link").className = "pill bad"; $("linktxt").textContent = "NO CARRIER";
+    $("rtt").textContent = "—";
+  }
+  setTimeout(poll, 1200);
+}
+poll();
+</script>
+</body>
+</html>

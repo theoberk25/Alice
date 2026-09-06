@@ -389,6 +389,9 @@ def make_server(runtime: FirstLightRuntime, host="0.0.0.0", port=8080):
             self.send_response(code)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
+            # The events feed is a read-only projection; allow browser-based
+            # technician displays on the LAN to poll it directly.
+            self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             self.wfile.write(body)
 
