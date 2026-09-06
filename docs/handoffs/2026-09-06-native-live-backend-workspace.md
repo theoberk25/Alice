@@ -7,11 +7,13 @@ This records local preservation, not deployment or runtime acceptance.
 
 Select `/Users/alexdaoud/Documents/Alice` in GitHub Desktop and branch
 `codex/native-live-backend`. It is the sole registered Git worktree. The branch
-starts directly at freshly fetched Theodore Berk `upstream/main` commit
+initially started directly at freshly fetched Theodore Berk `upstream/main` commit
 `d57c66071b6e8caa1a6c4738d29c3cf765c09925`.
 [Biometric PR #4](https://github.com/theoberk25/Alice/pull/4) merged at
 2026-09-06 04:41:48 UTC with that merge commit; its delivered head is `ee97ede`.
-The biometric commits are ancestors, not duplicated. `origin` is Adaoud03's fork;
+Final fetch found `de6c6cb`, a documentation-only fan/demo update; the local commits
+were rebased onto it with all 437 non-Markdown source entries unchanged. The
+biometric commits are ancestors, not duplicated. `origin` is Adaoud03's fork;
 its old `main` is not the development baseline. No push or merge was performed.
 
 ## Preservation and recovery
@@ -28,13 +30,15 @@ The earlier `.tools/biometric-integration-backup-20260906/` is unchanged.
 | `origin/codex/live-face-upstream-integration` at `ee97ede` | Pushed and merged biometric delivery; also preserved in the bundle and upstream ancestry |
 | `codex/live-face-port-source` at `be85a87` | Earlier source-port recovery branch |
 | `codex/backup-native-interrupted-20260906` at `fc18f80` | Native implementation snapshot recovered after an external GitHub Desktop auto-stash |
+| `codex/backup-native-before-upstream-20260906` at `346ee6e` | Focused completed implementation commits before rebasing onto the final upstream documentation update |
 
 The bundle contains all pre-cleanup refs and the snapshot. No stash is needed
 for recovery. A separately requested branch-sync task later updated local `main`
 to `d57c660` and removed four redundant local refs after creating its own backup;
 this native-backend task did not delete those branches. Original biometric, dirty
-snapshot, port-source and saved WIP branches remain visible. Local `main` now
-matches Theodore's main; `origin/main` is still the fork's older remote branch.
+snapshot, port-source and saved WIP branches remain visible. Local `main` stays at
+that task's `d57c660` checkpoint; the active native branch includes the subsequently
+fetched `de6c6cb`. `origin/main` is still the fork's older remote branch.
 `original-working.patch`, `original-index.patch`, `original-status.z`,
 `original-files.json`, `untracked-source.tar.gz`, the copied original handoff and
 `verification.json` independently describe the original working state.

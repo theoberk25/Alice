@@ -1,47 +1,53 @@
 # Current
 Updated: 2026-09-06 EDT.
-Baseline: freshly fetched Theodore Berk `upstream/main` at `d57c660` (merged biometric PR #4).
+Baseline: freshly fetched Theodore Berk `upstream/main` at `de6c6cb`.
 Everyday checkout: `/Users/alexdaoud/Documents/Alice`; branch `codex/native-live-backend`.
 
 ## Active objective
 
-Complete native parity with the working technician web backend: collected request
+Native backend integration is the active major project. Locally implemented: collected request
 and audit visibility, exact supplied details, immutable decisions, fresh-face
 approve/reject of eligible OFFLINE ALICE-owned HOLDs, and separate acknowledgment,
 execution and observation. No deepfake work or device-output adjustments.
 
 ## Current state
 
-- Root is the sole registered worktree. Original branches/WIP remain recoverable.
-- Snapshot `codex/backup-biometric-working-20260906` (`fb7c3d7`) preserves the
-  original dirty source; bundle and untracked archive reconstruction verified.
-- Private settings, models and enrollment data remain in place; hashes unchanged.
-- Biometric PR #4 merged upstream at `d57c660`; no stacked delivery dependency.
-- Python/Rust/UI recovery and security completion are in progress. No new review
-  acceptance is claimed. Native/web views already share the read-only live feed.
-- Rich fixture decisions, separate enterprise SIEM and agent workbenches are not
-  evidence of working technician backend endpoints. Telemetry covers admitted
-  ALICE requests/audit, not every network packet. Owners remain unassigned.
+- Root is the sole registered worktree. Original biometric/WIP and verified source
+  snapshots remain on named backup branches; private settings/models are preserved.
+- Biometric PR #4 merged at `d57c660`; local commits now include the subsequent
+  upstream wireless/fan roadmap. No duplicate biometric commits or remote writes.
+- Native/web share collected history, evidence and explicit freshness. Native adds
+  exact retained requests and signed fresh-face approve/reject through the existing
+  bridge, Pi ledger and execution path, with durable uncertain-delivery reconciliation.
+- The built app is open for a local personal rehearsal with the existing enrollment;
+  real facial service is ready. Controller/assessment are labeled mock/fixture.
+  `npm run demo:hold -- --session /private/tmp/alice-native-personal-20260906-01/session.json`
+  sends another signed, unexecuted test HOLD; final helper checks: 12 passed.
+- Working scope is first-light `set_light_state`, fixed OFFLINE ALICE authority.
+  Enterprise handover/reads, live brief/model factors and fan adapters remain upstream
+  integration work. Device adjustments stay deferred. Owners are unassigned.
 
 ## Evidence and limits
 
-Workspace checks: all branches/worktrees/remotes/status/stashes inspected;
-upstream/origin fetched and PR metadata checked; 81 changed source paths and
-14 untracked files reconstructed independently; 19 private files hash-verified;
-36,994 retired worktree entries verified unchanged. No hidden recovery stash.
-Prior biometric tests are historical in the workspace record and delivery report.
-Current increment tests/build/operator acceptance remain pending.
-No push, merge, deployment, remote trust provisioning or hardware operation.
+Core: 435 passed and 266 subtests. Biometrics: 166 passed. Rust: 60 passed plus
+one opt-in real Rust→Python bridge/runtime test; approve/reject/replay produced one
+mock command. Frontend: 134 tests plus eight script checks; eight UI E2E and one
+real web/runtime E2E passed. Typecheck, lint, web/native builds passed.
+Cross-language proofs, cancellation, replay, restart, concurrency and uncertainty
+have automated evidence. No human camera→Pi/hardware acceptance or live Ollama test.
+Telemetry covers collected ALICE request/audit traffic, not every network packet.
+Verified preservation includes the concurrent Desktop auto-stash recovery; tracked
+source is committed. No push, remote merge, deployment, remote trust or hardware use.
 
 ## Next steps
 
-1. Finish selective runtime, bridge, native proof and shared UI adaptation.
-2. Validate signature interoperability, cancellation, replay, concurrent review and restart.
-3. Run core/biometric/Rust/frontend/E2E suites and build the actual native app.
-4. Prepare a labeled local operator test; report physical-Pi/camera limits separately.
-5. Update parity, tracker and handoff; finish focused commits and a clean tree.
+1. Personally test fresh login, approve, reject and cancellation in the local rehearsal.
+2. After separate authorization, configure reviewed Pi trust and record physical acceptance.
+3. Coordinate enterprise authority/feed, real model/context and fan contracts before
+   implementing the broader [upstream demo](docs/guides/demo-runbook.md).
 
 [Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
 [Workspace recovery](docs/handoffs/2026-09-06-native-live-backend-workspace.md) ·
-[Backend handoff](docs/handoffs/2026-09-06-live-backend-after-biometric-delivery.md) ·
-[Biometric delivery](docs/reports/2026-09-06-live-face-main-integration.md)
+[Ready handoff](docs/handoffs/2026-09-06-native-live-backend-ready.md) ·
+[Parity](docs/plans/native-live-backend-parity.md) ·
+[Validation](docs/reports/2026-09-06-native-live-backend-validation.md)

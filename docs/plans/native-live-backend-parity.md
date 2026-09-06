@@ -1,7 +1,8 @@
 # Native live backend parity
 
 Updated 2026-09-06. Baseline: merged biometric delivery on Theodore Berk's
-`upstream/main`, `d57c660`; active implementation branch `codex/native-live-backend`.
+`upstream/main`, `d57c660`, with the final documentation update `de6c6cb` incorporated;
+active implementation branch `codex/native-live-backend`.
 Final fetched upstream `de6c6cb` changes documentation only, preserving the tested
 runtime source.
 Follow [repository rules](../../AGENTS.md), [technician boundaries](../integration/technician-console.md)
@@ -24,6 +25,7 @@ physical acceptance is separate.
 | Reconnect, timeout, malformed data, stale state | Existing cursor/anchor validation, hash-chain checks, bounded bridge/native reads and shared polling | Retain received history during outage with explicit freshness. No fixture fallback. Native history reloads from Pi after app restart; disconnected restart has no local runtime-history mirror. Initial history is capped at 16 MiB; pagination remains upstream work. |
 | Current system/agent health | Feed reachability and historical event authority exist; Pi `GET /sync-status` reports Wazuh worker state but web does not expose it | Show only supplied facts. Hardware/engine readiness, current agent health, EDR connectivity and authority transfer are unavailable; HTTP success proves none of these. |
 | Rich anomaly scores, reassessment and context exchange | Rich `alice.*` contracts/fixtures exist, but compact feed omits scores; no real context-response receiver | Preserve raw supplied assessment metadata. No synthetic risk scores, local rescoring or invented context delivery. |
+| Planned fan-sequence demo | `de6c6cb` documents three fan increments and an anomalous shutdown HOLD | Fan delta/speed request contracts, live sequence-model/temperature/power telemetry and fan controller are unavailable upstream. They remain roadmap work; device output-adjustment controls are deferred by the current request. |
 | Local explanations | Existing native Ollama gateway explains bounded supplied facts; fixture UI exercises its rich contract | Preserve it. Live brief publication/context exchange is unavailable upstream; explanation cannot approve or execute. |
 
 ## Other web and agent surfaces

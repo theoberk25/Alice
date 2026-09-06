@@ -83,7 +83,11 @@ verification, approve an action, call protected tools or expose private reasonin
 If Ollama is unavailable, the console must retain the raw factors and human review
 controls. An explanation failure must not become ALLOW or DENY.
 
-## Anomalous fan-shutdown review
+## Planned anomalous fan-shutdown review
+
+This upstream target requires fan request/controller, live model and telemetry
+adapters. Current native execution parity is the first-light `set_light_state`
+contract; the local rehearsal uses fixture assessment.
 
 For the fan demonstration, show three completed `+10%` ALLOW requests followed by
 one current shutdown HOLD. The HOLD must retain the power agent, responsible user,
@@ -156,7 +160,7 @@ ALICE authority; this does not implement general enterprise ownership transfer.
   and separately reports receipt, execution result and observed state.
 - Tunnel loss retains history and recovers without simulation fallback.
 - Authority transfer invalidates incompatible pending approvals.
-- Three normal fan increments appear separately from the anomalous shutdown HOLD;
+- Planned fan acceptance: three normal increments appear separately from the anomalous shutdown HOLD;
   rejecting shutdown produces no command and preserves the last approved fan state.
 
 Historical web viewing passed against the physical Pi. Current native response

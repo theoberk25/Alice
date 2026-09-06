@@ -4,7 +4,8 @@ Validated locally on 2026-09-06 on `codex/native-live-backend`, based on Theodor
 Berk's merged `upstream/main` at `d57c660`. This report covers the restored final
 source and local tests; it does not establish physical-Pi or human-camera acceptance.
 Final fetched upstream `de6c6cb` adds wireless DDIL demo documentation in ten
-Markdown files; that upstream delta does not change the tested runtime source.
+Markdown files. Local commits were rebased onto it; every non-Markdown Git blob
+matches the pre-rebase backup, so the tested source remains unchanged.
 See [feature parity](../plans/native-live-backend-parity.md),
 [review contract](../contracts/technician-runtime-review.md),
 [operator setup](../guides/native-runtime-review.md) and
@@ -38,7 +39,8 @@ not be added together as independent integrated acceptance tests.
 | `PLAYWRIGHT_BROWSERS_PATH=.tools/playwright npm run test:e2e -- --workers=1` | **Eight passed**, 12.8s | Five existing UI workflows; three browser tests with explicitly synthetic native IPC/camera for feed-before-ack, cancellation/rejection and uncertain delivery across renderer restart. `/tmp/alice-native-renderer-e2e.log`. |
 | `PLAYWRIGHT_BROWSERS_PATH=.tools/playwright npm run test:e2e:runtime` | **One passed**, 7.0s | Real Vite → Python bridge → temporary runtime/ledger with mock controller; incremental feed, replay and reconnection. `/tmp/alice-native-runtime-e2e.log`. |
 | `npm run build:app` | **Exit 0**; optimized native build 19.25s | Rebuilt after source restoration. Bundle: `apps/desktop/src-tauri/target/release/bundle/macos/ALICE.app`. `/tmp/alice-native-app-build.log`. |
-| Provisioning/rehearsal helper tests | **Seven passed**, 1.17s | Local key boundaries and final rehearsal helper, including unique default request IDs. |
+| Provisioning/rehearsal helper tests before the added HOLD command | **Seven passed**, 1.17s | Local key boundaries and rehearsal helper, including unique default request IDs. |
+| `.venv/bin/python -m pytest tests/test_native_review_demo.py -q` after adding `demo:hold` | **12 passed**, 1.28s | Final helper and HTTP HOLD submission; malformed/remote sessions cannot open a client, non-mock source cannot POST, exact eligible unexecuted request is verified through the bridge. Package JSON, Python compilation and whitespace checks passed. |
 
 The separately enabled integration used the real production Rust snapshot,
 grant-consumption/signing and HTTP submission paths against the real local Python
@@ -61,6 +63,15 @@ events**. The helper was then stopped. Session `-03` reconfirmed the earlier `-0
 pass after the helper's default IDs were made unique; fixed IDs now require the
 explicit integration-test flag. Results were captured in task tool output.
 
+The subsequently requested `npm run demo:hold -- --session
+/private/tmp/alice-native-personal-20260906-01/session.json` was also run against
+the already-running personal rehearsal. It returned request
+`native-test-2b98f2acd7884b868bbe61fc0d613dc7`, `CHALLENGE`, `NOT_EXECUTED`.
+Before/after status was one mock command in both cases, while events rose from
+11 to 14. The command added a pending request without another execution. Existing
+personal-session activity is not counted as automated camera acceptance. The
+additive helper/npm alias does not change the built native or frontend source.
+
 ## Failures and recovery
 
 The initial opt-in attempt lost its helper because stdin closed. Restarting the
@@ -82,7 +93,7 @@ The built app was prepared for a personal local rehearsal against the ready
 biometric service and the existing enrolled database, which was backed up and
 integrity-checked. The service reported READY with identity, pose and PAD readiness
 checks passing; the app opened signed out and waits for login before reading the
-remote feed. **No facial scan or physical-Pi review was performed.** Camera
+remote feed. **This validation did not perform a facial scan or physical-Pi review.** Camera
 quality, a person's fresh approval/rejection, physical execution and independent
 sensor feedback require separate recorded acceptance and authorized Pi trust setup.
 
