@@ -5,9 +5,9 @@ Feature: `codex/dashboard-visual-overhaul` in `../alice-dashboard-visual-overhau
 
 ## Active objective
 
-Complete the authorized presentation-only redesign and integrate it into Alex's
-local main, then publish the feature branch and open a team PR. Do not push local
-main, merge the remote PR, or deploy. Owners are unassigned.
+Presentation-only redesign delivered and integrated into Alex's local main.
+Team [PR #6](https://github.com/theoberk25/Alice/pull/6) is open for review.
+Do not push local main, merge the remote PR, or deploy. Owners are unassigned.
 
 ## Current state
 
@@ -17,26 +17,27 @@ main, merge the remote PR, or deploy. Owners are unassigned.
   dialogs, stage continuity, counters, tooltips and controls. Anime.js is limited
   to backend-evidence-driven biometric SVG presentation.
 - Existing handlers, enablement, camera lifecycle, state, contracts and security
-  implementation are preserved. No business/security behavior changes intended.
-- Original checkout stayed on clean main during development. The feature worktree
-  and branch will remain available through PR review.
+  implementation are preserved. No intentional business/security behavior changes.
+- Feature was published to the verified team `upstream` remote. Team main did not
+  advance; no conflicts occurred. Local main was not pushed.
+- The Dock-linked original-checkout ALICE.app was rebuilt and reopened with the
+  redesign. Its existing settings/enrollment are preserved. Worktree and branch remain.
 
 ## Evidence and limits
 
-Frontend check: 145 tests and eight script checks passed; typecheck/lint/web build
-passed. Native build passed. Rust: 60 passed, two existing opt-in tests ignored.
-Python biometrics: 165 passed, one existing opt-in test skipped. All 11 browser
-regressions passed. Local integration verification remains; see the
+Integrated local main: 145 frontend tests and eight script checks passed;
+typecheck/lint/web/native builds passed. Rust: 60 passed, two opt-in tests ignored.
+Python biometrics: 166 passed. All 11 browser regressions passed. See the
 [validation record](docs/reports/2026-09-06-console-visual-overhaul.md).
-Baseline and redesigned screenshots use mock/synthetic data. No human camera to
-physical-Pi acceptance, real Ollama test, deployment or hardware operation occurred.
-No screen recording was supplied or found. Build emits a JS chunk-size advisory.
+Baseline/redesigned screenshots use mock/synthetic data; native app presentation
+was also inspected. No human camera to physical-Pi acceptance, real Ollama test,
+deployment or hardware operation occurred. No recording was supplied or found.
+Build emits a JS chunk-size advisory. Dialog closing is immediate for cleanup.
 
 ## Next steps
 
-1. Finish the validation record and recheck team main.
-2. Merge the feature into local main and repeat critical checks.
-3. Push only the feature branch and open the authorized team PR.
+1. Review [PR #6](https://github.com/theoberk25/Alice/pull/6); retain feature worktree through review.
+2. Human camera-to-Pi/hardware acceptance remains separate, requiring its own scope.
 
 [Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
 [Previous checkpoint](docs/handoffs/2026-09-06-before-visual-overhaul.md) ·
