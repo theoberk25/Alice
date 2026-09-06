@@ -126,8 +126,11 @@ export function runtimeProxy(env) {
           return reply(200, { authenticated: true });
         }
         if (!authenticated) return reply(401, 'Dashboard login required');
-        if (req.method !== 'GET' || !/^\/api\/alice\/events\?after=\d+$/.test(req.url))
-          return reply(400, 'Read-only events cursor required');
+        if (
+          req.method !== 'GET' ||
+          !(/^\/api\/alice\/events\?after=\d+$/.test(req.url) || req.url === '/api/alice/plant')
+        )
+          return reply(400, 'Read-only events cursor or plant snapshot required');
         let config;
         try {
           config = feedConfig(env.ALICE_FEED_URL, env.ALICE_FEED_TOKEN);

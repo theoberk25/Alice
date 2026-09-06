@@ -3,8 +3,8 @@ import { Panel, Badge, Empty, MetricTile, AgentThoughtCard, CommandButton } from
 import {
   deriveAgentActivity,
   deriveEnvironment,
+  mergePlant,
   pendingHolds,
-  type EnvironmentTelemetry,
   type Observation,
 } from '@alice/domain';
 import { useConsole } from '../../state/console';
@@ -23,15 +23,22 @@ function tileQuality(o: Observation | null): string {
 export function EnvironmentPanel() {
   const runtime = useConsole((s) => s.runtime);
   const feed = useConsole((s) => s.feed);
-  const env: EnvironmentTelemetry = deriveEnvironment(runtime);
-  const stale = feed.state !== 'live';
+  const plant = useConsole((s) => s.plant);
+  // Live plant values when the snapshot is available, the last audited reading
+  // otherwise. A tile must never present an audited value as if it were now.
+  const env = mergePlant(deriveEnvironment(runtime), plant);
+  const stale = !env.live;
   const supply = show(env.supplyW);
   const draw = show(env.batteryDrawW);
   const wh = show(env.batteryWh);
   return (
     <Panel
       title="Environment"
-      meta={<Badge tone={stale ? 'warning' : 'healthy'}>{feed.state.toUpperCase()}</Badge>}
+      meta={
+        <Badge tone={env.live ? 'healthy' : 'warning'}>
+          {env.live ? 'LIVE' : feed.state === 'live' ? 'LAST RECORDED' : feed.state.toUpperCase()}
+        </Badge>
+      }
     >
       {!env.observed ? (
         <Empty>No plant readings have been observed on this feed yet.</Empty>
@@ -39,6 +46,7 @@ export function EnvironmentPanel() {
         <div className="metric-grid">
           <MetricTile
             label="Server temperature"
+            accent="temperature"
             value={show(env.temperatureF)}
             unit="°F"
             tone={env.temperatureOver ? 'danger' : 'healthy'}
@@ -48,6 +56,7 @@ export function EnvironmentPanel() {
           />
           <MetricTile
             label="Fan speed"
+            accent="fan"
             value={show(env.fanActual)}
             unit="%"
             tone="information"
@@ -59,6 +68,7 @@ export function EnvironmentPanel() {
           />
           <MetricTile
             label="Power draw"
+            accent="power"
             value={show(env.powerW)}
             unit="W"
             tone={env.powerOver ? 'danger' : 'healthy'}
@@ -68,6 +78,7 @@ export function EnvironmentPanel() {
           />
           <MetricTile
             label="Battery reserve"
+            accent="battery"
             value={show(env.batteryPct)}
             unit="%"
             tone={env.batteryDanger ? 'danger' : env.batteryWarning ? 'warning' : 'healthy'}

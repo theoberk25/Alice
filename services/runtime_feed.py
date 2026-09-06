@@ -122,6 +122,46 @@ def make_server(*, upstream, token, source, controller, port=8787, upstream_toke
             except (ValueError, OSError):
                 return self.reply(502, {'error': 'Review unavailable; refresh the ledger before retrying'})
 
+        def forward_plant(self):
+            """Current simulated plant values, for the environment tiles.
+
+            This is live telemetry, not a decision record: the ledger only
+            carries a reading when a request executes, so a dashboard bound to
+            audited events alone shows a stale number as if it were current.
+            Only the named scalars and the run lifecycle cross this boundary,
+            and the console never receives the upstream operator credential.
+            """
+            try:
+                request = Request(upstream + '/demo/state', headers=upstream_headers)
+                with opener.open(request, timeout=5) as response:
+                    data = response.read(MAX_RESPONSE_BYTES + 1)
+                if len(data) > MAX_RESPONSE_BYTES:
+                    raise ValueError('Plant response exceeds supported size')
+                # The snapshot carries history and event rings, so it is far
+                # larger than one ledger event; parse_json's event cap rejects it.
+                state = json.loads(data, object_pairs_hook=unique_object)
+                if type(state) is not dict:
+                    raise ValueError('Plant state is not an object')
+                values = state.get('values')
+                numbers = {}
+                for key in ('temperature_f', 'fan_target_pct', 'fan_actual_pct', 'power_w',
+                            'supply_w', 'battery_pct', 'battery_remaining_wh', 'battery_draw_w'):
+                    value = (values or {}).get(key)
+                    if type(value) in (int, float) and value == value and abs(value) != float('inf'):
+                        numbers[key] = float(value)
+                status = state.get('status')
+                revision = state.get('revision')
+                return self.reply(200, {
+                    'schema_version': 'alice-plant-snapshot-v1',
+                    'simulation': state.get('simulation') is True,
+                    'status': status if type(status) is str else None,
+                    'revision': revision if type(revision) is int else None,
+                    'values': numbers,
+                })
+            except (ValueError, OSError):
+                # No substitution: the console must show the reading as absent.
+                return self.reply(502, {'error': 'Plant state unavailable; no values substituted'})
+
         def do_POST(self):
             if not hmac.compare_digest(self.headers.get('Authorization', '').encode('utf-8'), f'Bearer {token}'.encode('ascii')):
                 return self.reply(401, {'error': 'Feed authentication required'})
@@ -147,6 +187,8 @@ def make_server(*, upstream, token, source, controller, port=8787, upstream_toke
             query = parse_qs(parsed.query, keep_blank_values=True)
             if re.fullmatch(r'/review/[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}', parsed.path) and not parsed.query:
                 return self.forward_review(parsed.path)
+            if parsed.path == '/plant' and not parsed.query:
+                return self.forward_plant()
             if parsed.path != '/events':
                 return self.reply(404, {'error': 'Read-only events endpoint only'})
             try:

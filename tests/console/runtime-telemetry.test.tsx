@@ -38,10 +38,22 @@ function reading(sequence: number, property: string, value: string, unit: string
   return raw;
 }
 
+function plantState(values: Record<string, number>) {
+  return {
+    event_type: 'alice.plant_state',
+    schema_version: 'alice-plant-snapshot-v1',
+    simulation: true,
+    status: 'RUNNING',
+    revision: 1,
+    values,
+  };
+}
+
 function seed(events: unknown[], feedState = 'live') {
   useConsole.setState({
     mode: 'remote',
     runtime: emptyRuntime(),
+    plant: null,
     selectedRuntimeId: '',
     decisions: {},
     errors: [],
@@ -55,14 +67,19 @@ function seed(events: unknown[], feedState = 'live') {
 }
 
 it('renders live plant readings with threshold colouring', () => {
-  seed([
-    reading(1, 'server_temperature', '161', 'F'),
-    reading(2, 'simulated_fan_actual', '80', 'percent'),
-    reading(3, 'simulated_fan_target', '90', 'percent'),
-    reading(4, 'power_consumption', '500', 'W'),
-    reading(5, 'power_supply', '450', 'W'),
-    reading(6, 'battery_reserve', '18', 'percent'),
-  ]);
+  seed([reading(1, 'server_temperature', '100', 'F')]);
+  useConsole.getState().ingest(
+    plantState({
+      temperature_f: 161,
+      fan_actual_pct: 80,
+      fan_target_pct: 90,
+      power_w: 500,
+      supply_w: 450,
+      battery_pct: 18,
+      battery_remaining_wh: 18,
+      battery_draw_w: 50,
+    }),
+  );
   const { container } = render(<EnvironmentPanel />);
   expect(screen.getByText('161')).toBeVisible();
   expect(screen.getByText('80')).toBeVisible();
@@ -70,6 +87,28 @@ it('renders live plant readings with threshold colouring', () => {
   // Temperature over 150, draw over supply and battery under 25 are all danger.
   expect(container.querySelectorAll('.metric-tile.tone-danger')).toHaveLength(3);
   expect(container.querySelectorAll('.metric-tile.is-stale')).toHaveLength(0);
+});
+
+it('prefers the live plant value over the last audited reading', () => {
+  seed([reading(1, 'server_temperature', '100', 'F')]);
+  const { container, rerender } = render(<EnvironmentPanel />);
+  // Audited only: the reading is shown but must not claim to be current.
+  expect(screen.getByText('100')).toBeVisible();
+  expect(container.querySelectorAll('.metric-tile.is-stale').length).toBeGreaterThan(0);
+  useConsole.getState().ingest(plantState({ temperature_f: 207 }));
+  rerender(<EnvironmentPanel />);
+  expect(screen.getByText('207')).toBeVisible();
+  expect(container.querySelectorAll('.metric-tile.is-stale')).toHaveLength(0);
+});
+
+it('falls back to the audited reading when the plant snapshot drops', () => {
+  seed([reading(1, 'server_temperature', '100', 'F')]);
+  useConsole.getState().ingest(plantState({ temperature_f: 207 }));
+  const { rerender } = render(<EnvironmentPanel />);
+  expect(screen.getByText('207')).toBeVisible();
+  useConsole.getState().ingest({ event_type: 'alice.plant_state', unavailable: true });
+  rerender(<EnvironmentPanel />);
+  expect(screen.getByText('100')).toBeVisible();
 });
 
 it('marks every tile stale when the feed is not live', () => {

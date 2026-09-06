@@ -10,9 +10,17 @@ import { nativeCall, isNative } from './native';
 
 interface Options {
   read?: (after: number, signal: AbortSignal) => Promise<unknown>;
+  readPlant?: (signal: AbortSignal) => Promise<unknown>;
+  plantMs?: number;
   pollMs?: number;
   staleMs?: number;
   timeoutMs?: number;
+}
+async function readPlant(signal: AbortSignal): Promise<unknown> {
+  if (isNative) return nativeCall('read_runtime_plant');
+  const response = await fetch('/api/alice/plant', { signal, cache: 'no-store' });
+  if (!response.ok) throw new Error(`Plant HTTP ${response.status}`);
+  return response.json();
 }
 async function readFeed(after: number, signal: AbortSignal): Promise<unknown> {
   if (isNative) return nativeCall('read_runtime_events', { after });
@@ -104,11 +112,34 @@ export class RemoteAliceTransport implements AliceTransport {
         if (active) timer = setTimeout(() => void poll(), this.options.pollMs ?? 1500);
       }
     };
+    // Plant telemetry polls on its own clock. The ledger only records a
+    // reading when a request executes, so the tiles would otherwise show a
+    // stale value as current while the plant kept moving. It is deliberately
+    // independent of the event loop: neither can stall the other, and a plant
+    // outage must not be reported as a feed outage.
+    let plantController: AbortController | undefined;
+    let plantTimer: ReturnType<typeof setTimeout> | undefined;
+    const pollPlant = async () => {
+      plantController = new AbortController();
+      try {
+        const snapshot = await (this.options.readPlant ?? readPlant)(plantController.signal);
+        if (!active) return;
+        onEvent({ ...(snapshot as object), event_type: 'alice.plant_state' });
+      } catch {
+        // Absent readings are rendered as unknown, never substituted.
+        if (active) onEvent({ event_type: 'alice.plant_state', unavailable: true });
+      } finally {
+        if (active) plantTimer = setTimeout(() => void pollPlant(), this.options.plantMs ?? 1000);
+      }
+    };
     await poll();
+    void pollPlant();
     return () => {
       active = false;
       controller?.abort();
+      plantController?.abort();
       clearTimeout(timer);
+      clearTimeout(plantTimer);
       clearInterval(staleTimer);
     };
   }

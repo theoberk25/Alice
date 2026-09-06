@@ -10,14 +10,47 @@
 }
 
 .metric-tile {
+  /* Ambient identity colour. It matches the LED wired for this property in
+     services/light_mcp/machines.yaml so the screen and the board read as one
+     system. Severity is carried separately by the tone- classes below, which
+     must stay the louder signal. */
+  --tile-accent: var(--alice-text-secondary);
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 14px 14px 12px;
+  padding: 14px;
   border-radius: 10px;
-  background: var(--alice-bg-raised);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--tile-accent) 7%, transparent), transparent 62%),
+    var(--alice-bg-raised);
   box-shadow: inset 0 0 0 1px var(--alice-border);
+  min-width: 0;
+}
+
+/* Red LEDs 03/07 */
+.metric-tile.accent-temperature {
+  --tile-accent: var(--alice-red);
+}
+/* Blue LEDs 02/06 */
+.metric-tile.accent-fan {
+  --tile-accent: var(--alice-cyan);
+}
+/* Yellow LEDs 01/05 */
+.metric-tile.accent-power {
+  --tile-accent: var(--alice-amber);
+}
+/* White LEDs 04/08 */
+.metric-tile.accent-battery {
+  --tile-accent: #d7dee8;
+}
+
+/* Label and ribbon share a row so a stale badge cannot sit on the label. */
+.metric-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -25,13 +58,19 @@
   font: 10px var(--alice-font-body);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--alice-text-secondary);
+  color: color-mix(in srgb, var(--tile-accent) 62%, var(--alice-text-secondary));
+  min-width: 0;
+  /* Wrap between words only. Breaking inside "TEMPERATURE" is worse than a
+     second line, and the ribbon shrinks before the label does. */
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .metric-value {
   font: 600 30px/1 var(--alice-font-mono);
   font-variant-numeric: tabular-nums;
-  color: var(--alice-cyan);
+  color: var(--tile-accent);
   display: flex;
   align-items: baseline;
   gap: 4px;
@@ -45,14 +84,19 @@
   color: var(--alice-text-secondary);
 }
 
+/* Severity outranks identity: a breached threshold recolours the value and
+   rings the tile so it reads before the ambient accent does. */
 .metric-tile.tone-danger .metric-value {
   color: var(--alice-red);
+}
+.metric-tile.tone-danger {
+  box-shadow: inset 0 0 0 1px var(--alice-red);
 }
 .metric-tile.tone-warning .metric-value {
   color: var(--alice-amber);
 }
-.metric-tile.tone-healthy .metric-value {
-  color: var(--alice-green);
+.metric-tile.tone-warning {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--alice-amber) 55%, transparent);
 }
 
 .metric-sub {
@@ -74,7 +118,7 @@
   height: 100%;
   border-radius: 3px;
   background: currentColor;
-  color: var(--alice-cyan);
+  color: var(--tile-accent);
   transition: width 240ms ease;
 }
 
@@ -83,9 +127,6 @@
 }
 .metric-tile.tone-warning .metric-bar-fill {
   color: var(--alice-amber);
-}
-.metric-tile.tone-healthy .metric-bar-fill {
-  color: var(--alice-green);
 }
 
 /* The value the plant is chasing, so the lag between target and actual stays
@@ -109,13 +150,15 @@
 }
 
 .metric-ribbon {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font: 9px var(--alice-font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--alice-amber);
+  white-space: nowrap;
 }
 
 /* Agent activity feed */

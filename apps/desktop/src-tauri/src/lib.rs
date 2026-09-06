@@ -78,6 +78,7 @@ pub fn run() {
             biometric_commands::recover_face_enrollment,
             commands::runtime_config,
             commands::read_runtime_events,
+            commands::read_runtime_plant,
             runtime_review::read_runtime_review,
             runtime_review::submit_runtime_review,
             runtime_review::read_runtime_submission,

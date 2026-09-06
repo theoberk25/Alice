@@ -190,3 +190,91 @@ export function pendingHolds(runtime: RuntimeState): string[] {
   }
   return held;
 }
+
+/**
+ * Environment values preferring live plant telemetry over the last audited
+ * reading.
+ *
+ * The ledger records a reading only when a request executes, so audited values
+ * go stale while the plant keeps moving. Live values are shown when present
+ * and fall back to the audited observation otherwise, with `live` saying which
+ * a tile is displaying so the console can label provenance honestly.
+ */
+export function mergePlant(
+  audited: EnvironmentTelemetry,
+  plant: { values: Record<string, number> } | null,
+): EnvironmentTelemetry & { live: boolean } {
+  if (!plant) return { ...audited, live: false };
+  const at = (key: string, property: string): Observation | null => {
+    const value = plant.values[key];
+    const prior = priorFor(audited, property);
+    if (typeof value !== 'number' || Number.isNaN(value)) return prior;
+    return {
+      property,
+      value,
+      raw: String(value),
+      unit: prior?.unit ?? '',
+      quality: 'GOOD',
+      origin: 'SIMULATED',
+      assetId: prior?.assetId,
+      recordedAt: null,
+      sequence: prior?.sequence ?? 0,
+    };
+  };
+  const temperatureF = at('temperature_f', 'server_temperature');
+  const fanActual = at('fan_actual_pct', 'simulated_fan_actual');
+  const fanTarget = at('fan_target_pct', 'simulated_fan_target');
+  const powerW = at('power_w', 'power_consumption');
+  const supplyW = at('supply_w', 'power_supply');
+  const batteryPct = at('battery_pct', 'battery_reserve');
+  const batteryWh = at('battery_remaining_wh', 'battery_remaining_wh');
+  const batteryDrawW = at('battery_draw_w', 'battery_draw');
+  const num = (o: Observation | null) => (o && o.value !== null ? o.value : null);
+  const temperature = num(temperatureF);
+  const power = num(powerW);
+  const supply = num(supplyW);
+  const battery = num(batteryPct);
+  return {
+    temperatureF,
+    fanActual,
+    fanTarget,
+    powerW,
+    supplyW,
+    batteryPct,
+    batteryWh,
+    batteryDrawW,
+    temperatureOver: temperature !== null && temperature >= TEMPERATURE_DANGER_F,
+    powerOver: power !== null && supply !== null && power > supply,
+    batteryDanger: battery !== null && battery <= BATTERY_DANGER_PCT,
+    batteryWarning:
+      battery !== null && battery > BATTERY_DANGER_PCT && battery <= BATTERY_WARNING_PCT,
+    observed: true,
+    live: true,
+  };
+}
+
+type ObservationField =
+  | 'temperatureF'
+  | 'fanActual'
+  | 'fanTarget'
+  | 'powerW'
+  | 'supplyW'
+  | 'batteryPct'
+  | 'batteryWh'
+  | 'batteryDrawW';
+
+const FIELD_BY_PROPERTY: Record<string, ObservationField> = {
+  server_temperature: 'temperatureF',
+  simulated_fan_actual: 'fanActual',
+  simulated_fan_target: 'fanTarget',
+  power_consumption: 'powerW',
+  power_supply: 'supplyW',
+  battery_reserve: 'batteryPct',
+  battery_remaining_wh: 'batteryWh',
+  battery_draw: 'batteryDrawW',
+};
+
+function priorFor(audited: EnvironmentTelemetry, property: string): Observation | null {
+  const field = FIELD_BY_PROPERTY[property];
+  return field ? audited[field] : null;
+}

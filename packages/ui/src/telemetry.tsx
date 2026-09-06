@@ -5,12 +5,21 @@ import type { Tone } from './index';
  * A single plant reading. Presentational only: it renders the value it is
  * given and the honesty state around it, and never reaches for the store.
  */
+/**
+ * Which physical indicator a tile stands for. The accent matches the LED
+ * colour wired for that property (services/light_mcp/machines.yaml), so the
+ * screen and the board read as the same system. It carries no severity: a
+ * breached threshold still colours the value and the tile ring.
+ */
+export type MetricAccent = 'temperature' | 'fan' | 'power' | 'battery';
+
 export function MetricTile({
   label,
   value,
   unit,
   sub,
   tone = 'neutral',
+  accent,
   stale = false,
   quality = 'GOOD',
   bar,
@@ -21,6 +30,7 @@ export function MetricTile({
   unit?: string;
   sub?: ReactNode;
   tone?: Tone;
+  accent?: MetricAccent;
   stale?: boolean;
   quality?: string;
   /** 0-100 fill, for fan and battery. */
@@ -33,6 +43,7 @@ export function MetricTile({
   const classes = [
     'metric-tile',
     `tone-${tone}`,
+    accent ? `accent-${accent}` : '',
     stale ? 'is-stale' : '',
     trusted ? '' : 'is-untrusted',
     unknown ? 'is-unknown' : '',
@@ -42,7 +53,12 @@ export function MetricTile({
   const clamp = (n: number) => Math.max(0, Math.min(100, n));
   return (
     <article className={classes}>
-      <span className="metric-label">{label}</span>
+      <span className="metric-head">
+        <span className="metric-label">{label}</span>
+        {(stale || !trusted) && (
+          <span className="metric-ribbon">{stale ? 'stale' : quality.toLowerCase()}</span>
+        )}
+      </span>
       <span className="metric-value">
         {unknown ? '--' : value}
         {unit && !unknown && <i className="metric-unit">{unit}</i>}
@@ -56,9 +72,6 @@ export function MetricTile({
         </span>
       )}
       {sub && <span className="metric-sub">{sub}</span>}
-      {(stale || !trusted) && (
-        <span className="metric-ribbon">{stale ? 'stale' : quality.toLowerCase()}</span>
-      )}
     </article>
   );
 }

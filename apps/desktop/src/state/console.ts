@@ -28,7 +28,12 @@ import { deterministicClarification, OllamaProvider } from '../lib/llm';
 import { MockAliceTransport, RemoteAliceTransport } from '../lib/transport';
 import { nativeCall, isNative, runtimeConfig } from '../lib/native';
 import type { ScenarioName } from '../../../../fixtures/scenarios';
-import { FeedStatusSchema, type FeedStatus } from '@alice/contracts';
+import {
+  FeedStatusSchema,
+  PlantSnapshotSchema,
+  type FeedStatus,
+  type PlantSnapshot,
+} from '@alice/contracts';
 import { emptyRuntime, mergeRuntimeFeed, type RuntimeState } from '@alice/domain';
 export interface AuditEvent {
   id: string;
@@ -50,6 +55,8 @@ export interface Technician {
 }
 interface ConsoleState {
   runtime: RuntimeState;
+  /** Live plant telemetry; null when the snapshot is unavailable. */
+  plant: PlantSnapshot | null;
   feed: FeedStatus;
   selectedRuntimeId: string;
   selectRuntime: (id: string) => void;
@@ -104,6 +111,7 @@ const llm = new OllamaProvider();
 const persistence = new Map<string, Promise<void>>();
 export const useConsole = create<ConsoleState>((set, get) => ({
   runtime: emptyRuntime(),
+  plant: null,
   feed: {
     event_type: 'alice.feed_status',
     state: 'unavailable',
@@ -171,6 +179,7 @@ export const useConsole = create<ConsoleState>((set, get) => ({
         disconnect = undefined;
         set({
           runtime: emptyRuntime(),
+          plant: null,
           selectedRuntimeId: '',
           feed: {
             event_type: 'alice.feed_status',
@@ -308,6 +317,15 @@ export const useConsole = create<ConsoleState>((set, get) => ({
                 ? s.errors.filter((e) => !e.startsWith('Runtime feed unavailable:'))
                 : s.errors,
           }));
+          return;
+        }
+        if (input.event_type === 'alice.plant_state') {
+          if (get().mode !== 'remote') throw new Error('Plant state cannot mix with simulation');
+          const { event_type: _kind, ...body } = input as Record<string, unknown>;
+          void _kind;
+          // Live telemetry only. An unavailable snapshot clears the reading so
+          // a tile shows unknown rather than the last value as if it were now.
+          set({ plant: body.unavailable ? null : PlantSnapshotSchema.parse(body) });
           return;
         }
         if (input.event_type === 'alice.runtime_feed') {

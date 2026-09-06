@@ -178,3 +178,17 @@ export const FeedStatusSchema = z.strictObject({
 export type RuntimeEvent = z.infer<typeof RuntimeEventSchema>;
 export type RuntimeFeed = z.infer<typeof RuntimeFeedSchema>;
 export type FeedStatus = z.infer<typeof FeedStatusSchema>;
+
+/**
+ * Live simulated plant values, published by the bridge for the environment
+ * tiles. Not a decision record and never an authority: the ledger remains the
+ * only source for what ALICE decided.
+ */
+export const PlantSnapshotSchema = z.strictObject({
+  schema_version: z.literal('alice-plant-snapshot-v1'),
+  simulation: z.boolean(),
+  status: z.string().nullable(),
+  revision: z.number().int().nullable(),
+  values: z.record(z.string(), z.number().finite()),
+});
+export type PlantSnapshot = z.infer<typeof PlantSnapshotSchema>;
