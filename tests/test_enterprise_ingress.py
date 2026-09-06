@@ -4,7 +4,7 @@ import pytest
 from lab.first_light.build_release import build
 from lab.first_light.terminal_client import build_envelope
 from dcamr.packages.package_verifier import load_release
-from services.enterprise_ingress import Gateway, IngressError, ReceiptSink, INDEX, pi_forwarder
+from services.enterprise_ingress import Gateway, IngressError, ReceiptSink, INDEX, lan_host, pi_forwarder
 from cloud.wazuh_audit import DeliveryError
 from cloud.thermal_governed_client import build_wire_request, sign_envelope
 from lab.thermal_demo.build_release import build as build_thermal_release
@@ -123,3 +123,12 @@ def test_pi_forwarder_accepts_only_demo_lan_or_ssh_tunnel():
     assert callable(pi_forwarder('http://192.168.50.20:8080'))
     with pytest.raises(ValueError):
         pi_forwarder('http://0.0.0.0:8080')
+
+
+def test_ingress_listener_accepts_isolated_lan_without_wildcard():
+    assert lan_host('127.0.0.1')=='127.0.0.1'
+    assert lan_host('192.168.50.150')=='192.168.50.150'
+    with pytest.raises(Exception):
+        lan_host('0.0.0.0')
+    with pytest.raises(Exception):
+        lan_host('192.168.11.214')

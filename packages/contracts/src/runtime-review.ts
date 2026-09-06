@@ -68,7 +68,9 @@ export const RuntimeReviewSchema = z
     eligible: z.boolean(),
     reason: z.string().max(200),
     execution_status: Execution,
-    decision_reason_codes: z.array(Id).max(32).optional(),
+    // Native serialization emits null for an absent optional field, matching
+    // assessment below. The Pi omits both unless the action is a fan action.
+    decision_reason_codes: z.array(Id).max(32).nullish(),
     assessment: AnomalyAssessment.nullable().optional(),
   })
   .superRefine((v, c) => {

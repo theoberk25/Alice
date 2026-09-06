@@ -69,7 +69,9 @@ class ThermalRuntime(FirstLightRuntime):
         return value
 
     def request_is_current(self, request):
-        return self.environment.current(self.action(request))
+        # Review eligibility only. Execution still calls environment.current
+        # through apply_authorized, so a stale approval is refused there.
+        return self.environment.reviewable(self.action(request))
 
     def _provenance(self, evidence=()):
         artifacts = super()._provenance(evidence)

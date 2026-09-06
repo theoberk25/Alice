@@ -478,7 +478,17 @@ async fn exchange(path: &str, body: Option<Value>) -> Result<Value, String> {
         bytes.extend_from_slice(&chunk);
     }
     if !status.is_success() {
-        return Err(format!("REVIEW_HTTP_{}_REFRESH_LEDGER", status.as_u16()));
+        // The runtime names the exact refusal (expired proof, stale scope,
+        // untrusted console). Reporting only the status hid that from the
+        // technician. Accept the identifier shape alone; never echo free text.
+        let reason = serde_json::from_slice::<Value>(&bytes)
+            .ok()
+            .and_then(|body| body.get("error")?.as_str().map(str::to_owned))
+            .filter(|value| id(value));
+        return Err(match reason {
+            Some(reason) => format!("REVIEW_HTTP_{}_{}_REFRESH_LEDGER", status.as_u16(), reason),
+            None => format!("REVIEW_HTTP_{}_REFRESH_LEDGER", status.as_u16()),
+        });
     }
     parse(&bytes)
 }

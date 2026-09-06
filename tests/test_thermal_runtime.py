@@ -134,7 +134,12 @@ def test_stale_review_cannot_apply(integrated, operation):
         if operation == 'reset':
             env.configure({'temperature_f': 140, 'fan_pct': 60, 'battery_pct': 60})
             env.control('start')
-    assert rt.review(envelope=signed)[0] == 409
+    # A hold that is still undecided stays decidable, so pause and a clock gap
+    # now admit the review. stop, reset and exhaust resolve or discard the
+    # request, which ends review. Either way execution refuses a stale scope,
+    # so the fan never moves.
+    expected = 200 if operation in ('pause', 'gap') else 409
+    assert rt.review(envelope=signed)[0] == expected
     assert env.model.fan_target_pct == 60
 
 

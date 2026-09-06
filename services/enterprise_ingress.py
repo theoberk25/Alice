@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+import ipaddress
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, build_opener, ProxyHandler
@@ -20,6 +21,17 @@ from cloud.wazuh_audit import WazuhAuditSink, DeliveryError, NoRedirect
 
 INDEX = 'alice-enterprise-ingress-v1'
 MAX_BYTES = 16 * 1024
+
+
+def lan_host(value):
+    """Permit loopback or the isolated demo LAN, never a wildcard listener."""
+    try:
+        address = ipaddress.ip_address(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError('Invalid ingress address') from exc
+    if address.is_loopback or address in ipaddress.ip_network('192.168.50.0/24'):
+        return value
+    raise argparse.ArgumentTypeError('Ingress must bind loopback or 192.168.50.0/24')
 
 
 class IngressError(ValueError):
@@ -207,7 +219,7 @@ def main():
     p.add_argument('--release',type=Path,required=True)
     p.add_argument('--trust-key',type=Path,required=True)
     p.add_argument('--wazuh-config',type=Path,required=True)
-    p.add_argument('--host',default='192.168.50.50',choices=['192.168.50.50','127.0.0.1'])
+    p.add_argument('--host',default='192.168.50.50',type=lan_host)
     p.add_argument('--port',type=int,default=8790)
     p.add_argument('--schema',choices=['light','thermal'],default='light')
     p.add_argument('--pi-url',default='http://192.168.50.20:8080',
