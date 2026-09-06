@@ -9,6 +9,7 @@ import {
   forwardRef,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ButtonHTMLAttributes,
@@ -71,6 +72,37 @@ export function TransitionPanel({
   const reduce = useReducedMotion();
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const previous = useRef(stage);
+  const panel = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | 'auto'>('auto');
+  useLayoutEffect(() => {
+    const content = scope.current;
+    const container = panel.current;
+    if (!content || !container || typeof ResizeObserver === 'undefined') return;
+    const measure = (contentHeight: number) => {
+      // Layout dimensions remain correct while a containing dialog is morphing.
+      // Border-box surfaces must include their own padding and borders as well.
+      const style = window.getComputedStyle(container);
+      const chrome =
+        style.boxSizing === 'border-box'
+          ? [
+              style.paddingTop,
+              style.paddingBottom,
+              style.borderTopWidth,
+              style.borderBottomWidth,
+            ].reduce((total, value) => total + (Number.parseFloat(value) || 0), 0)
+          : 0;
+      setHeight(Math.ceil(contentHeight + chrome));
+    };
+    // A child layout effect can run before its native dialog calls showModal().
+    // Keep intrinsic height while hidden; the observer measures the visible layout.
+    if (content.offsetHeight > 0) measure(content.offsetHeight);
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) measure(entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height);
+    });
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [scope]);
   useEffect(() => {
     if (!scope.current) return;
     if (reduce) {
@@ -86,12 +118,17 @@ export function TransitionPanel({
   }, [stage, reduce, animate, scope]);
   return (
     <motion.div
-      layout={reduce ? false : 'size'}
+      ref={panel}
+      initial={false}
+      animate={{ height }}
+      style={{ overflow: 'clip', overflowClipMargin: 4 }}
       className={`transition-panel ${className}`}
       transition={reduce ? { duration: 0 } : motionTokens.panel}
       data-visual-stage={stage}
     >
-      <div ref={scope}>{children}</div>
+      <div ref={scope} style={{ display: 'flow-root' }}>
+        {children}
+      </div>
     </motion.div>
   );
 }

@@ -27,7 +27,10 @@ uses fixed digit cells instead of adding `react-use-measure` for one effect.
   controls and existing handlers outside the primitive.
 - [TransitionPanel source](https://github.com/ibelick/motion-primitives/blob/main/components/core/transition-panel.tsx):
   `TransitionPanel` animates a stable child container when its caller-supplied stage
-  changes. It does not key/remount the subtree or restart camera capture.
+  changes. A ResizeObserver measures the persistent inner flow-root and Motion
+  interpolates the outer height, including surface padding, so native dialog sizing
+  follows the content. It does not key/remount the subtree or restart camera capture.
+  Unsupported observers retain intrinsic sizing; reduced motion sets height immediately.
 - [SlidingNumber source](https://github.com/ibelick/motion-primitives/blob/main/components/core/sliding-number.tsx):
   `AnimatedCounter` uses independent fixed-width digit cells with changed-digit
   presence transitions. The accessible value is a single complete text string.
@@ -37,7 +40,8 @@ uses fixed digit cells instead of adding `react-use-measure` for one effect.
   reduced motion.
 - [MorphingDialog source](https://github.com/ibelick/motion-primitives/blob/main/components/core/morphing-dialog.tsx):
   ALICE retains the native `dialog`, top layer, focus containment, Escape handling,
-  immediate close and cleanup. Optional `morphId` connects its visual opening
+  immediate close and cleanup. A scoped Tab handler wraps enabled visible controls
+  at the first/last focus boundaries. Optional `morphId` connects its visual opening
   geometry to a trigger marked `data-morph-id`. Native top-layer geometry is used
   instead of replacing authoritative state with the source component's internal
   open state. Closing is immediate; no exit animation delays cancellation or cleanup.

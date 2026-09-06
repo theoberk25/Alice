@@ -112,6 +112,42 @@ export function Modal({
         event.preventDefault();
         if (!closeDisabled) onClose();
       }}
+      onKeyDown={(event) => {
+        if (
+          event.key !== 'Tab' ||
+          event.ctrlKey ||
+          event.altKey ||
+          event.metaKey ||
+          event.defaultPrevented
+        )
+          return;
+        const dialog = event.currentTarget;
+        const controls = Array.from(
+          dialog.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]',
+          ),
+        ).filter(
+          (element) =>
+            element.tabIndex >= 0 &&
+            !element.matches(':disabled') &&
+            !element.closest('[hidden], [inert]') &&
+            element.getClientRects().length > 0 &&
+            window.getComputedStyle(element).visibility !== 'hidden',
+        );
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        const active = document.activeElement;
+        if (!first || !last) {
+          event.preventDefault();
+          dialog.focus();
+        } else if (event.shiftKey && (active === first || active === dialog)) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && (active === last || active === dialog)) {
+          event.preventDefault();
+          first.focus();
+        }
+      }}
       aria-label={title}
     >
       <div className="modal-heading">

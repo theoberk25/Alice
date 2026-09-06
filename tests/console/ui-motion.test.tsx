@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import {
   AnimatedCounter,
   AnimatedSelection,
@@ -29,6 +29,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 it('preserves the existing button action and disabled enablement rule', () => {
@@ -156,4 +157,68 @@ it('honors native dialog cancellation immediately and preserves disabled close b
   expect(close).toHaveBeenCalledTimes(1);
   unmount();
   expect(dialog).not.toHaveAttribute('open');
+});
+
+it('interpolates measured panel height without remounting content and includes surface padding', async () => {
+  preference.reduced = true;
+  let deliver: ResizeObserverCallback | undefined;
+  const disconnect = vi.fn();
+  const observe = vi.fn();
+  const observer = { observe, unobserve: vi.fn(), disconnect };
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(callback: ResizeObserverCallback) {
+        deliver = callback;
+      }
+      observe = observe;
+      disconnect = disconnect;
+    },
+  );
+  const { container, unmount } = render(
+    <>
+      <style>{'.measured-panel { box-sizing: border-box; padding: 12px 0; }'}</style>
+      <TransitionPanel className="measured-panel" stage="capture">
+        <input aria-label="Persistent capture input" />
+      </TransitionPanel>
+    </>,
+  );
+  const input = screen.getByRole('textbox');
+  const panel = container.querySelector('.measured-panel');
+  expect(observe).toHaveBeenCalledTimes(1);
+  const deliverHeight = (blockSize: number) =>
+    act(() => {
+      deliver?.(
+        [{ borderBoxSize: [{ blockSize, inlineSize: 400 }] } as unknown as ResizeObserverEntry],
+        observer,
+      );
+    });
+  deliverHeight(80);
+  await waitFor(() => expect(panel).toHaveStyle({ height: '104px' }));
+  deliverHeight(146.5);
+  await waitFor(() => expect(panel).toHaveStyle({ height: '171px' }));
+  expect(screen.getByRole('textbox')).toBe(input);
+  unmount();
+  expect(disconnect).toHaveBeenCalledTimes(1);
+});
+
+it('wraps keyboard focus at native dialog boundaries and skips disabled controls', () => {
+  preference.reduced = true;
+  vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([
+    { width: 20, height: 20 },
+  ] as unknown as DOMRectList);
+  render(
+    <Modal title="Keyboard review" onClose={() => {}}>
+      <button disabled>Unavailable action</button>
+      <input aria-label="Username" />
+      <button>Continue</button>
+    </Modal>,
+  );
+  const first = screen.getByRole('button', { name: 'Close dialog' });
+  const last = screen.getByRole('button', { name: 'Continue' });
+  first.focus();
+  fireEvent.keyDown(first, { key: 'Tab', shiftKey: true });
+  expect(last).toHaveFocus();
+  fireEvent.keyDown(last, { key: 'Tab' });
+  expect(first).toHaveFocus();
 });
