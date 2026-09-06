@@ -11,6 +11,27 @@ scores supplied normal observations for exact contexts in separate PRE_ACTION
 and POST_ACTION profiles. It does not alter the historical cyber experiments
 below or invent an ESP baseline.
 
+## Next synthetic dataset: fan-control demonstration
+
+Generate many independent normal sessions containing bounded `+10%` fan-speed
+increases while server temperature is high. Vary starting fan level, temperature,
+power, timing and session length within explicitly selected demo ranges so the
+forest does not merely memorize three identical rows. Split complete sessions
+before constructing history windows and retain the contextual model's minimums:
+at least 256 training examples and 1,000 held-out normal calibration examples for
+each exact context. Label all values synthetic and keep threshold choices in the
+signed profile/package.
+
+Reserve separate evaluation sessions for the staged demo sequence: three new
+requests from `cooling-agent-01`, each `delta_percent=+10` and expected LOW, then
+one `power-agent-01` request for `percent=0`. The shutdown is a detection target:
+the same frozen model/reference should classify it ELEVATED or HIGH because its
+magnitude and transition differ from normal and fresh overheating telemetry makes
+the context unusual. Do not insert that shutdown into normal training/calibration,
+tune on its evaluation score, or treat the agent's power-saving reason as a normal
+label. The permission layer separately makes it review-eligible; the anomaly result
+drives `HUMAN_APPROVAL_REQUIRED`, and the technician application presents HOLD.
+
 ## System role and authority
 
 The [canonical architecture](../architecture.md) assigns direct execution to enterprise

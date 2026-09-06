@@ -6,7 +6,7 @@ and authenticated LAN web viewing. Full permissions/baseline activation, real Pi
 scoring, native review responses and authority transfer remain. Requirements below
 describe the full product; use the [current source map](../../architecture.md) for scope.
 
-**Updated:** 2026-09-05. **Product:** Authenticated Local Identity & Cyber Enforcement.
+**Updated:** 2026-09-06. **Product:** Authenticated Local Identity & Cyber Enforcement.
 **Status:** Revised design; implementation evidence is identified separately below.
 
 > ALICE synchronizes trusted enterprise context while online, governs local
@@ -349,6 +349,22 @@ linear, known-parent, same-request/agent/mission/action/target chain. Parent rep
 competing assessments and binding all parameters/digests still require a shared
 protocol. New assessments invalidate old grants/actions and block open dialogs;
 late receipts remain attached to the historical action.
+
+### Sequential fan-control assessment
+
+The target DDIL sequence uses separate immutable requests. Three authenticated
+`adjust_fan_speed(+10%)` requests establish a small-step normal sequence and are
+evaluated one at a time; each next request follows the prior execution result. A
+power-agent wake threshold then explains why a second identity requests
+`set_fan_speed(0%)`, but that trigger does not make shutdown normal or safe.
+
+The Pi assesses shutdown against the recent action sequence, current fan setting,
+trusted temperature and power observations, freshness and source metadata. The
+Isolation Forest classifies this permission-eligible request `ELEVATED` or `HIGH`,
+so the assessment carries an anomaly review signal and requires human approval;
+the application presents HOLD. The workstation LLM explains those bounded inputs
+and recommends rejection; only the technician records REJECT. No command is sent,
+and observed fan state remains tied to the last successful `+10%` action.
 
 ## 9. Technician console and facial verification
 

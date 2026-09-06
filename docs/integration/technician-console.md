@@ -79,6 +79,21 @@ verification, approve an action, call protected tools or expose private reasonin
 If Ollama is unavailable, the console must retain the raw factors and human review
 controls. An explanation failure must not become ALLOW or DENY.
 
+## Anomalous fan-shutdown review
+
+For the fan demonstration, show three completed `+10%` ALLOW requests followed by
+one current shutdown HOLD. The HOLD must retain the power agent, responsible user,
+exact `0%` request, permission result, `ELEVATED` or `HIGH` Isolation Forest result,
+score/factors, recent action sequence, current temperature/trend, power-threshold
+observation, evidence freshness and confirmed execution owner. Raw evidence remains
+available if Ollama fails.
+
+The LLM may recommend rejecting shutdown only from those supplied facts and must
+label missing or stale measurements. Its recommendation remains advisory. The
+technician chooses REJECT for the current shutdown assessment. Disable the action
+if the assessment is superseded, authority is unknown or a hard blocker appears.
+Show the bound rejection, absence of an execution attempt and unchanged fan state.
+
 ## Human approval boundary
 
 Unusual actions require human approval. A reusable login session is insufficient:
@@ -135,6 +150,8 @@ boundary after the Pi endpoint and proof contract are agreed.
   and separately reports receipt, execution result and observed state.
 - Tunnel loss retains history and recovers without simulation fallback.
 - Authority transfer invalidates incompatible pending approvals.
+- Three normal fan increments appear separately from the anomalous shutdown HOLD;
+  rejecting shutdown produces no command and preserves the last approved fan state.
 
 Current web viewing has passed against the physical Pi. Native remote response,
 live facial approval, real LLM explanation against Pi model factors and full

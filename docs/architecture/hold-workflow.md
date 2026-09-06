@@ -59,3 +59,17 @@ Native SQLite preserves all immutable decision snapshots, actions, agent respons
 Local append-only audit records include REASSESSMENT_PENDING, REASSESSMENT_RECEIVED, DECISION_SUPERSEDED and CURRENT_ASSESSMENT_UPDATED with decision/request IDs. The UI/export retains its existing latest-500-event window; storage is not rewritten. Issued context IDs, receipts, outbox delivery and the complete transient workflow lifecycle still require future durable recovery work. Development scenario reset clears simulated actions/annotations/grants, but retains immutable decisions and audit. It is distinct from ordinary restart/hydration.
 
 Scenario `04_hold_context_rejustification` replays a response after 1.2 seconds and predetermined DEC-185 after another 1.2 seconds. See the scenario guide for replay instructions and persistence behavior. Real delivery, ordering/replay negotiation, execution-confirmation events and remote approval attestation remain team integration work; no endpoints or ACK protocol have been invented.
+
+## Sequential fan actions and one HOLD
+
+The target fan scenario records three separate `+10%` requests from the cooling
+agent. Each receives its own assessment and must complete before the next request
+captures history. The power agent then requests `0%`. If the model classifies that
+request `ELEVATED` or `HIGH`, the assessment requires human approval and the
+technician application presents one HOLD. The prior ALLOW records remain immutable.
+
+The console shows the shutdown assessment with the recent sequence and telemetry.
+The LLM recommends rejection without changing workflow state; the technician's
+REJECT binds only the latest shutdown decision. Supersession, lost authority or
+stale evidence invalidates the action. No approval proof or controller command is
+created, and the last confirmed fan level remains visible.

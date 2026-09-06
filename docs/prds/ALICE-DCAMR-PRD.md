@@ -8,7 +8,7 @@ describe the full product; use the [current source map](../../architecture.md) f
 
 **Status:** Updated product direction; implementation and integration remain incremental
 
-**Updated:** September 5, 2026
+**Updated:** September 6, 2026
 
 **Audience:** Product, Pi/runtime, anomaly, hardware, and technician-console contributors
 **Scope:** Controlled demonstration of accountable agent operations across connected and disconnected conditions
@@ -118,6 +118,23 @@ If ownership cannot be established, affected execution remains blocked while sta
 
 Held requests, in-flight requests, and unused approvals must be invalidated or explicitly revalidated against the new owner, current permissions, latest decision, and exact parameters.
 Transition/readiness details are operational status within the two modes, not additional product-mode values.
+
+### 3.4 Contextual fan-control sequence
+
+The demonstration establishes three small fan-speed increases as synthetic normal
+behavior. `cooling-agent-01` submits three separate `+10%` requests; each must be
+authenticated, independently evaluated, executed only after ALLOW and recorded
+with its resulting state. This fixture is demo data, not a production safety limit.
+
+After the configured power threshold wakes `power-agent-01`, that agent requests
+an abrupt fan shutdown. The request is permission-eligible, but the Isolation
+Forest must classify it `ELEVATED` or `HIGH` relative to the recent cooling sequence
+and fresh overheating telemetry. The Pi assessment therefore requires human
+approval and the technician application presents HOLD. The workstation LLM may
+recommend rejection from those bounded facts, while only the technician chooses
+REJECT. No fan-off command executes and the final observed fan level remains the
+last approved value. A hard prohibition still produces DENY; the fixture must
+exercise review without weakening hard-deny rules.
 
 ## 4. Users and trust boundaries
 
@@ -286,6 +303,10 @@ Wazuh is the planned permissions-related context and auditing integration; its
 ALICE action-permission mapping is still to be defined.
 
 Demonstrate enterprise-controlled ONLINE activity and cache preparation, a fenced transition to OFFLINE governance, normal requests, a prohibition, context/reassessment, and technician review.
+The primary DDIL story allows three normal `+10%` cooling changes, then holds one
+power-agent shutdown request because it contradicts recent behavior and trusted
+overheating evidence. The local LLM recommends continued cooling and the technician
+rejects shutdown.
 Return ONLINE to demonstrate acknowledged upload of every offline event, priority findings, appended reconciliation, and verified cache refresh.
 Keep actions inside controlled synthetic/lab resources and label simulated enterprise feeds, decisions, proof, and execution separately.
 
@@ -341,6 +362,8 @@ These checks are planned; component or mock tests do not automatically complete 
 - [ ] **AC-11:** Reconciliation appends findings; cache replacement is authenticated/atomic; failed candidates preserve valid authority and original history.
 - [ ] **AC-12:** USB removal/tamper/full-storage, combined Pi limits, and workstation outages have observable bounded outcomes.
 - [ ] **AC-13:** Motor use waits for its agreed profile/command/physical-limit tests; cyber regressions continue to pass.
+- [ ] **AC-14:** Three separately signed `+10%` fan changes receive ALLOW in sequence; a later permission-eligible shutdown receives HOLD, the technician rejects it, no fan-off command executes and all four histories remain auditable.
+- [ ] **AC-15:** Removing the wireless enterprise host produces an explicit stale/offline enterprise display while static wired Pi, agent and technician paths continue without DHCP.
 
 ## 12. Next decisions and delivery checkpoints
 

@@ -1,6 +1,6 @@
 # Contextual behavior model
 
-This increment adds a general, context-conditioned Isolation Forest interface for **PRE_ACTION** and **POST_ACTION** assessment. It accepts a fixed numeric feature profile and supplied evidence; it does not yet know what normal ESP, light, or voltage behavior looks like. Real operating data and the device contract will be defined later.
+This increment adds a general, context-conditioned Isolation Forest interface for **PRE_ACTION** and **POST_ACTION** assessment. It accepts a fixed numeric feature profile and supplied evidence. The selected next synthetic profile treats bounded `+10%` fan increases as normal and an abrupt request for `0%` during overheating as the anomaly challenge. Exact features, signed demo ranges, adapters and real operating data remain pending.
 
 The existing [cyber feature builder](../contracts/anomaly-features.md), [anomaly result contract](../contracts/anomaly-contract.md), and published training experiments remain unchanged. This new interface has its own `context-behavior-assessment-v1` output; a DCAMR adapter and dashboard agreement remain pending.
 
@@ -25,7 +25,11 @@ Use separate profiles and fitted models for the two phases. Each feature declare
 
 Raw sensor parsing, sampling, voltage conversion, time-window aggregation, action-history summaries, expected-versus-actual feature calculations, and trusted identity/context enrichment remain adapter work. Supplied numeric features can represent measurements, requested parameters, or those summaries. Free-form agent explanations do not become numerical evidence automatically.
 
-Possible later light/voltage features include requested output level, recent voltage statistics, action rate, time since the previous change, and post-action voltage change. These are candidate meanings, not chosen field names, windows, normal ranges or physical safety limits.
+The fan profile should consider requested absolute level and delta, current level,
+recent increment count/cumulative change, time since prior action, temperature
+value/trend and power value/threshold margin. POST_ACTION may add observed fan level
+and later temperature/power change. Final names, windows, units and ranges belong
+in the versioned profile; these suggestions are not physical safety limits.
 
 ## Current modules
 

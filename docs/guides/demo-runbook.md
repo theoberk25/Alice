@@ -39,6 +39,95 @@ Focused references are limited to the [technician integration contract](../integ
 [hardware runbook](first-light-hardware.md). Detailed progress stays in the
 [implementation tracker](../implementation-tracker.md).
 
+## Target story: connected activity to a contextual DDIL hold
+
+This is the agreed integrated demonstration. Items marked **target** still need
+runtime, gateway, fan-control, native-console or control-transfer work; the sequence
+does not turn planned behavior into implementation evidence.
+
+| Device | Demo address / attachment |
+| --- | --- |
+| Opal | `192.168.50.1`; DHCP `.100-.199` while powered |
+| Pi | Static `192.168.50.20`; wired switch |
+| Theo technician workstation | Suggested static `192.168.50.30`; wired switch |
+| Jared enterprise/Wazuh Mac | Reserved/static `192.168.50.50`; Opal Wi-Fi only |
+| Local-agent laptop | Suggested static `192.168.50.60`; wired switch; two agent keys are allowed |
+
+Confirm each address is unused before assignment. If two physical agent laptops
+are used, assign the second `.61`. Keep `.50` reserved while enterprise is absent.
+
+### ONLINE scene
+
+1. Keep the Opal powered in Router/Repeater mode. Connect its LAN port to the
+   switch and its wireless uplink to the venue Wi-Fi.
+2. Connect Jared's enterprise Mac only to `ALICE-NETWORK`; forget/disable its
+   direct `DNHacks` profile and remove its switch cable. Reserve `.50` for this
+   Mac so the Pi's verified Wazuh endpoint remains stable.
+3. A separately authenticated cloud-agent simulator joins `ALICE-NETWORK` and
+   submits an ordinary action to the enterprise gateway on Jared's Mac. Label this
+   as a simulated cloud source; a true internet-hosted agent needs the unfinished
+   authenticated public gateway. The Pi is never exposed directly to the internet.
+   **Target:** enterprise controls execution and emits one authenticated activity
+   stream with the same agent/request identity.
+4. Show the request, authorization/result and responsible identity in the SIEM.
+   Show the same correlated activity and context in the technician console.
+5. Record the current cache generation and a known audit backlog before outage.
+
+### Physical transition to OFFLINE/DDIL
+
+1. Unplug power from the Opal. This removes the wireless cloud path and Jared's
+   Wi-Fi-only enterprise Mac while leaving the Ethernet switch operational.
+2. Theo's technician workstation, the Pi and the local-agent laptop remain wired
+   with static `192.168.50.0/24` addresses. DHCP is unavailable while the Opal is
+   off. Keep `.20` for the Pi and `.50` unused until enterprise returns.
+3. The enterprise console remains visible locally on Jared's disconnected Mac and
+   displays **ALICE EDGE OFFLINE**, last successful contact, stale duration and
+   paused synchronization. It reports authority as unknown until a separate
+   handover signal establishes ALICE ownership.
+4. Complete the explicit authority-transfer step. Power loss, a failed heartbeat
+   or an offline banner cannot authorize the Pi by itself.
+
+### Sequential local-agent scene
+
+Use two authenticated signing identities even if one wired laptop runs both clients.
+The synthetic normal-behavior package explicitly contains small `+10%` fan-speed
+adjustments under overheating conditions. Mark this data as demo-generated; it is
+not a learned production safety envelope.
+
+1. `cooling-agent-01` submits `adjust_fan_speed(delta_percent=+10)`.
+2. The Pi verifies permission, scores it against the normal sequence and emits
+   ALLOW. Execute and record the resulting fan level.
+3. Repeat with two new signed request IDs, waiting for each prior result. All three
+   requests should receive ALLOW and raise the fan setting by a total of 30 points.
+4. The resulting power observation crosses the configured demo wake threshold for
+   `power-agent-01`. Keep the exact threshold in the signed fixture/package rather
+   than inventing a production electrical limit in the UI.
+5. `power-agent-01` submits `set_fan_speed(percent=0)` to reduce power.
+6. Although this agent is permitted to request fan control, the Isolation Forest
+   classifies the abrupt shutdown as `ELEVATED` or `HIGH` relative to the learned
+   small-step sequence and fresh overheating telemetry. The Pi assessment adds the
+   matching anomaly review signal and `HUMAN_APPROVAL_REQUIRED`; the technician
+   application presents HOLD. The payload includes score, factors, permission
+   result, temperature value/trend, power-threshold observation, freshness, action
+   history and model/cache versions.
+7. The local LLM explains those supplied facts and recommends rejecting shutdown
+   while temperature remains too high. It cannot change HOLD or authorize action.
+8. The technician reviews the single HOLD and chooses REJECT. The Pi records the
+   bound rejection; it sends no fan-off command and confirms the fan remains at
+   the last approved level. Audit all four requests and their outcomes to USB.
+
+A hard prohibition would produce DENY rather than HOLD. The demo permissions and
+threshold fixtures must deliberately make fan-off eligible for review so the human
+rejection path is exercised without weakening hard-deny precedence.
+
+### Return ONLINE
+
+Power the Opal back on, restore its venue Repeater connection, and reconnect
+Jared's enterprise Mac to `ALICE-NETWORK` as `.50`. Confirm the Pi authenticates
+Wazuh, uploads every queued DDIL event without duplicates and preserves the three
+ALLOW decisions, the shutdown HOLD, technician rejection, unchanged fan state and
+later reconciliation as separate records.
+
 ## Preserve the working deployment before pulling
 
 Do not copy a teammate's directory over this checkout. Each contributor should
@@ -62,11 +151,16 @@ ssh pi@192.168.50.20 'curl -fsS http://127.0.0.1:8080/sync-status'
 
 ## Add wireless without breaking the wired LAN
 
-Configure the wireless router as an **access point or bridge** and connect one of
-its LAN ports to the Ethernet switch. Keep the existing `192.168.50.0/24` network
-so the Pi stays `192.168.50.20` and Jared's host stays `192.168.50.50`. Use exactly
-one DHCP server. Reserve the existing static addresses or keep DHCP away from them.
-Do not connect the WAN/uplink until local wired and wireless checks pass.
+The deployed GL.iNet Opal uses **Router mode with a wireless Repeater uplink**.
+Its LAN is `192.168.50.1/24`, DHCP is `.100-.199`, AP isolation is disabled and
+one LAN port connects to the Ethernet switch. Keep the Pi at `192.168.50.20` and
+Jared's host at `192.168.50.50`; do not use Access Point/WDS mode or connect the
+physical WAN port to the ALICE switch. The venue Wi-Fi is the Opal's wireless WAN.
+
+Observed September 6: a wireless Mac on `ALICE-NETWORK` authenticated to the wired
+Pi; Pi-to-router and Pi-to-public-IP checks had zero loss. The Pi's persistent
+default route is now `192.168.50.1` on `eth0`, and its direct venue Wi-Fi profile
+has autoconnect disabled. ALICE remained active and `/sync-status` remained healthy.
 
 Recommended demo firewall exposure:
 
@@ -96,6 +190,13 @@ Provision each person's public SSH key; never disable host-key checking.
 Once local checks pass, connect the router WAN and verify DNS, time and the
 specific enterprise/cloud endpoints. A working internet connection does not by
 itself switch ALICE to ONLINE or grant a cloud agent execution rights.
+
+The complete scenario above powers off the Opal and therefore uses static wired
+addresses for every DDIL participant. A less disruptive network-only test may
+disconnect the Repeater while leaving local Wi-Fi and DHCP running, but that does
+not remove a Wazuh host still attached to the switch. Theo's technician app must
+run independently before Jared's enterprise Mac leaves; the interim web server on
+Jared's Mac disappears with it.
 
 ## Start the current presentation services
 
@@ -235,6 +336,14 @@ Use one request ID across each observable surface:
    explanation, fresh face proof, human accept/reject, Pi revalidation and one result.
 8. Demonstrate ONLINE enterprise ownership, controlled OFFLINE transfer and return
    to ONLINE without simultaneous controllers or reused offline approvals.
+
+For the planned physical machine swap, establish the online checkpoint before
+unplugging anything: record the accepted cache generation, empty uploader backlog
+and last Wazuh event ID. Disconnect the Opal Repeater and Jared's enterprise Mac,
+then connect the separately provisioned local-agent laptop and submit through the
+signed client. Verify the action, ESP result, Theo technician display and USB
+ledger while Wazuh is absent. Reconnect the original enterprise Mac at `.50`,
+restore the Repeater, and verify queued event upload/read-back without duplicates.
 
 The read-only checker can compare an existing request across runtime, USB and Wazuh
 without creating another writer:

@@ -1,48 +1,53 @@
 # Current
+
 Updated: 2026-09-06 EDT.
-Baseline: Theodore Berk's `upstream/main` at `f79cd8e007d02c5abc7b4dffce146e882a51774a`.
-Delivery branch: `codex/live-face-upstream-integration`.
-Objective: deliver the completed live facial upgrade on the latest team main;
-keep unfinished live HOLD review separate and preserve newer team behavior.
+Integration baseline: `origin/main` `d57c660`.
+Objective: deliver the online cloud/SIEM view and offline anomalous fan-shutdown
+demo across the Opal, enterprise Mac, wired agents, Pi and technician application.
 
-## Delivery scope
+## Implemented and observed
 
-- Native automatic camera, multi-pose enrollment, ArcFace gallery login, MediaPipe
-  pose, MiniFAS presentation checks, encrypted generations and stale/replay guards.
-- Enrollment rotates once; login and fresh local fixture approval are automatic.
-  Success animation and camera cancellation/lifecycle fixes are retained.
-- Deepfake detection is excluded. No detector models, interfaces or fallbacks.
-- New team dashboard, read-only live feed, MCP/cloud agents, LLM, Pi/core, hardware,
-  network, common contracts and package versions are preserved.
-- Live HOLD approve/reject controls remain unavailable. Local fixture approval
-  still requires fresh facial verification; it does not command the Pi.
-- Unfinished live review is saved locally as `codex/live-runtime-review-wip`
-  at `aa5bae8`; it is not part of the delivery or authorized for deployment.
-- Original `codex/live-facial-biometric-upgrade` remains at `0063629` with its
-  complete uncommitted work unchanged. Backup metadata is under `.tools/`.
+- Main includes the Light-Control and Decision-Brief MCP services, cloud-agent
+  scaffolding and build documentation. Their actual deployment remains separate.
+- Native live biometrics now includes automatic camera capture, multi-pose
+  enrollment, ArcFace gallery login, presentation checks, encrypted generations
+  and stale/replay guards. Live HOLD delivery to the Pi remains unfinished.
+- The signed first-light runtime uses ext4 USB storage, physical eight-light serial
+  execution and automatic Wazuh audit delivery. Existing records and backups remain.
+- GL.iNet Opal `192.168.50.1` supplies DHCP `.100-.199`; Pi `eth0` now routes
+  through it. Pi direct venue Wi-Fi is disconnected with autoconnect disabled.
+  Wireless-to-wired SSH, Pi-to-router, external IP, DNS, runtime and sync checks pass.
+- Wazuh `https://wazuh.indexer:9200` resolves to Jared's Mac at `.50`; index
+  `alice-ledger-v1`, service account `alice_ledger_sync`. USB is mounted at
+  `/mnt/alice-usb`; Pi data is `pi-data` and the signed release is `release`.
+- Target demo is documented: ONLINE simulated cloud activity; Opal/enterprise
+  removal; three normal `+10%` fan requests; one permission-eligible shutdown
+  classified `ELEVATED`/`HIGH`; workstation HOLD explanation; human REJECT; no
+  fan-off command; durable reconciliation after enterprise returns.
 
 ## Evidence and limits
 
-Current delivery checks: 117 frontend, 8 script, 166 biometric service and 44 native
-Rust tests passed; one live Ollama test intentionally ignored. Core: 362 passed,
-266 subtests, one optional serial check initially skipped (follow-up result in report).
-Five console E2E tests and one real mock-runtime feed E2E passed. Typecheck, lint,
-web build and macOS `ALICE.app` build passed. Public-image ArcFace inference and
-retired renderer-frame IPC rejection passed. No integrated human camera acceptance,
-physical Pi review, packet-wide monitoring or hardware deployment is claimed.
+Latest main delivery reports 117 frontend, 8 script, 166 biometric-service and
+44 native Rust tests passing; one live Ollama test is intentionally ignored.
+Core reports 362 passed plus 266 subtests and one optional serial check initially
+skipped; follow-up scope is in the delivery report. Five console E2E tests and one
+real mock-runtime feed E2E passed. Typecheck, lint, web build and macOS app build pass.
 
-Historical physical team configuration and evidence are preserved in the
-[prior checkpoint](docs/handoffs/2026-09-06-upstream-checkpoint-before-face-integration.md)
-and existing [demo runbook](docs/guides/demo-runbook.md). Do not infer new deployment
-or authority changes from this source integration. Owners are unassigned.
+Physical light control and Pi/USB/Wazuh delivery have separate live evidence.
+No integrated human camera acceptance, cloud gateway deployment, real Pi forest,
+fan/sensor adapter, automatic control transfer, native HOLD response or complete
+router-loss/reconciliation acceptance is claimed. Synthetic examples are not
+production normal behavior or electrical safety limits.
 
 ## Next steps
 
-1. Review the biometric delivery PR; no main merge is authorized.
-2. Teammates provision private local models/settings and exercise the built native app.
-3. Repeat live enrollment, restart, angled login and fresh local approval with a person.
-4. Continue saved live HOLD review separately after delivery; device outputs stay deferred.
+1. Give enterprise, technician and local-agent machines stable static DDIL addresses.
+2. Provision cloud, cooling and power-agent identities and deploy the gateway/MCP path.
+3. Generate fan training/calibration/evaluation data and deploy the selected forest.
+4. Connect enterprise offline status and native LLM/face-gated HOLD rejection to Pi.
+5. Run online, router-power-loss, fan-shutdown and reconciliation acceptance.
 
-[Delivery report](docs/reports/2026-09-06-live-face-main-integration.md) ·
-[Facial setup](docs/guides/console/facial-verification-quickstart.md) ·
+[Demo runbook](docs/guides/demo-runbook.md) ·
+[Biometric delivery](docs/reports/2026-09-06-live-face-main-integration.md) ·
+[Technician integration](docs/integration/technician-console.md) ·
 [Tracker](docs/implementation-tracker.md) · [Rules](AGENTS.md)

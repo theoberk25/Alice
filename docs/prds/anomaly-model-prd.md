@@ -3,7 +3,7 @@
 **Owner:** Jared (anomaly workstream)  
 **Consumers:** DCAMR integration team; technician dashboard through DCAMR  
 **Status:** Draft contract implemented in a local schema/fixture slice; not deployed  
-**Date:** 2026-09-05  
+**Date:** 2026-09-06
 **Proposed anomaly schema:** `1.0.0-draft.1`
 
 
@@ -39,6 +39,14 @@ separate before-action and after-action profiles with arbitrary named numeric
 features and exact categorical context. It is a distinct internal contract;
 this PRD's cyber schema/fixtures remain unchanged. Actual ESP light/voltage data
 and the adapter into the canonical decision result are still pending.
+
+The selected fan demonstration trains on many synthetic sessions in which small
+`+10%` cooling adjustments are normal under overheating conditions. The live demo
+performs three representative increments, then asks the model to score a power
+agent's abrupt `set_fan_speed(0%)` request. That shutdown must evaluate as
+`ELEVATED` or `HIGH` from action magnitude, recent sequence and fresh temperature/
+power context before the review path is accepted. Three demo rows alone are not
+enough to fit or calibrate an Isolation Forest.
 
 The [2026-09-05 data update](../decisions/2026-09-05-data-direction.md) records the newer single-USB layout and motor-control demo direction. Motor requests require a separately agreed/versioned profile; this cyber implementation does not score them. Jared selected a separate diagnostic/state-change calibration experiment; its completed Mac comparison and measured limitations are in the training guide. The [implementation tracker](../implementation-tracker.md) preserves all 118 requested tasks and their current evidence.
 
