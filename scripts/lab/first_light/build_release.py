@@ -48,14 +48,14 @@ def _identity(agent_id: str) -> dict:
                       "responsible_user": USER_ID, "delegator": USER_ID}}
 
 
-def build_grants_payload(agent_id: str = AGENT_ID) -> dict:
+def build_grants_payload(agent_ids) -> dict:
     return {
         "schema_version": "alice-permissions-grants-v1",
         "site_id": "first-light-lab",
         "default_effect": "DENY",
         "grants": [{
             "grant_id": GRANT_ID,
-            "agents": [agent_id],
+            "agents": sorted(agent_ids),
             "actions": ["set_light_state"],
             "targets": ["ESP-LIGHT-01"],
             "effect": "PERMIT",
@@ -65,13 +65,17 @@ def build_grants_payload(agent_id: str = AGENT_ID) -> dict:
     }
 
 
-def build_subjects_payload(agent_id: str = AGENT_ID) -> dict:
-    identity = _identity(agent_id)
+def build_subjects_payload(agent_ids) -> dict:
+    users, agents = {}, {}
+    for agent_id in agent_ids:
+        identity = _identity(agent_id)
+        users.update(identity["users"])
+        agents[agent_id] = identity["agent"]
     return {
         "schema_version": "alice-permissions-subjects-v1",
         "site_id": "first-light-lab",
-        "users": identity["users"],
-        "agents": {agent_id: identity["agent"]},
+        "users": users,
+        "agents": agents,
     }
 
 
@@ -86,26 +90,27 @@ def _public_hex(private: Ed25519PrivateKey) -> str:
     return private.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw).hex()
 
 
-def build(out_dir: Path, agent_id: str = AGENT_ID) -> Path:
+def build(out_dir: Path, agent_ids=(AGENT_ID,)) -> Path:
+    if isinstance(agent_ids, str):
+        agent_ids = (agent_ids,)
     release = out_dir / "release"
     trust = out_dir / "trust"
     client = out_dir / "client"
     for directory in (release, trust, client):
         directory.mkdir(parents=True, exist_ok=True)
 
-    key_id = f"{agent_id}-k1"
-    terminal_key = Ed25519PrivateKey.generate()
-    seed = terminal_key.private_bytes_raw()
-    (client / f"{key_id}.seed").write_text(seed.hex() + "\n")
+    keys = {}
+    for agent_id in agent_ids:
+        key_id = f"{agent_id}-k1"
+        terminal_key = Ed25519PrivateKey.generate()
+        (client / f"{key_id}.seed").write_text(terminal_key.private_bytes_raw().hex() + "\n")
+        keys[key_id] = {"agent_id": agent_id,
+                        "ed25519_public_hex": _public_hex(terminal_key)}
 
     payloads = {
-        "grants.json": build_grants_payload(agent_id),
-        "subjects.json": build_subjects_payload(agent_id),
-        "terminal_keys.json": {
-            "schema_version": "alice-terminal-keys-v1",
-            "keys": {key_id: {"agent_id": agent_id,
-                              "ed25519_public_hex": _public_hex(terminal_key)}},
-        },
+        "grants.json": build_grants_payload(agent_ids),
+        "subjects.json": build_subjects_payload(agent_ids),
+        "terminal_keys.json": {"schema_version": "alice-terminal-keys-v1", "keys": keys},
     }
     for name, payload in payloads.items():
         (release / name).write_bytes(canonical_bytes(payload))
@@ -129,11 +134,11 @@ def build(out_dir: Path, agent_id: str = AGENT_ID) -> Path:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("out_dir", type=Path)
-    parser.add_argument("--agent", default=AGENT_ID,
-                        help="agent id; enterprise-sim SIEM agents resolve their "
-                             "responsible user/delegator from the scenario")
+    parser.add_argument("--agent", action="append", default=None,
+                        help="agent id (repeatable); enterprise-sim SIEM agents "
+                             "resolve their responsible user/delegator from the scenario")
     args = parser.parse_args()
-    release = build(args.out_dir, args.agent)
+    release = build(args.out_dir, tuple(args.agent or (AGENT_ID,)))
     print(f"release written: {release}")
     print("WARNING: demonstration trust only; do not provision these keys in production.")
 
