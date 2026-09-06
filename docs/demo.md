@@ -122,6 +122,9 @@ This is the hinge of the whole demo.
 > The two conflicting local agents ([thermal](../services/agent_loop/profiles/thermal.yaml)
 > raises `fan_speed` as temp climbs; [power](../services/agent_loop/profiles/power.yaml)
 > cuts it as draw crosses 430 W) oscillate `fan_speed` under ALICE governance —
-> the power agent's "kill the fans" cut is **Held** and the technician **rejects**
-> it (temperature recommendation wins). See
+> the power agent's "kill the fans" cut is **Held**. Before deciding, the
+> technician can **Request more context**: that request and the agent's one- to
+> two-sentence answer are both written to the Pi's hash-chained audit ledger
+> (with its transportable USB copy) and shown on the console. The technician
+> then **rejects** the cut (temperature recommendation wins). See
 > [`docs/agent-build/06-agent-loops.md`](agent-build/06-agent-loops.md).
