@@ -15,9 +15,11 @@ two-mode admission and authority transfer still need runtime integration; live
 read-only transport and Wazuh delivery are described below.
 
 Environmental demo software now integrates the plant, signed ALICE fan adapter,
-native review compatibility and Pi/XIAO pattern delivery. [Validation](reports/2026-09-06-environmental-demo-validation.md)
-distinguishes software tests from outstanding hardware/full-native-build acceptance.
-The original eight-test mapping increment is historical, not full hardware evidence.
+native review compatibility and Pi/XIAO pattern delivery. Xavier's display contract
+is yellow=power, blue=actual fan speed, red=temperature and white=battery remaining.
+[Validation](reports/2026-09-06-environmental-demo-validation.md) distinguishes
+software tests from outstanding hardware/full-native-build acceptance. The original
+eight-test mapping increment is historical, not full hardware evidence.
 
 ## Status and current checkpoint
 
@@ -471,7 +473,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 032 | Build Agent-Novelty Features | Done component | [Builder][features] preserves `agent_known=0` and `AGENT_UNSEEN` for new authenticated agents using a valid cohort. |
 | 033 | Build Mission-Consistency Features | Partial | [Profile selection][baseline] and [history scoping][sequence] bind role, mission type and mission ID. Policy mission-scope enforcement remains. |
 | 034 | Build Action-Sequence Features | Done component | [Sequence extraction][sequence] and [tests][feature-tests] derive predecessor masks and transition frequency with explicit completeness/order rules. |
-| 035 | Build Physical Sensor Features | Planned | [Generic named numeric inputs][context-guide] validate units, time and provenance. Raw ESP acquisition, voltage conversion and sensor/history feature extraction still need the actual device contract and data; cyber columns remain unchanged. |
+| 035 | Build Physical Sensor Features | Partial | The simulated plant supplies fan, temperature, power and battery with explicit units; Xavier's read-only display projects yellow=power, blue=fan, red=temperature and white=battery. The deployed anomaly scorer uses fan/temperature/power context. Real sensor acquisition, calibration and battery/model features remain open. |
 | 036 | Build Local Evidence Features | Planned | Evidence sufficiency remains with DCAMR fusion; the [evidence component][evidence] is a skeleton. |
 
 ## Model and sequence scoring (037–044)

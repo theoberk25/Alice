@@ -73,6 +73,8 @@ def test_mcp_allow_reads_actual_fan_and_retains_percentage_interface(metrics):
     original = _payload(asyncio.run(call(url, 'cooling-token', 'get_metrics', {})))
     assert original['fan_speed'] == 60 and original['server_temperature'] == 100
     assert original['power_consumption'] == pytest.approx(421.6)
+    assert original['battery_pct'] == 60
+    assert original['units']['battery_pct'] == 'percent'
     result = asyncio.run(call(url, 'cooling-token', 'set_fan_speed', {'value': 70}))
     assert not result.isError, result
     value = payload(result)

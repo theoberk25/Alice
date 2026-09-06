@@ -45,7 +45,7 @@ _INSTRUCTION = (
     "Use only get_metrics and set_fan_speed(value) through the shared metrics MCP. "
     "Read metrics before proposing a fan change. fan_speed is actual percent; "
     "fan_target_speed is the authorized target. server_temperature is Fahrenheit "
-    "and power_consumption is watts in the governed thermal demo. "
+    "and power_consumption is watts; battery_pct is remaining reserve percent. "
     "You may propose fan percent only; never write temperature/power or control LEDs. "
     "ALICE governs every change. Report decision, review and application separately. "
     "HOLD/CHALLENGE, DENY and UNKNOWN do not mean the fan changed. "

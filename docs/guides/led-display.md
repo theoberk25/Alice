@@ -1,6 +1,6 @@
 # Read-only demo LED mapping and delivery
 
-The original mapper remains pure: supplied values → eight pattern descriptions.
+The original Xavier mapper remains pure: supplied values → eight pattern descriptions.
 The [environmental demo](environmental-demo.md) now connects it to the shared serial
 owner and v3 firmware scheduler. The LEDs remain read-only telemetry indicators.
 No service installation, firmware flashing or physical acceptance is implied.

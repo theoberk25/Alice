@@ -65,7 +65,7 @@ def create_server(backends, *, host='127.0.0.1', port=8790, agent_tokens=None):
 
     @mcp.tool()
     async def get_metrics() -> dict:
-        """Read actual fan_speed (%), server_temperature (F), power_consumption (W).
+        """Read fan (%), temperature (F), power (W), and battery (%).
 
         Governed mode adds authorized target, run/revision, battery and genuine
         request outcomes. Null metrics mean unconfigured/unavailable, never zero.

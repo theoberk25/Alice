@@ -3,7 +3,8 @@
 Upstream `237c307` supplies the preferred agent interface. Both cloud ADK and local
 Goose keep Streamable HTTP at **:8790/mcp** and these tools:
 
-- `get_metrics()` reads `fan_speed`, `server_temperature`, `power_consumption`.
+- `get_metrics()` reads `fan_speed`, `server_temperature`, `power_consumption` and
+  the governed backend's `battery_pct`.
 - `set_fan_speed(value)` proposes fan percent **0–100**, with 0.01% precision.
 
 The integrated path is **agent → MCP → ALICE/thermal service → simulated fan →
@@ -92,6 +93,11 @@ mode beside the integrated demo and describe its fan value as the live plant.
 The old light driver files and channel map remain for historical/bench consumers;
 they are dormant in the metrics MCP. The cloud smoke command now reads metrics
 only; it does not call Gemini during automated tests or command a fan by default.
+
+The plant snapshot drives Xavier's telemetry display: yellow is derived power, blue
+is actual fan speed, red is server temperature and white is two-segment battery
+remaining. Agents do not set LED states, temperature, power or battery directly.
+Fan changes affect the other values through the simulated plant equations.
 
 ## Evidence
 

@@ -15,23 +15,24 @@ sensors and motors remain separate. The identification sketch is bench-only.
 ## Verified channel map
 
 All eight LEDs were individually selected and visually identified by Jared. Keep
-the target, channel, pin and color stable when the power-grid teammate assigns
-final simulated asset names. Color identifies the physical LED, not alert severity.
+the target, channel, pin and color stable. In the current environmental demo each
+pair displays one plant metric. Color identifies the metric, not alert severity.
 
-| Target | Channel | Pin | GPIO | Verified color | Suggested grid role |
+| Target | Channel | Pin | GPIO | Verified color | Presentation role |
 | --- | ---: | --- | ---: | --- | --- |
-| `ESP-LIGHT-01` | 1 | D0 | 1 | Yellow 1 | Primary utility feed |
-| `ESP-LIGHT-02` | 2 | D3 | 4 | Blue 1 | Server rack A supply |
-| `ESP-LIGHT-03` | 3 | D5 | 6 | Red 1 | Cooling plant supply |
-| `ESP-LIGHT-04` | 4 | D6 | 43 | White 1 | Communications rack supply |
-| `ESP-LIGHT-05` | 5 | D10 | 9 | Yellow 2 | Backup generator feed |
-| `ESP-LIGHT-06` | 6 | D9 | 8 | Blue 2 | Server rack B supply |
-| `ESP-LIGHT-07` | 7 | D8 | 7 | Red 2 | Auxiliary maintenance load |
-| `ESP-LIGHT-08` | 8 | D7 | 44 | White 2 | Security monitoring rack supply |
+| `ESP-LIGHT-01` | 1 | D0 | 1 | Yellow 1 | Power draw indicator A |
+| `ESP-LIGHT-02` | 2 | D3 | 4 | Blue 1 | Cooling fan indicator A |
+| `ESP-LIGHT-03` | 3 | D5 | 6 | Red 1 | Server temperature indicator A |
+| `ESP-LIGHT-04` | 4 | D6 | 43 | White 1 | Battery 0–50% segment |
+| `ESP-LIGHT-05` | 5 | D10 | 9 | Yellow 2 | Power draw indicator B |
+| `ESP-LIGHT-06` | 6 | D9 | 8 | Blue 2 | Cooling fan indicator B |
+| `ESP-LIGHT-07` | 7 | D8 | 7 | Red 2 | Server temperature indicator B |
+| `ESP-LIGHT-08` | 8 | D7 | 44 | White 2 | Battery 50–100% segment |
 
-Suggested topology is utility and generator into a transfer switch, then a bus
-feeding six loads. The grid owner must define critical loads, interlocks, transfer
-behavior and simulated telemetry. These LEDs do not switch real utility power.
+The environmental renderer drives these as read-only telemetry. Legacy signed light
+commands remain supported for first-light testing, but they are not the thermal demo's
+plant state. The detailed rates and battery segment behavior are in
+[the display guide](led-display.md).
 
 ## Wiring
 
