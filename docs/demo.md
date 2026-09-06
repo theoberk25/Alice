@@ -105,13 +105,19 @@ stand-in above.
 
 ## Transition → Part 2
 
-After "systems normal," **cut the network** (unplug the Wi-Fi router). The Gemini
-cloud agent needs the internet and goes dark; the two local Qwen agents keep
-regulating on localhost. This is the hinge of the whole demo.
+After "systems normal," **the cloud crashes** — simulated by cutting the network
+(unplug the Wi-Fi router). In the seconds before it drops, **server activity
+skyrockets**: a surge of load that spikes power draw and drives
+`server_temperature` up in the bay. Then the Gemini cloud agent, which needs the
+internet, goes dark; the two local Qwen agents keep regulating on localhost. That
+pre-crash heat spike is exactly what the local thermal agent reacts to in Part 2.
+This is the hinge of the whole demo.
 
 ## Part 2 — DDIL: local agents hold the line (TBD)
 
-> To be scripted. The two conflicting local agents ([thermal](../services/agent_loop/profiles/thermal.yaml)
+> To be scripted. The temperature climb the thermal agent responds to originates
+> from the pre-crash server-activity surge described in the transition above.
+> The two conflicting local agents ([thermal](../services/agent_loop/profiles/thermal.yaml)
 > raises `fan_speed` as temp climbs; [power](../services/agent_loop/profiles/power.yaml)
 > cuts it as draw crosses 430 W) oscillate `fan_speed` under ALICE governance —
 > the power agent's "kill the fans" cut is **Held** and the technician **rejects**

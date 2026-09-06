@@ -42,12 +42,15 @@ local behavioral baseline that keeps working with zero cloud connection.
 
 ## The scenario (this is the real, live demo, not an illustration)
 
-- The base loses connectivity. No SIEM, no policy server, no cloud oversight
-  reaches the local network anymore.
-- Temperatures climb in a facility bay. `cooling-agent-01` responds exactly
-  as trained: three separate `+10%` fan-speed requests, spaced out, each one
-  individually unremarkable. DCAMR evaluates each in turn and returns
-  `ALLOW`, `ALLOW`, `ALLOW`. This is the learned normal pattern.
+- The cloud crashes. In the seconds before it goes down, activity on the
+  servers skyrockets — a surge of load that spikes power draw and drives
+  temperature up in the facility bay. Then the cloud is gone: no SIEM, no
+  policy server, no cloud oversight reaches the local network anymore.
+- With the cloud dark and heat still climbing from that surge,
+  `cooling-agent-01` responds exactly as trained: three separate `+10%`
+  fan-speed requests, spaced out, each one individually unremarkable. DCAMR
+  evaluates each in turn and returns `ALLOW`, `ALLOW`, `ALLOW`. This is the
+  learned normal pattern.
 - The rising fan speed pushes power draw over a configured threshold.
   `power-agent-01`, a different agent whose job is managing power load, and
   one that is fully authorized to control the fan, requests
@@ -113,7 +116,7 @@ runbook's acceptance checklist.
 1. Title / hook: "When the cloud goes dark, who governs your agents?"
 2. The shift: agents are already inside operations, already acting.
 3. The hidden assumption: every rule they follow lives in the cloud.
-4. The blackout: the base loses connectivity, agents keep running.
+4. The crash: server activity surges and spikes heat as the cloud goes dark; agents keep running.
 5. The pattern: cooling agent raises the fan in three small, learned steps.
 6. The anomaly: power agent's abrupt full shutdown breaks the pattern.
 7. DCAMR sees it: local behavioral baseline flags it, HOLD, not DENY.

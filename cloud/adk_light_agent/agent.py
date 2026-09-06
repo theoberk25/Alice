@@ -22,6 +22,7 @@ import os
 from pathlib import Path
 
 from google.adk.agents import LlmAgent
+from google.adk.tools import FunctionTool
 from google.adk.tools.mcp_tool import McpToolset, StreamableHTTPConnectionParams
 
 # Load this agent's local .env (API key / model) when imported directly. `adk web`
@@ -45,8 +46,41 @@ _INSTRUCTION = (
     "(list_machines, get_status, set_machine, blink). "
     "Query status before acting, only use each machine's allowed_states, "
     "and confirm state changes back to the user. If a tool returns ok:false, "
-    "report the error instead of retrying blindly."
+    "report the error instead of retrying blindly. "
+    "For a GOVERNED action that must go through enterprise review (a signed "
+    "set_light_state on an ESP light), call submit_governed_request when it is "
+    "available; report the enterprise receipt and the decision (a CHALLENGE is "
+    "a HOLD awaiting a technician) and never resubmit the same request."
 )
+
+# Enterprise-first ingress is OPT-IN: only when ALICE_ENTERPRISE_INGRESS_URL is
+# set do we add the governed-submission tool, so default `adk web` behaviour
+# (MCP tools only) is unchanged. See docs/integration/cloud-agent-enterprise-ingress.md.
+ENTERPRISE_INGRESS_URL = os.getenv("ALICE_ENTERPRISE_INGRESS_URL")
+
+
+def submit_governed_request(state: str, target: str = "ESP-LIGHT-01") -> dict:
+    """Submit a signed, governed set_light_state to the enterprise ingress.
+
+    The action is signed with this agent's provisioned key (ALICE_AGENT_ID /
+    ALICE_AGENT_KEY_FILE), recorded as an enterprise receipt in Wazuh, then
+    forwarded to the Pi which decides. Returns the request_id, whether the
+    enterprise receipt verified, the decision, and the raw ingress response.
+    Args:
+        state: desired light state, "on" or "off".
+        target: ESP light id, e.g. "ESP-LIGHT-01".
+    """
+    # Imported lazily so agent construction never depends on the ingress module.
+    from cloud.enterprise_ingress_client import submit_governed_request as _submit
+
+    result = _submit(state=state, target=target)
+    return {
+        "request_id": result.request_id,
+        "enterprise_receipt_verified": result.receipt_verified,
+        "decision": result.decision,
+        "http_status": result.http_status,
+        "response": result.response,
+    }
 
 
 def build_agent(model: str = MODEL) -> LlmAgent:
@@ -56,16 +90,19 @@ def build_agent(model: str = MODEL) -> LlmAgent:
     ``smoke_lights.py`` -- can pick a specific/fallback Gemini model while
     ``adk web`` keeps discovering ``root_agent`` below.
     """
+    tools = [
+        McpToolset(
+            connection_params=StreamableHTTPConnectionParams(url=LIGHT_MCP_URL),
+        )
+    ]
+    if ENTERPRISE_INGRESS_URL:
+        tools.append(FunctionTool(submit_governed_request))
     return LlmAgent(
         model=model,
         name="machine_ops_cloud",
         description="Cloud operations agent that controls base/plant machine lights via the Light MCP.",
         instruction=_INSTRUCTION,
-        tools=[
-            McpToolset(
-                connection_params=StreamableHTTPConnectionParams(url=LIGHT_MCP_URL),
-            )
-        ],
+        tools=tools,
     )
 
 
