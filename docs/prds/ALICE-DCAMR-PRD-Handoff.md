@@ -1,11 +1,10 @@
 # ALICE / DCAMR — Developer Handoff
 
-Current implementation update: main at `d6e7e55` adds the
-[first-light slice](../reports/2026-09-05-pi-backend-status.md): signed terminal request,
-verified demo release, exact grant resolver, fixture assessment, durable ledger
-producer and mock ESP HTTP execution. Full permission semantics, real scoring/review,
-authority transfer and physical acceptance remain. Requirements below describe
-the full product; use the [current source map](../../architecture.md) for implemented scope.
+Current implementation includes signed terminal requests, exact grants, guarded
+ext4 USB storage, physical eight-light serial control, automatic Wazuh audit delivery
+and authenticated LAN web viewing. Full permissions/baseline activation, real Pi
+scoring, native review responses and authority transfer remain. Requirements below
+describe the full product; use the [current source map](../../architecture.md) for scope.
 
 Updated: 2026-09-05. This handoff coordinates the current two-mode product and
 the next integration increments; it does not claim that the full system runs.
@@ -32,7 +31,7 @@ permissions, authority and audit prerequisites before hardware execution. Theo's
 older Pi-owned final fusion does not govern this held-action choice. Existing
 approval-only implementation evidence does not establish biometric gating of both
 response paths. See the [corrected architecture](../../architecture.md) and
-[next-session handoff](../handoffs/2026-09-05-theo-architecture-alignment.md).
+[technician integration contract](../integration/technician-console.md).
 
 The [Pi assessment contract](../contracts/decision-assessment.md) supersedes earlier
 Pi-owned final-fusion descriptions for the current increment. The Pi supplies
@@ -107,7 +106,7 @@ Each workstream increment should provide a short PRD or implementation note with
 
 ### Alice core repository
 
-The [enterprise simulation](../handoffs/enterprise-sim-handoff.md) adds a deterministic
+The [enterprise simulation](../lab/README.md) adds a deterministic
 Sentinel AFB generator, signed demonstration permissions generations 42–44,
 Wazuh configuration, cyber baselines, separate synthetic PRE_ACTION/POST_ACTION
 voltage datasets and a local enterprise console. Regenerate the ignored datasets
@@ -138,7 +137,7 @@ Beyond first-light exact grants, startup signature verification, fixture audit a
 mock execution, full permissions, assessment/review integration, trusted authority
 transfer, physical execution, enterprise audit delivery and reconciliation remain. The local durable audit recorder
 and integrated console now exist; see the [current architecture](../../architecture.md)
-and [combined verification](../handoffs/2026-09-05-team-layout-review.md).
+and [current verification](../../current.md).
 
 The new [contextual behavior model](../architecture/contextual-behavior-model.md) adds separate
 PRE_ACTION/POST_ACTION profile validation, per-context forests and frozen normal

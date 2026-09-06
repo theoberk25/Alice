@@ -1,8 +1,8 @@
 # Current
 Updated: 2026-09-06 UTC (September 5 EDT).
-Baseline: main `3bceeac` includes SIEM sync and eight-light production controls.
-Objective: slow-blinking eight-light production plus interim authenticated LAN
-web viewing of the physical Pi's live USB-backed request stream.
+Implementation baseline: local `26c2be1`, based on `origin/main` `3bceeac`.
+Objective: preserve the working wired path while adding wireless access, local and
+cloud agents, enterprise input sync and the full native technician application.
 
 ## Implemented and observed
 
@@ -10,7 +10,7 @@ web viewing of the physical Pi's live USB-backed request stream.
   technician acceptance tools. Local SIEM UI, operator and cache downloader retained.
 - Physical light-on: ALLOW / COMPLETED / on; Jared visually confirmed the D0 LED.
   Seven events uploaded; 104 total, all 97 original canonical events unchanged.
-  Operator http://127.0.0.1:8789; physical configuration in linked handoff.
+  Operator http://127.0.0.1:8789; physical configuration in the hardware runbook.
 - Web dashboard at `http://192.168.50.50:1420` now requires a server-side login.
   An authenticated browser loaded 608 events and received seven new physical-Pi
   events incrementally. Feed source is SSH tunnel / physical serial; the web app
@@ -54,7 +54,8 @@ Backup: ~/first-light/pre-serial-backup/. Idle-low firmware flashed. Mock idle.
 
 Current Python core suite: **363 passed plus 266 subtests**.
 Current npm check: typecheck, lint, 74 frontend tests, 7 script tests and build pass.
-Changed Markdown links and file placement checked against README/AGENTS.md.
+Active transition docs consolidated into the demo, hardware, Wazuh and technician
+guides; superseded live/ESP/checklist documents moved intact to `docs/archive/`.
 Live outage test was previously staged but not run: approval review rejected SSH
 execution because of account usage limits. No network mapping was changed by it.
 Live outage/reboot/unplug/power-loss tests remain; do not claim them passed.
@@ -67,14 +68,13 @@ Ledger quota expanded 8→256 MiB with unchanged history; Wazuh resumed.
 
 ## Next steps
 
-1. Complete the staged live outage/recovery test; publication does not imply acceptance.
-2. Test service restart and missing-USB fail-closed behavior in a maintenance window.
-3. Grid teammate assigns asset roles to the eight implemented light targets.
-4. Integrate the finished native desktop app for LLM/face-gated, request-bound
-   technician accept/prevent responses; interim LAN web access remains read-only.
-5. Integrate full enterprise permission semantics and compatible baseline/model activation.
+1. Bridge the wireless access point onto `192.168.50.0/24`; test Wi-Fi locally before WAN.
+2. Provision distinct signed local/cloud agent identities and an enterprise gateway.
+3. Integrate native LLM/face-gated, request-bound accept/reject; keep web read-only.
+4. Activate verified enterprise permissions/baseline/model generations on USB.
+5. Run the integrated request, outage/recovery and authority-transfer acceptance flow.
 
-[ESP handoff](docs/integration/esp-handoff.md) ·
+[Integrated runbook](docs/guides/demo-runbook.md) ·
 [Sync runbook](docs/integration/wazuh-audit-sync.md) ·
-[Backend guide](docs/integration/live-dashboard.md) · [Rules](AGENTS.md) ·
+[Hardware](docs/guides/first-light-hardware.md) · [Rules](AGENTS.md) ·
 [Tracker](docs/implementation-tracker.md) · [Scripts](docs/scripts/README.md)

@@ -3,16 +3,16 @@
 The [root architecture](../architecture.md) now leads with Theo's intended runtime
 pipeline and the user's confirmed split: Pi classification, local Mac held-action
 accept/deny after biometric verification, then Pi validation/enforcement. It also
-defines the backend/live-dashboard work for the next session. The
+defines the current wireless/agent/SIEM/technician transition in the
+[integrated demo runbook](guides/demo-runbook.md). The
 [older Pi plan](plans/2026-09-05-theo-pi-runtime-reference.md) is a preserved reference,
 not current implementation status or automatic authorization to execute its steps.
 
-Current implementation update: main at `d6e7e55` adds the
-[first-light slice](reports/2026-09-05-pi-backend-status.md): signed terminal request,
-verified demo release, exact grant resolver, fixture assessment, durable ledger
-producer and mock ESP HTTP execution. Full permission semantics, real scoring/review,
-authority transfer and physical acceptance remain. Requirements below describe
-the full product; use the [current source map](../architecture.md) for implemented scope.
+Current implementation includes signed terminal requests, exact grants, guarded
+ext4 USB storage, physical eight-light serial control, automatic Wazuh audit delivery
+and authenticated LAN web viewing. Full permissions/baseline activation, real Pi
+scoring, native review responses and authority transfer remain. Requirements below
+describe the full product; use the [current source map](../architecture.md) for scope.
 
 Start with the root [high-level architecture](../architecture.md) for the current
 component map, runtime boundaries and implemented-versus-planned distinction.
@@ -51,10 +51,10 @@ execution ownership are separate status facts.
 | Implementation status and next work | [Tracker](implementation-tracker.md) |
 
 The core implements anomaly components, Pi assessment packets and a local durable
-ledger, with synthetic Mac experiments and a mock-driven technician console.
+ledger, with synthetic Mac experiments and a live read-only technician feed.
 Two-mode orchestration, full permissions enforcement, real assessment audit
-producers, enterprise connectors, physical controller acceptance and live console
-integration remain planned beyond the first-light fixture/mock slice. A
+producers, inbound enterprise sync and native writable console integration remain.
+A
 diagram or contract requirement is not evidence those services are running.
 
 The protected endpoint must enforce one current execution authority. A network

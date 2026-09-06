@@ -1,6 +1,6 @@
 # Legacy dashboard compatibility
 
-`fixtures/legacy/dashboard-contract.original.txt` is the supplied contract file, unchanged. `decision.json`, `status.json`, and `reconciliation.json` are extracted objects with normalized JSON whitespace. Tests assert that all three validate and normalize successfully. Migration preserves the original and extracted fixtures unchanged. Their DDIL/CONNECTED/DEGRADED vocabulary does not implement the main product's ONLINE/OFFLINE authority-transfer protocol; see the [migration assessment](../integration/main-repository-migration.md).
+`fixtures/legacy/dashboard-contract.original.txt` is the supplied contract file, unchanged. `decision.json`, `status.json`, and `reconciliation.json` are extracted objects with normalized JSON whitespace. Tests assert that all three validate and normalize successfully. Migration preserves the original and extracted fixtures unchanged. Their DDIL/CONNECTED/DEGRADED vocabulary does not implement the main product's ONLINE/OFFLINE authority-transfer protocol; see the [technician integration contract](../integration/technician-console.md).
 
 | Legacy payload         | Internal payload       | Changes                                                              |
 | ---------------------- | ---------------------- | -------------------------------------------------------------------- |

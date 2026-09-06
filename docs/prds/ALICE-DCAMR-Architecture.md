@@ -1,11 +1,10 @@
 # ALICE — architecture and integration boundaries
 
-Current implementation update: main at `d6e7e55` adds the
-[first-light slice](../reports/2026-09-05-pi-backend-status.md): signed terminal request,
-verified demo release, exact grant resolver, fixture assessment, durable ledger
-producer and mock ESP HTTP execution. Full permission semantics, real scoring/review,
-authority transfer and physical acceptance remain. Requirements below describe
-the full product; use the [current source map](../../architecture.md) for implemented scope.
+Current implementation includes signed terminal requests, exact grants, guarded
+ext4 USB storage, physical eight-light serial control, automatic Wazuh audit delivery
+and authenticated LAN web viewing. Full permissions/baseline activation, real Pi
+scoring, native review responses and authority transfer remain. Requirements below
+describe the full product; use the [current source map](../../architecture.md) for scope.
 
 **Updated:** 2026-09-05. **Product:** Authenticated Local Identity & Cyber Enforcement.
 **Status:** Revised design; implementation evidence is identified separately below.
@@ -18,7 +17,7 @@ This revision follows Jared's latest two-mode product definition and explicit
 choice that **enterprise systems control execution directly online**. It replaces
 this document's earlier always-inline DCAMR design. The technician console is now integrated under the shared application, package and
 service roots. The [root architecture](../../architecture.md) maps current source;
-the [combined review](../handoffs/2026-09-05-team-layout-review.md) records local
+the [current checkpoint](../../current.md) records local
 verification and its hardware/native limits. Earlier handoff reports below remain
 attributed evidence where explicitly labelled.
 
@@ -37,7 +36,7 @@ permissions, authority and audit prerequisites before hardware execution. Theo's
 older Pi-owned final fusion does not govern this held-action choice. Existing
 approval-only implementation evidence does not establish biometric gating of both
 response paths. See the [corrected architecture](../../architecture.md) and
-[next-session handoff](../handoffs/2026-09-05-theo-architecture-alignment.md).
+[technician integration contract](../integration/technician-console.md).
 
 The [Pi assessment contract](../contracts/decision-assessment.md) supersedes earlier
 Pi-owned final-fusion descriptions for the current increment. The Pi supplies
@@ -204,7 +203,7 @@ The demo must identify simulated transfer behavior until this boundary is tested
 
 ## 5. Trusted cache synchronization
 
-The [enterprise simulation handoff](../handoffs/enterprise-sim-handoff.md) now supplies
+The [enterprise simulation guide](../lab/README.md) now supplies
 concrete demonstration permissions releases 42–44, a generation-42 USB image,
 Wazuh index/rule configuration and synthetic normal-behavior inputs. These are
 enterprise-side fixtures, not a working Pi cache loader. The deterministic demo
@@ -437,7 +436,7 @@ intended reconciliation inputs; it does not prove live Pi delivery or authority
 transfer. Its proposed internal-storage audit authority with a USB copy still
 needs agreement. Wazuh's agent buffer is not the durable DDIL outbox; the supplied
 indexer role also does not enforce append-only storage. See the
-[handoff boundaries](../handoffs/enterprise-sim-handoff.md) before implementing delivery,
+[Wazuh and release boundaries](../integration/wazuh-audit-sync.md) before implementing delivery,
 per-event acknowledgements, conflict checking and retention.
 
 The Pi communicates directly with configured enterprise interfaces. The sequence
@@ -496,7 +495,7 @@ approval path. Cloning code does not provision model weights or local identities
 | Core anomaly contract/features | Implemented schemas, strict validation/binding, fixed cyber features, source provenance and replay fixtures. |
 | Mac model experiments | Historical cyber fitting/comparisons have published reports. General PRE/POST contextual fitting/scoring now works with supplied normal sources; test-only synthetic inputs establish code behavior, not an ESP baseline. |
 | Core validation | The original cyber publication passed 103 tests and both replays. Current contextual parser/model coverage and full-suite counts are recorded in the [tracker](../implementation-tracker.md). These are component results, not Pi acceptance. |
-| Core audit and lifecycle | The durable ledger and first-light fixture producer, signed release verification, exact grants and mock light execution are implemented. USB Pi deployment and automatic Wazuh audit delivery now have live mock-action evidence; real model/review, two-mode control, complete permissions, physical execution and semantic reconciliation remain. See [integration handoff](../integration/esp-handoff.md). |
+| Core audit and lifecycle | The durable ledger and first-light fixture producer, signed release verification, exact grants and physical eight-light execution are implemented. USB Pi deployment and automatic Wazuh audit delivery have live evidence; real model/review, two-mode control, complete permissions and semantic reconciliation remain. See the [integrated runbook](../guides/demo-runbook.md). |
 | Technician console | Source is integrated under apps/desktop, packages and services/biometrics. The combined review records local frontend/build/browser verification; historical native/identity evidence has separate scope. Live Pi transport and execution remain. |
 | Cross-component integration | Event adapter, source authentication, remote proof, durable delivery/receipts, execution results and mode/authority changes remain open. |
 

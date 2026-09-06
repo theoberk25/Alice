@@ -1,16 +1,37 @@
-# First-light hardware runbook — XIAO ESP32-S3 over USB
+# Eight-light hardware runbook — XIAO ESP32-S3 over USB
 
-Updated: 2026-09-06. Build, flash and run the one-LED light node that the Pi runtime
+Updated: 2026-09-06. Build, flash and run the eight-light node that the Pi runtime
 commands over USB serial. Read [AGENTS.md](../../AGENTS.md) and
 [current.md](../../current.md) first; the wire contract is the
 [serial protocol](../contracts/esp-serial-protocol.md).
 
 ## Scope and authority
 
-One LED, one transport. The Pi authenticates, authorizes and records the audit trail;
+Eight lights, one transport. The Pi authenticates, authorizes and records the audit trail;
 the XIAO applies an output and reports it. The node has no network, no policy and no
 decisions. The production protocol supports eight addressable LEDs; technician approval,
 sensors and motors remain separate. The identification sketch is bench-only.
+
+## Verified channel map
+
+All eight LEDs were individually selected and visually identified by Jared. Keep
+the target, channel, pin and color stable when the power-grid teammate assigns
+final simulated asset names. Color identifies the physical LED, not alert severity.
+
+| Target | Channel | Pin | GPIO | Verified color | Suggested grid role |
+| --- | ---: | --- | ---: | --- | --- |
+| `ESP-LIGHT-01` | 1 | D0 | 1 | Yellow 1 | Primary utility feed |
+| `ESP-LIGHT-02` | 2 | D3 | 4 | Blue 1 | Server rack A supply |
+| `ESP-LIGHT-03` | 3 | D5 | 6 | Red 1 | Cooling plant supply |
+| `ESP-LIGHT-04` | 4 | D6 | 43 | White 1 | Communications rack supply |
+| `ESP-LIGHT-05` | 5 | D10 | 9 | Yellow 2 | Backup generator feed |
+| `ESP-LIGHT-06` | 6 | D9 | 8 | Blue 2 | Server rack B supply |
+| `ESP-LIGHT-07` | 7 | D8 | 7 | Red 2 | Auxiliary maintenance load |
+| `ESP-LIGHT-08` | 8 | D7 | 44 | White 2 | Security monitoring rack supply |
+
+Suggested topology is utility and generator into a transfer switch, then a bus
+feeding six loads. The grid owner must define critical loads, interlocks, transfer
+behavior and simulated telemetry. These LEDs do not switch real utility power.
 
 ## Wiring
 
@@ -25,9 +46,9 @@ XIAO GND ───────────────────────�
 ```
 
 - **D0 is GPIO1.** Not GPIO0, and not the onboard user LED on GPIO21.
-- Power comes from the Pi's USB port; the LED is the only load.
-- The bench now has eight individually identified LEDs; use the verified
-  [ESP mapping](../integration/esp-handoff.md). Production commands address all eight targets. All LED pins start LOW,
+- Power comes from the Pi's USB port; the eight indicator circuits are the only loads.
+- The bench has eight individually identified LEDs using the map above. Production
+  commands address all eight targets. All LED pins start LOW,
   including D6 (GPIO43/UART TX) and D7 (GPIO44/UART RX). Do not enable hardware
   UART while these pads are used for LEDs. Jared confirmed the dim D7 glow is gone.
 
@@ -102,10 +123,10 @@ Drive it with the existing signed terminal client:
 
 | Action | Physical | Response | Audit |
 | --- | --- | --- | --- |
-| Signed `state=on` | LED lights | `decision=ALLOW execution=COMPLETED observed=on` | REQUEST, ASSESSMENT, DECISION, EXECUTION_ATTEMPT, CONTROLLER_RECEIPT, EXECUTION_RESULT, OBSERVED_STATE |
+| Signed `state=on` | Selected LED starts slow blinking | `decision=ALLOW execution=COMPLETED observed=on` | REQUEST, ASSESSMENT, DECISION, EXECUTION_ATTEMPT, CONTROLLER_RECEIPT, EXECUTION_RESULT, OBSERVED_STATE |
 | Same envelope repeated | **no change** | same payload plus `idempotent_replay` | no new events |
 | Unknown agent | **no change** | `HTTP 401 DENY UNKNOWN_KEY` | REJECTION only |
-| Node unplugged mid-run | last output held | `execution=UNKNOWN observed=None` | EXECUTION_ATTEMPT then UNKNOWN result |
+| Node unavailable during a command | Physical effect unavailable | `execution=UNKNOWN observed=None` | EXECUTION_ATTEMPT then UNKNOWN result |
 
 A denied request never reaches the device, even when the light is already on.
 
@@ -130,8 +151,11 @@ chain; a repeated envelope replaying with no second device write; an unknown-age
 request refused with no device write.
 
 Subsequent Pi acceptance: physical D0 light-on, USB-backed ledger and Wazuh
-delivery passed. The idle-low production firmware was then flashed and D0 OFF
-readback verified; see the [ESP handoff](../integration/esp-handoff.md) for evidence.
+delivery passed. All eight signed ON/OFF requests and their identical replays then
+passed with target-bound events. The idle-low production firmware was flashed and
+D0 OFF readback verified. ON now uses a nonblocking one-second lit/one-second dark
+cycle; OFF cancels blinking immediately. The operator's all-off control sends eight
+separate signed requests and reports each outcome.
 
 `observed_state` is the node's own driven output, not measured illumination — a dead
 LED still reports `on`. Exactly-once physical execution is not claimed across
@@ -151,6 +175,6 @@ python -m pytest tests/test_first_light_serial.py tests/test_serial_firmware.py 
 parser tests need a host C++ compiler. The fixtures in `tests/fixtures/firmware/`
 compile the real `.ino` against host stubs, with generated binaries only in temporary
 storage. These checks do not flash a board. Rebuild/flash and repeat physical
-acceptance after pulling the hardened firmware. Follow the
-[joint acceptance guide](../integration/pi-technician-acceptance.md) for Pi/USB,
-Wazuh and live dashboard checks without creating another writer.
+acceptance after pulling hardened firmware. Follow the
+[integrated demo runbook](demo-runbook.md) for Pi/USB, Wazuh, wireless, agent and
+technician checks without creating another writer.

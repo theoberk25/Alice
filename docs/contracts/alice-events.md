@@ -1,6 +1,6 @@
 # ALICE-native events
 
-All events carry `schema_version: "1.0"`, `event_type`, and an ISO UTC `timestamp`. The console's executable schemas live in `packages/contracts/src/alice/events.ts` relative to the repository root; generated JSON Schema files in this directory support non-TypeScript teammates. They have not been promoted into `common/` or reconciled with the core contracts. See the [migration assessment](../integration/main-repository-migration.md) for version, anomaly, and ONLINE/OFFLINE authority gaps.
+All events carry `schema_version: "1.0"`, `event_type`, and an ISO UTC `timestamp`. The console's executable schemas live in `packages/contracts/src/alice/events.ts` relative to the repository root; generated JSON Schema files in this directory support non-TypeScript teammates. They have not been promoted into `common/` or reconciled with the core contracts. See the [technician integration contract](../integration/technician-console.md) for version, anomaly, and ONLINE/OFFLINE authority gaps.
 
 | Event                  | Purpose / binding                                                                                                   |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------- |

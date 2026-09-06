@@ -17,9 +17,9 @@ Differences from the newer contracts are identified below.
 **Current coordination:** Theo and Jared are configuring the Pi; Xavi is working
 on hardware. After the architecture is corrected, Merek will build the backend
 integration that carries data end to end, enabling Alex to adapt the workstation
-scripts and dashboard to real incoming data. The local live-dashboard slice now connects the real first-light runtime through a
-validated read-only bridge; physical Pi acceptance remains pending. See the
-[live integration guide](docs/integration/live-dashboard.md).
+scripts and dashboard to real incoming data. The live dashboard connects the
+physical first-light runtime through a validated read-only bridge. See the
+[integrated demo runbook](docs/guides/demo-runbook.md).
 
 ## System responsibilities
 
@@ -189,7 +189,7 @@ mappings. Shared names do not establish interchangeable envelopes or hash rules.
 
 The implemented read-only display boundary uses the versioned runtime feed, a
 loopback authenticated bridge and SSH forwarding for physical Pi access. See the
-[live integration guide](docs/integration/live-dashboard.md) for configuration,
+[integrated demo runbook](docs/guides/demo-runbook.md) for configuration,
 mapping gaps and recovery. Remote biometric responses still require agreement
 and implementation. The empty `services/backend/` directory does not dictate deployment.
 The [console integration guide](docs/integration/technician-console.md) retains
@@ -212,7 +212,7 @@ need an explicit migration decision.
 | --- | --- | --- |
 | Internal representation | Frozen native records; package-versioned codebook indices; one deterministic CBOR codec at boundaries, JSON for human/console projection. | Current request/assessment/audit paths use JSON-compatible contracts and canonical JSON bytes. CBOR/codebooks are not implemented; preserve old hash/record decoding across any migration. Benchmark size/CPU before claiming the plan's estimates. |
 | Signed releases | ONLINE pull → verify signature/digests → stage → validate → atomic activate; OFFLINE uses accepted cached inputs. | First-light verifies a demo release at startup. Full activation, expiry, revocations and rollback handling remain. Evidence feeds cannot become permission authority. |
-| Storage isolation | Read-only signed-input partition; distinct writable output storage; secrets outside the signed-input medium. | User-confirmed correction: USB holds the latest synchronized SQL snapshot entering DDIL and the Pi writes new offline audit data onto that USB. The runtime now supports guarded USB SQLite/evidence paths, with the signing key outside USB and no local fallback. Reconciliation preserves original history. Automatic Wazuh delivery now runs through the existing ledger owner on ext4 USB. Enterprise snapshot publication and semantic reconciliation remain; see the [live guide](docs/integration/live-dashboard.md). |
+| Storage isolation | Read-only signed-input partition; distinct writable output storage; secrets outside the signed-input medium. | User-confirmed correction: USB holds the latest synchronized SQL snapshot entering DDIL and the Pi writes new offline audit data onto that USB. The runtime now supports guarded USB SQLite/evidence paths, with the signing key outside USB and no local fallback. Reconciliation preserves original history. Automatic Wazuh delivery now runs through the existing ledger owner on ext4 USB. Enterprise snapshot publication and semantic reconciliation remain; see the [integrated runbook](docs/guides/demo-runbook.md). |
 | Audit and outbox | Durable intent before execution; distinguish audit-capacity failure from upload backlog pressure. | Reuse the SQLite/hash-chain/Ed25519 ledger. Do not introduce a second CBOR logger/WAL by assumption. Theo's bounded delivery ring must not discard unacknowledged source history; gap markers are not permission to lose evidence. |
 | Signing library | The older plan proposes PyNaCl and rejects cryptography for its target image. | Existing audit and first-light signing use cryptography. No library replacement is approved here; assess compatibility and Pi packaging before changing trust code. |
 | Model deployment | Mac-exported, hash-verified forest arrays; pure-Python Pi traversal; no pickle/joblib model loading. | Models currently fit/score in Mac Python components. Export/load and parity are future work. Keep profile, model, calibration and PRE/POST observation bindings explicit. |
@@ -265,7 +265,7 @@ The earlier reference's “only anomaly implemented” statement no longer appli
 
 Prior verification recorded 265 Python tests with zero skips and console checks;
 that is historical component/mock evidence. This architecture revision runs
-only documentation checks. See the [combined evidence](docs/handoffs/2026-09-05-team-layout-review.md)
+only documentation checks. See the [current evidence](current.md)
 and [first-light report](docs/reports/2026-09-05-pi-backend-status.md).
 
 ## Repository map
@@ -332,10 +332,10 @@ weights and identity stores instead of moving them as source cleanup.
    history. Then extend context/reassessment, offline recovery and enterprise sync.
 
 These are next steps, not implementation completed by this document. The
-[session handoff](docs/handoffs/2026-09-05-theo-architecture-alignment.md) records
+[technician integration contract](docs/integration/technician-console.md) records
 source differences, current owners and the next-session boundary. Detailed product
 tasks remain in the [tracker](docs/implementation-tracker.md).
 
 Current physical USB/Wazuh deployment and ESP/technician connection recommendations:
-[team handoff](docs/integration/esp-handoff.md). Automatic audit delivery
+[hardware runbook](docs/guides/first-light-hardware.md). Automatic audit delivery
 does not implement authority transfer or technician accept/prevent commands.

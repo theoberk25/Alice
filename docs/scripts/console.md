@@ -19,7 +19,7 @@ See the [console guide](../guides/technician-console.md).
 
 ## Live runtime integration
 
-See [live dashboard setup](../integration/live-dashboard.md) for the authenticated
+See [integrated demo setup](../guides/demo-runbook.md#start-the-current-presentation-services) for the authenticated
 bridge, USB SQL runtime, remote preview/native configuration and browser test.
 The Vite proxy lives with the desktop app; `python -m services.runtime_feed` runs
 the read-only bridge. Neither creates a second backend database.

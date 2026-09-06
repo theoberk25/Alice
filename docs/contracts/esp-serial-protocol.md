@@ -9,7 +9,7 @@ Production supports eight mapped LEDs. Version 1 retains the original D0-only
 messages; version 2 requires an integer channel from 1 through 8 on SET and GET.
 Both success and rejection replies echo version/channel; the Pi rejects a reply
 whose version or channel differs from its request. A command ID is correlation,
-not authorization. See the [mapping](../integration/esp-handoff.md).
+not authorization. See the [hardware mapping](../guides/first-light-hardware.md#verified-channel-map).
 
 ```json
 {"v":2,"id":"example","channel":8,"op":"set","state":"on"}
@@ -134,7 +134,7 @@ inside its 256-byte limit. Host-compiled tests exercise the actual firmware loop
 against test-only serial/GPIO stubs. They do not establish Arduino board compilation
 or physical acceptance of the changed firmware.
 
-The current eight-LED bench wiring is recorded in the [ESP handoff](../integration/esp-handoff.md).
+The current eight-LED bench wiring is recorded in the [hardware runbook](../guides/first-light-hardware.md#verified-channel-map).
 Production firmware starts all eight outputs LOW; signed grants determine which
 channel requests can execute.
 

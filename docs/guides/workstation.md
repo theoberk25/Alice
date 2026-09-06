@@ -27,8 +27,8 @@ the implemented console entry points are `apps/desktop/` and
 
 The [team integration agreement](../integration/technician-console.md) and
 [current architecture](../prds/ALICE-DCAMR-Architecture.md) govern whole-system
-authority. The [migration assessment](../integration/main-repository-migration.md)
-records the differences between those requirements and the preserved console,
+authority. The [technician integration contract](../integration/technician-console.md)
+records the remaining boundaries for the preserved console,
 including anomaly scores, context challenges and ONLINE/OFFLINE control transfer.
 The console's [executable contracts and upstream boundary](../integration/upstream-alice.md)
 remain local to `packages/contracts/`; no shared core contracts were
@@ -43,8 +43,8 @@ connect them or prove protected execution.
 ## Verification and remaining work
 
 See the [migration verification record](console/verification.md#main-repository-migration-verification)
-for commands actually executed and their outcomes, and the
-[console handoff](../handoffs/2026-09-05-console-handoff.md) for implemented/planned distinctions.
+for commands actually executed and their outcomes. The current
+[integration contract](../integration/technician-console.md) distinguishes implemented and planned behavior.
 Previous operator results refer to the original standalone installation unless
 explicitly recorded as migration checks.
 
@@ -59,4 +59,4 @@ The native bundle identifier is preserved. Its default macOS Application Support
 path may already contain an earlier installation's data; use an explicit fresh
 `ALICE_DATABASE_PATH` and private biometric data directory for isolated validation.
 Private local environments, models and enrollment data moved with the console
-without being committed. See the [layout record](../handoffs/2026-09-05-console-layout.md).
+without being committed. See the [verification record](console/verification.md).

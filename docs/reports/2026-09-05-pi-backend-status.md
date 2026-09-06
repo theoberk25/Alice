@@ -18,7 +18,7 @@ retry and the deny path were both demonstrated end to end.
 
 ## Subsequent local integration
 
-The [live dashboard/USB configuration](../integration/live-dashboard.md) supersedes
+The [integrated demo/USB configuration](../guides/demo-runbook.md) supersedes
 the original Pi-internal-only storage assumption: the user approved USB-backed
 SQL history and offline writes. The local bridge/display slice and mount guards
 are implemented; this report's original first-light results remain historical.

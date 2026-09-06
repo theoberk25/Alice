@@ -2,7 +2,7 @@
 
 Evidence record per [AGENTS.md](../../AGENTS.md). Companion to the
 [Pi backend status report](2026-09-05-pi-backend-status.md) and the
-[implementation handoff](../handoffs/2026-09-05-first-light-test.md).
+[implementation tracker](../implementation-tracker.md).
 Everything below was actually executed this session; nothing is projected.
 
 ## 1. Automated test suites

@@ -1,6 +1,6 @@
 # First-light SQL input snapshot
 
-Follow [AGENTS.md](../../AGENTS.md) and the [live-feed runbook](live-dashboard.md).
+Follow [AGENTS.md](../../AGENTS.md) and the [integrated demo runbook](../guides/demo-runbook.md).
 This is a bounded local continuation of published checkpoint `44f4d73`.
 
 ## Implemented boundary
@@ -89,4 +89,4 @@ physical controller and power-loss/removal behavior. Jared reports ext4 USB UUID
 `0742aa3f-38fe-44aa-a382-9be9c4d9bb52`; snapshot publication has not yet been tested
 on that device. Do not replace its existing JSON release or running ledger for a test.
 
-[Implementation and verification handoff](../handoffs/2026-09-06-release-snapshot.md).
+[Implementation status and remaining work](../implementation-tracker.md).

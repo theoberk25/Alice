@@ -10,7 +10,7 @@ shared product, contract and architecture documents retain their central homes.
 - [Feature construction](../contracts/anomaly-features.md)
 - [Contextual behavior model](../architecture/contextual-behavior-model.md)
 - [Decision Evidence Ledger](../architecture/decision-evidence-ledger.md)
-- [Workflow integration handoff](../handoffs/core-workflow-wip-handoff.md)
+- [Workflow status](../implementation-tracker.md)
 - [Implementation tracker](../implementation-tracker.md)
 
 The first-light slice now implements `dcamr.main`, signed release verification,

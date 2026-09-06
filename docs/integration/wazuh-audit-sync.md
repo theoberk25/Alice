@@ -1,8 +1,32 @@
 # Pi ledger → Wazuh audit delivery
 
 This slice uploads original, sealed Pi ledger events directly to the enterprise
-Wazuh indexer. The technician application is not a relay. Teammates continue to
-own Pi ↔ technician transport and enterprise → USB cache publication.
+Wazuh indexer. The technician application is not a relay. The next transition adds
+enterprise → USB permissions and baseline publication as a separate authenticated
+direction; audit delivery must continue without sharing its service credentials.
+
+## Wireless and enterprise transition
+
+The current Wazuh stack runs on Jared's Mac and remains reachable to the Pi on the
+local demo LAN using the existing TLS hostname and dedicated delivery account.
+Adding an access point must preserve that path; adding a WAN later may also reach
+hosted enterprise services. Local agents and technician browsers do not receive
+Wazuh service credentials. Cloud agents authenticate at an enterprise gateway;
+they do not call the Pi's loopback runtime or USB-serial controller directly.
+
+Keep these flows distinct:
+
+| Direction | Data | Trust and storage |
+| --- | --- | --- |
+| Pi → Wazuh | Immutable request, decision, execution and observation events | Existing create-only delivery IDs, exact read-back and USB receipts |
+| Enterprise → Pi | Signed permissions, normal baseline and compatible model metadata/artifact | Stage on USB, verify fully, then atomically activate a new generation |
+| Pi ↔ technician | Read-only events now; bound HOLD response later | Authenticated workstation channel, separate from Wazuh |
+
+Loss or restoration of Wazuh connectivity changes uploader state only. It never
+selects ONLINE/OFFLINE execution ownership. On reconnection, drain retained events
+before or alongside cache refresh, preserve original decision-time evidence and
+append reconciliation findings rather than rewriting records. The full sequence is
+in the [integrated demo runbook](../guides/demo-runbook.md).
 
 ## Integration boundary
 
@@ -254,7 +278,7 @@ first-light SQL snapshot input, preserving original events and restart replay.
 HTTP protocol/truncated-body errors now enter delivery retry rather than stopping
 the worker as a local failure; malformed nested create receipts are rejected.
 The shared `verify_stored(event)` method performs only exact-content GET verification.
-The [joint acceptance helper](pi-technician-acceptance.md) uses it without uploading
+The [integrated acceptance flow](../guides/demo-runbook.md#acceptance-sequence) uses it without uploading
 or mutating delivery state. Existing physical service deployment remains unchanged
 until the operator pulls and performs a coordinated restart.
 
@@ -266,6 +290,6 @@ the physical serial XIAO. Jared visually confirmed the external LED on.
 Seven events automatically reached Wazuh; worker reported IDLE, delivered 7,
 last event ending `.observed`, and no error. USB ledger total: 104.
 All 97 predeployment canonical events were byte-identical to the backup.
-See the [existing ESP handoff](esp-handoff.md) for configuration,
+See the [hardware runbook](../guides/first-light-hardware.md) for configuration,
 backup and validation. This does not activate cached generation 44 permissions
 or establish technician approval transport.

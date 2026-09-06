@@ -1,11 +1,10 @@
 # ALICE — Product Requirements Document
 
-Current implementation update: main at `d6e7e55` adds the
-[first-light slice](../reports/2026-09-05-pi-backend-status.md): signed terminal request,
-verified demo release, exact grant resolver, fixture assessment, durable ledger
-producer and mock ESP HTTP execution. Full permission semantics, real scoring/review,
-authority transfer and physical acceptance remain. Requirements below describe
-the full product; use the [current source map](../../architecture.md) for implemented scope.
+Current implementation includes signed terminal requests, exact grants, guarded
+ext4 USB storage, physical eight-light serial control, automatic Wazuh audit delivery
+and authenticated LAN web viewing. Full permissions/baseline activation, real Pi
+scoring, native review responses and authority transfer remain. Requirements below
+describe the full product; use the [current source map](../../architecture.md) for scope.
 
 **Status:** Updated product direction; implementation and integration remain incremental
 
@@ -24,7 +23,7 @@ permissions, authority and audit prerequisites before hardware execution. Theo's
 older Pi-owned final fusion does not govern this held-action choice. Existing
 approval-only implementation evidence does not establish biometric gating of both
 response paths. See the [corrected architecture](../../architecture.md) and
-[next-session handoff](../handoffs/2026-09-05-theo-architecture-alignment.md).
+[technician integration contract](../integration/technician-console.md).
 
 The [Pi assessment contract](../contracts/decision-assessment.md) supersedes earlier
 Pi-owned final-fusion descriptions for the current increment. The Pi supplies
@@ -316,7 +315,7 @@ The project is published on `main`; this PRD does not invent a `dev` integration
 | This repository's anomaly slice | Strict result boundary, 11-feature cyber builder, fixtures, bounded Mac Isolation Forest training, and global/conditional calibration experiments; original cyber suite: 103 tests passed; current totals are in the [tracker](../implementation-tracker.md). | Pi model/runtime deployment, production detection quality, motor profile, permissions/fusion, and execution integration. |
 | Conditional calibration | Synthetic fresh evaluation reduced elevated/high normal-change results from 32/68 to 2/68; diagnostics increased from 23/1,132 to 38/1,132. Novelty flags stayed intact. | No adoption/deployment; some challenge score sensitivity decreased, so low bands cannot suppress novelty controls. |
 | ONLINE/OFFLINE integration | Requirements and component fixtures. | Enterprise execution/feed integration, ownership fencing, real handover, signed cache activation, durable uploads, and authoritative end-to-end audit. |
-| Integrated technician console | React/Tauri source, ArcFace service, Ollama gateway, immutable reassessment display and mocked edge workflows are in the shared layout. [Combined verification](../handoffs/2026-09-05-team-layout-review.md) records local checks; native/identity reports retain their historical scope. | Live operator acceptance, authenticated Pi transport/proof, durable outbox and authoritative execution confirmation remain. |
+| Integrated technician console | React/Tauri source, ArcFace service, Ollama gateway, immutable reassessment display and authenticated read-only physical-Pi feed are in the shared layout. [Verification](../guides/console/verification.md) records local checks. | Native authenticated response transport/proof and authoritative execution confirmation remain. |
 
 The console handoff reports 91 default tests plus separate real-service checks; these are attributed results, not additions to the core repository's test count.
 It states that console audit is not tamper-evident and that the app bundle does not include every Python/model/Ollama dependency.

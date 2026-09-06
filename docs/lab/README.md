@@ -39,7 +39,7 @@ output paths still mean relative to the caller's working directory.
 Use Python 3.12 and `requirements-anomaly-training.txt` plus `cryptography` for
 enterprise generation/fitting; ledger replay also needs `requirements-audit.txt`.
 See [training](../guides/anomaly-training.md) and
-[enterprise setup](../handoffs/enterprise-sim-handoff.md). Generated
+[integrated demo setup](../guides/demo-runbook.md). Generated
 artifacts, datasets, keys and existing environments remain in their original
 locations. This migration does not regenerate or activate them.
 
@@ -54,7 +54,7 @@ stay in `dcamr/`. The runtime's dependency on the lab assessment fixture is an
 explicit test-slice exception, not a production scoring adapter.
 
 Use temporary or ignored local-state directories for generated release/private-key,
-ledger and export outputs. See the [first-light handoff](../handoffs/2026-09-05-first-light-test.md)
+ledger and export outputs. See the [first-light test report](../reports/2026-09-05-first-light-test-log.md)
 and [backend scope](../reports/2026-09-05-pi-backend-status.md). The console feed is
 read-only, authority is hard-coded and device behavior is mocked; real scoring,
 review/authority protocols and physical Pi/ESP acceptance remain.
@@ -74,4 +74,4 @@ The generic `run.py` allowlist does not include this maintenance command.
 `python -m lab.first_light.check_pipeline` compares an existing request in the
 loopback runtime, read-only USB SQL and optional Wazuh GET. It never submits or
 uploads events and may run beside the runtime owner. Follow the
-[joint Pi/technician acceptance guide](../integration/pi-technician-acceptance.md).
+[integrated demo acceptance guide](../guides/demo-runbook.md#acceptance-sequence).

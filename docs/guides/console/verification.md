@@ -1,6 +1,6 @@
 # Historical standalone console implementation verification
 
-The checks and operator observations below were recorded on September 5, 2026 for standalone source commit `50de955737a647b856658bf7a5da6f52d15b4a4a` on its original Apple Silicon Mac. They are preserved historical evidence, not claims that this migrated checkout has those dependencies, accounts, services or results. The source now uses the shared repository layout, with simulated upstream infrastructure. See the [main workstation guide](../workstation.md) for current migration verification and the [migration assessment](../../integration/main-repository-migration.md) for scope. All commands below are relative to the repository root.
+The checks and operator observations below were recorded on September 5, 2026 for standalone source commit `50de955737a647b856658bf7a5da6f52d15b4a4a` on its original Apple Silicon Mac. They are preserved historical evidence, not claims that this migrated checkout has those dependencies, accounts, services or results. The source now uses the shared repository layout, with simulated upstream infrastructure. See the [main workstation guide](../workstation.md) and [technician integration contract](../../integration/technician-console.md) for current scope. All commands below are relative to the repository root.
 
 ## Executed checks
 
@@ -62,12 +62,12 @@ The native cache and hydration use a linear chain: parent before child at ingest
 Verified **2026-09-05** on branch `codex/Technician-DashboardImplementation`,
 main baseline `e0796d0`; migration changes are uncommitted. Standalone source:
 `50de955737a647b856658bf7a5da6f52d15b4a4a`. No commits, history changes or pushes
-were made. See the [migration assessment](../../integration/main-repository-migration.md)
+were made. See the [technician integration contract](../../integration/technician-console.md)
 for the path map and documented authority/contract conflicts.
 
 ### Source preservation and environment
 
-At the original import, all **127** tracked standalone files were represented under `workstation/`; the later [layout migration](../../handoffs/2026-09-05-console-layout.md) moved them into shared folders.
+At the original import, all **127** tracked standalone files were represented under `workstation/`; the later layout migration moved them into shared folders.
 SHA-256 comparison found **113 byte-identical files**; the other 14 are 13
 Markdown documents adapted for repository paths/authority/historical evidence,
 plus `.gitignore` extended for private runtime artifacts. Application code,

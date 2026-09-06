@@ -1,6 +1,6 @@
 # Console contract reference for upstream ALICE
 
-This is the migrated console's executable-contract reference, subordinate to the main [architecture](../prds/ALICE-DCAMR-Architecture.md), [PRD](../prds/ALICE-DCAMR-PRD.md), and [console integration requirements](technician-console.md). Paths below are relative to the repository root. The [migration assessment](main-repository-migration.md) records contract ownership and unresolved differences. Shared schema promotion and real wiring are not part of the source migration. The console owns identity, explanation, presentation, request-scoped technician controls, and a local record. It does not own ALLOW/HOLD/DENY generation or protected action execution.
+This is the console's executable-contract reference, subordinate to the main [architecture](../prds/ALICE-DCAMR-Architecture.md), [PRD](../prds/ALICE-DCAMR-PRD.md), and [console integration requirements](technician-console.md). Paths below are relative to the repository root. Shared schema promotion and real writable integration remain pending. The console owns identity, explanation, presentation, request-scoped technician controls, and a local record. It does not own ALLOW/HOLD/DENY generation or protected action execution.
 
 ```text
 ALICE upstream/core (agent/, dcamr/, cloud/, common/)
@@ -89,7 +89,7 @@ Receipt status may be ACCEPTED, PENDING, or REJECTED. ACCEPTED acknowledges the 
 ## Transport integration
 
 `AliceTransport` isolates UI/state from transport. `MockAliceTransport` emits fixtures and simulates context and action acknowledgments. `RemoteAliceTransport` now polls the authenticated read-only runtime bridge;
-see [live mapping/configuration](live-dashboard.md). The rich fixture decision
+see the [integrated demo mapping/configuration](../guides/demo-runbook.md). The rich fixture decision
 contract remains unchanged. A separate `alice-runtime-feed-v1` display contract
 retains audit events and request groups without fabricated fields. Remote
 clarification and technician actions still fail explicitly unavailable.

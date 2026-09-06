@@ -7,12 +7,15 @@ local action can be understood, reviewed and eventually reconciled upstream.
 
 **Current delivery:** a first-light signed terminal request can run through the
 USB-backed Pi runtime to a physical USB-serial XIAO ESP32-S3 light, with automatic verified audit delivery to
-Wazuh and a native technician console. The full product loop is still being integrated.
+Wazuh and an authenticated read-only technician web app. The native technician
+console and full product loop are still being integrated.
 Moving code into the shared layout does not make the live system complete.
 
 The intended decision split is **Pi ML classification → local Mac held-action
-accept/deny after biometric verification → Pi validation/enforcement**. Physical light-on is verified; authenticated held-action responses are next; use the
-[ESP handoff](docs/integration/esp-handoff.md) and
+accept/deny after biometric verification → Pi validation/enforcement**. Physical
+eight-light control is verified; authenticated held-action responses are next. Use
+the [integrated demo runbook](docs/guides/demo-runbook.md),
+[hardware runbook](docs/guides/first-light-hardware.md), and
 [automatic Wazuh runbook](docs/integration/wazuh-audit-sync.md).
 
 Start with [architecture.md](architecture.md) for the whole-system picture,
@@ -125,8 +128,8 @@ separate, and estimator tests skip when they are absent. The public `lab.*` comm
 still work even though their implementations moved to `scripts/lab/`. From another
 working directory, use the absolute path to `scripts/lab/run.py COMMAND`.
 See the [lab guide](docs/lab/README.md), [training guide](docs/guides/anomaly-training.md)
-and [enterprise simulation handoff](docs/handoffs/enterprise-sim-handoff.md) before
-generating data. Synthetic fixtures do not establish physical safety limits.
+and [integrated demo runbook](docs/guides/demo-runbook.md) before generating data.
+Synthetic fixtures do not establish physical safety limits.
 
 ## Verify changes
 

@@ -16,6 +16,24 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
+Current transition instructions are consolidated in `docs/guides/demo-runbook.md`.
+The superseded ESP handoff, live-dashboard guide, joint acceptance checklist,
+live-dashboard plan and five completed September 6 session handoffs were moved
+intact under `docs/archive/`. Current hardware, SIEM and technician contracts stay
+in their focused guides; no implementation evidence or task IDs were deleted.
+
+| Superseded active path | Preserved archive path |
+| --- | --- |
+| `docs/integration/esp-handoff.md` | `docs/archive/integration/2026-09-06-esp-handoff.md` |
+| `docs/integration/live-dashboard.md` | `docs/archive/integration/2026-09-06-live-dashboard.md` |
+| `docs/integration/pi-technician-acceptance.md` | `docs/archive/integration/2026-09-06-pi-technician-acceptance.md` |
+| `docs/plans/2026-09-06-live-dashboard.md` | `docs/archive/plans/2026-09-06-live-dashboard.md` |
+| `docs/handoffs/2026-09-06-backend-continuation.md` | `docs/archive/handoffs/2026-09-06-backend-continuation.md` |
+| `docs/handoffs/2026-09-06-jared-main-integration.md` | `docs/archive/handoffs/2026-09-06-jared-main-integration.md` |
+| `docs/handoffs/2026-09-06-live-dashboard.md` | `docs/archive/handoffs/2026-09-06-live-dashboard.md` |
+| `docs/handoffs/2026-09-06-release-snapshot.md` | `docs/archive/handoffs/2026-09-06-release-snapshot.md` |
+| `docs/handoffs/2026-09-06-xavier-serial-integration.md` | `docs/archive/handoffs/2026-09-06-xavier-serial-integration.md` |
+
 Slow-blink firmware deployed (1 second lit/dark); operator All lights off uses
 eight signed requests with per-light outcomes. Timing/cancellation tests pass.
 
@@ -36,7 +54,7 @@ Physical Pi USB-serial light-on now passed: ALLOW/COMPLETED/on, external D0 LED
 visually confirmed by Jared, seven events delivered to Wazuh. All 97 original
 canonical events preserved; 104 total. Python: 357 passed plus 261 subtests.
 npm check passed typecheck/lint, 73 frontend tests, 5 script tests and build.
-[Deployment and evidence](integration/esp-handoff.md).
+[Deployment and evidence](guides/first-light-hardware.md).
 Earlier physical checkpoint preceded the later idle-low firmware deployment.
 ESP handoff publication includes the verified mapping; real ML and remote human
 approval remain.
@@ -57,16 +75,16 @@ login `ssgt.a.okafor`, scoped read-only ALICE data role, and descriptive ESP pro
 provisioned. Authentication/read tests passed; security administration denied.
 No signed permissions, Pi grants, technician authority or task status changed.
 
-[ESP connection handoff](integration/esp-handoff.md) documents
+[hardware runbook](guides/first-light-hardware.md) documents
 current service/storage paths, firmware interface, client setup and the recommended
 authenticated held-action response sequence. Recommendations do not change task status.
 
 Published `2aaf021` integrates Xavier's `290699b` USB-serial transport with the preserved
 snapshot/Wazuh/dashboard work. Hardware testing was reported on his development Mac;
-That checkpoint predates the successful Pi physical light-on acceptance below. [Integration evidence](handoffs/2026-09-06-xavier-serial-integration.md).
+That checkpoint predates the successful Pi physical light-on acceptance below. [Hardware evidence](guides/first-light-hardware.md).
 
 Integrated locally from Jared's `origin/main` checkpoint `ef413b6` and the preserved
-SQL snapshot checkpoint `73dfa91`. [ESP handoff](integration/esp-handoff.md)
+SQL snapshot checkpoint `73dfa91`. [Integrated runbook](guides/demo-runbook.md)
 and [Wazuh runbook](integration/wazuh-audit-sync.md) define the provisioned paths.
 
 Jared's [automatic USB proof](reports/2026-09-06-automatic-usb-wazuh-sync.md) reports
@@ -80,7 +98,7 @@ history and live dashboard are retained alongside the automatic owner-integrated
 Wazuh worker. General enterprise SQL synchronization, activation/freshness/rollback
 protection and remote biometric actions remain separate work. Task 086 is Partial;
 all task IDs and labels are preserved. Combined verification belongs in the
-[integration handoff](handoffs/2026-09-06-jared-main-integration.md).
+[integrated runbook](guides/demo-runbook.md).
 
 ### Historical checkpoints
 
@@ -90,7 +108,7 @@ clarification: Pi owns ML classification; the local Mac resolves held actions to
 accept or deny after biometric verification. Theo/Jared are configuring the Pi,
 Xavi is working on hardware, Merek will implement backend integration next session,
 and Alex will adapt workstation scripts/dashboard against the agreed live contract.
-The [alignment handoff](handoffs/2026-09-05-theo-architecture-alignment.md) records
+The [technician integration contract](integration/technician-console.md) records
 remaining codec/storage/proof decisions. This is documentation/coordination only;
 all 118 task IDs, labels and implementation statuses remain unchanged.
 
@@ -100,7 +118,7 @@ Fresh full Python suite: **265 passed, zero skips** (16.872 seconds with local
 loopback access for the mock ESP). All 384 latest-main files survive at original
 or mapped paths. Root architecture and active guides now distinguish this signed
 request/fixture/mock-controller slice from the full product. See the
-[combined review](handoffs/2026-09-05-team-layout-review.md) for scope and checks.
+[current checkpoint](../current.md) for scope and checks.
 
 First-light integration slice (branch `first-light-test`, 2026-09-05): one
 OFFLINE terminal request (`set_light_state -> ESP-LIGHT-01`) now runs end to end
@@ -119,14 +137,14 @@ and retained scaffolds. Corrected stale active console/ledger descriptions and
 setup paths. All 374 baseline files survive at original or mapped paths; no further
 relocation was required. Six focused Python path tests and four launcher tests
 passed. Product task IDs, statuses and totals are unchanged. Detailed documentation
-checks are in the [combined review](handoffs/2026-09-05-team-layout-review.md).
+checks are in the [current checkpoint](../current.md).
 
 Combined layout review of GitHub main at 3330a07: corrected biometric model
 provisioning's missing Path import with two isolated regressions, completed docs
 centralization, and refreshed the root project/architecture entry points. Fresh
 core suite: **259 passed, zero skips**. Console type-check, lint, 64 frontend tests,
 four launcher tests and production build passed. Product task statuses remain
-unchanged. [Review and limits](handoffs/2026-09-05-team-layout-review.md).
+unchanged. [Review and limits](../current.md).
 
 Technician console layout migration: workstation/ is removed; source is organized
 under apps, packages, services, fixtures, tests/console and the shared docs tree.
@@ -137,12 +155,12 @@ tests (with documented Python dependency setup). All 369 original tracked files
 survive; no console contracts or core product statuses changed. The user authorized
 committing this migration to local main; that historical publication limit was
 superseded by its merge into GitHub main at 3330a07.
-[Complete move map and verification](handoffs/2026-09-05-console-layout.md).
+[Console layout verification](guides/console/verification.md).
 
 Earlier lab developer-tool relocation: implementations now live in scripts/lab with preserved
 lab.* imports and a launcher independent of working directory. Pi runtime stays
 in dcamr. **257 tests passed, zero skips**, including copied-checkout generation
-and unchanged enterprise payloads. [Move map and evidence](handoffs/2026-09-05-lab-script-relocation.md).
+and unchanged enterprise payloads. [Lab layout and evidence](lab/README.md).
 This is a path migration; the 118 product task statuses are unchanged.
 
 Combined assessment + ledger verification: **253 tests passed, zero skips**.
@@ -199,7 +217,7 @@ sensor driver or Pi hardware acceptance is implied. Original history is retained
 acknowledgement does not permit deletion or prove execution.
 
 The probable demo hardware is now an ESP with lights and a voltage sensor.
-The [enterprise simulation](handoffs/enterprise-sim-handoff.md) now supplies Wazuh
+The [enterprise simulation](lab/README.md) now supplies Wazuh
 configuration, demonstration permissions releases 42–44, synthetic voltage
 observations and authored audit fixtures. Pi permissions loading/resolution and
 live audit integration remain unimplemented. Synthetic electrical limits and
@@ -380,7 +398,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 010 | Load Policy Data from SD Card | Planned | Desired medium/path: USB `permissions/`. No discovery, authorized-permissions package load or activation exists; legacy policy keys/paths remain unchanged. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
 | 011 | Load Normal Operations Data from SD Card | Planned | Current medium: USB `normal_behavior/`. The baseline byte loader exists, but no removable-media package load path is implemented. |
 | 012 | Load User Permissions from SD Card | Planned | Desired permissions input is USB `permissions/`; trusted user/agent identity and delegated permissions contracts/loaders remain unimplemented. [Enterprise simulation](handoffs/enterprise-sim-handoff.md) supplies candidate releases/contracts and fixtures; Pi runtime remains pending. |
-| 013 | Verify Package Signatures | Partial | First-light directory and SQL snapshot inputs share Ed25519/digest verification. Immutable no-overwrite SQL publication and bounded read-only loading are implemented; [snapshot handoff](handoffs/2026-09-06-release-snapshot.md). General enterprise schema/coverage, trust provisioning, freshness, generation rollback protection and activation remain. |
+| 013 | Verify Package Signatures | Partial | First-light directory and SQL snapshot inputs share Ed25519/digest verification. Immutable no-overwrite SQL publication and bounded read-only loading are implemented; see the [snapshot contract](integration/release-snapshot.md). General enterprise schema/coverage, trust provisioning, freshness, generation rollback protection and activation remain. |
 | 014 | Validate Package Versions | Partial | [Schema/profile versions][feature-validation] and baseline labels are checked. Package freshness, rollback prevention and compatible activation are not implemented. |
 
 ## Request admission and policy checks (015–024)
@@ -457,20 +475,20 @@ workflows run with explicit no-unintended-execution assertions.
 | 062 | Record Baseline Metadata | Done component | [Baseline loader][baseline] records payload identity/version and verified expected byte digest; [FeatureBatch][feature-types] preserves them. Enclosing package identity stays separate. |
 | 063 | Record Evidence Metadata | Partial | [Ledger contract][audit-schema] and [tests][audit-contract-tests] record bounded evidence references/digests, source identity, verification, freshness and availability. Evidence collection, authentication, retention and verification are not implemented. |
 | 064 | Record Connectivity State | Partial | [Ledger][audit-guide] captures supplied mode/connectivity/owner/interval/confirmation with events. [Tests][audit-contract-tests] enforce claim consistency; no live connectivity detector or endpoint authority transfer exists. |
-| 065 | Write Tamper-Evident Audit Record | Partial | Existing SQLite/hash-chain/Ed25519 ledger retained. USB runtime guards, durable evidence writes and unavailable responses added; no logger rewrite. [Live handoff](handoffs/2026-09-06-live-dashboard.md). Physical USB/power-loss and independent rollback-anchor deployment remain. |
+| 065 | Write Tamper-Evident Audit Record | Partial | Existing SQLite/hash-chain/Ed25519 ledger retained. USB runtime guards, durable evidence writes and unavailable responses added; no logger rewrite. [Integrated runbook](guides/demo-runbook.md). Physical USB/power-loss and independent rollback-anchor deployment remain. |
 
 ## Dashboard, technician and execution (066–076)
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 066 | Export Raw Decision Data to Dashboard | Partial | Real first-light ledger history/increments now reach the web dashboard through an authenticated loopback bridge, server-side session gate and remote transport. A live physical-Pi request appeared incrementally on an authenticated LAN browser. Numeric risk/full request fields remain unavailable instead of invented. [Mapping and local acceptance](integration/live-dashboard.md). |
+| 066 | Export Raw Decision Data to Dashboard | Partial | Real first-light ledger history/increments now reach the web dashboard through an authenticated loopback bridge, server-side session gate and remote transport. A live physical-Pi request appeared incrementally on an authenticated LAN browser. Numeric risk/full request fields remain unavailable instead of invented. [Integrated runbook](guides/demo-runbook.md). |
 | 067 | Export Live Pi Status to Dashboard | Planned | The live display reports feed reachability/staleness and retained authority metadata honestly. Current Pi hardware/engine/cloud/SIEM readiness telemetry is still unavailable; no status fields are inferred from HTTP success. |
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | Target clarified: local Mac resolves held actions to accept/deny after biometric verification; Merek's backend must deliver that bound response to the Pi. No real receiver is connected; authentication, proof/currentness checks and receipts remain. |
 | 070 | Require Technician Authentication for Approval | Planned | Local ArcFace enrollment/login and native approval grants exist. Target held-action accept/deny choice is biometric-gated on the Mac; both response paths and Pi-verifiable proof bound to current request/assessment/authority need agreement and acceptance. |
-| 071 | Execute Approved Action | Partial | HTTP light adapter and XIAO USB-serial adapter share existing receipt/observation contracts. Serial, snapshot, Wazuh and replay integration tests pass; Xavier reports development-Mac LED tests. Pi serial deployment and operator light-on passed with Jared visually confirming the LED; updated firmware flashing and crash-window physical acceptance remain. [Integration handoff](handoffs/2026-09-06-xavier-serial-integration.md). |
+| 071 | Execute Approved Action | Partial | HTTP light adapter and XIAO USB-serial adapter share existing receipt/observation contracts. Serial, snapshot, Wazuh and replay integration tests pass. Pi serial deployment and eight-light operator control passed with visual confirmation; crash-window physical acceptance remains. [Hardware runbook](guides/first-light-hardware.md). |
 | 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
-| 073 | Record Action Execution Result | Partial | Runtime records controller receipt, execution result and observed state separately; live dashboard updates these after the immutable decision. Real local runtime/mock-controller browser acceptance passed; physical serial light-on receipt and visual LED acceptance now passed; independent sensor acceptance remains. [Live handoff](handoffs/2026-09-06-live-dashboard.md). |
+| 073 | Record Action Execution Result | Partial | Runtime records controller receipt, execution result and observed state separately; live dashboard updates these after the immutable decision. Real local runtime/mock-controller browser acceptance passed; physical serial light-on receipt and visual LED acceptance now passed; independent sensor acceptance remains. [Integrated runbook](guides/demo-runbook.md). |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |
 | 075 | Compare Expected vs Actual Result | Planned | No expected-versus-observed execution-outcome comparison exists. |
 | 076 | Flag Post-Execution Anomalies | Partial | [POST_ACTION scoring][context-model] requires a separately trained profile/context and at least one temporally valid resulting-state feature. [Tests][context-model-tests] cover post timing and scoring; real execution/sensor ingestion, outcome validation and response remain unimplemented. |
@@ -484,7 +502,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 079 | Continue Local Policy Enforcement | Planned | OFFLINE authorized-permission enforcement remains unimplemented. ONLINE enterprise direct control is intentionally not replaced by a Pi policy gate. |
 | 080 | Continue Local Anomaly Scoring | Partial | [Local lab scoring][training] runs real Isolation Forest offline, alongside [feature checks][feature-tests]. Live Pi inference for OFFLINE governance and authority-mode orchestration remain unimplemented. |
 | 081 | Continue Local Context Push-Back | Planned | No real OFFLINE core context exchange runs. Console fixture automation does not establish agent routing, bounded retries or a single authoritative challenge loop. |
-| 082 | Continue Local Dashboard Output | Partial | Existing dashboard loads runtime ledger history and polls incremental events with reconnect, duplicate/conflict and malformed-input handling. Authenticated LAN web access to the physical Pi/USB feed passed. This interim web surface is read-only; native LLM/face/accept-reject integration and the full DDIL authority lifecycle remain. [Live guide](integration/live-dashboard.md). |
+| 082 | Continue Local Dashboard Output | Partial | Existing dashboard loads runtime ledger history and polls incremental events with reconnect, duplicate/conflict and malformed-input handling. Authenticated LAN web access to the physical Pi/USB feed passed. This interim web surface is read-only; native LLM/face/accept-reject integration and the full DDIL authority lifecycle remain. [Integrated runbook](guides/demo-runbook.md). |
 | 083 | Cache Unverified External Evidence Requests | Planned | No bounded persistent external-evidence request cache exists. |
 | 084 | Detect Cloud Reconnection | Planned | No direct Pi/enterprise reconnection detector or authenticated readiness check exists. |
 | 085 | Exit DDIL Mode | Planned | No fenced return to ONLINE enterprise execution exists; outstanding local commands/approvals must not remain valid after transfer. |
@@ -616,4 +634,4 @@ Do not treat fixture scores or Mac resource measurements as Pi acceptance.
 [audit-integrity-tests]: ../tests/test_audit_integrity.py
 [context-ledger-replay]: ../scripts/lab/replay_contextual_ledger.py
 [first-light-tests]: ../tests/test_first_light.py
-[first-light-handoff]: handoffs/2026-09-05-first-light-test.md
+[first-light-handoff]: reports/2026-09-05-first-light-test-log.md

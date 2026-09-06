@@ -6,7 +6,7 @@ Imported on September 5, 2026, then moved into the shared top-level layout. The 
 
 > Help me craft precise, staged implementation prompts for an existing ALICE Technician Console repository. Read the attached current HANDOFF.md, verification record, upstream integration agreement and original context before proposing work. This is an existing implementation, not a blank repository. Treat the original build prompt as historical requirements; do not blindly rerun it. Use current source and updated verification to distinguish implemented behavior from remaining work. If an attachment is missing, identify it instead of guessing its contents.
 >
-> The existing console uses apps/desktop, packages, services/biometrics and scripts in the main ALICE repository. Run its npm, Rust and biometric commands from the repository root; it has its own dependency locks and private local setup. It is the native macOS technician console subsystem of ALICE. Follow the main repository architecture/PRDs and console integration requirements, together with docs/integration/main-repository-migration.md. Its stack is Tauri 2, React, TypeScript, Vite, Zustand, Zod, custom CSS, Rust, SQLite, local Python/FastAPI/InsightFace ArcFace and local Ollama.
+> The existing console uses apps/desktop, packages, services/biometrics and scripts in the main ALICE repository. Run its npm, Rust and biometric commands from the repository root; it has its own dependency locks and private local setup. It is the native macOS technician console subsystem of ALICE. Follow the main repository architecture/PRDs, integrated demo runbook and console integration requirements. Its stack is Tauri 2, React, TypeScript, Vite, Zustand, Zod, custom CSS, Rust, SQLite, local Python/FastAPI/InsightFace ArcFace and local Ollama.
 >
 > The standalone handoff historically confirmed real camera enrollment and username-based facial login through native audit records. That run combined mock edge transport with real ArcFace and private local configuration. Migration does not copy credentials, enrollment data, dependencies or models. Use the portable setup guide; preserve any existing private configuration and identities. Alex Morgan is a simulated identity. Real ArcFace approval step-up passed a standalone automated native test, while live camera approval and negative cases still require operator acceptance. Do not infer current database contents or runtime readiness from the historical audit.
 >
@@ -66,7 +66,7 @@ For edge integration, provide actual team endpoint/authentication/event/receipt/
 
 Do not attach `.env`, password/token values, native databases, face embeddings, enrollment keys, raw face captures, private runtime logs, model weights, node_modules, Python virtualenvs or Rust build output. Those are unnecessary for crafting prompts. `.env.example` and a nonsecret configuration summary are sufficient.
 
-Start with the [main workstation guide](../workstation.md), [migration assessment](../../integration/main-repository-migration.md), and [main console integration requirements](../../integration/technician-console.md).
+Start with the [main workstation guide](../workstation.md), [integrated demo runbook](../demo-runbook.md), and [main console integration requirements](../../integration/technician-console.md).
 
 ## Suggested prompt output structure
 

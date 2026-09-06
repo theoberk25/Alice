@@ -14,7 +14,7 @@ Training dependencies remain separate and are not required by the ledger.
 
 Provision a protected local parent directory. The user-approved DDIL deployment
 uses a **mounted USB**, guarded by the runtime; see the
-[live/USB configuration](../integration/live-dashboard.md). `initialize` exclusively
+[integrated Pi/USB configuration](../guides/demo-runbook.md). `initialize` exclusively
 creates a new file; `open` requires an existing store and validates it before use.
 An absent, corrupt or untrusted existing store is never replaced automatically.
 The caller supplies a signer, historical verification keys and a clock provider.

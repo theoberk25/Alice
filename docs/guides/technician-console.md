@@ -4,13 +4,13 @@ The console shares the repository layout: `apps/desktop/`, `packages/`,
 `services/biometrics/`, `fixtures/` and `tests/console/`. Run npm commands from the
 repository root. Launchers in `scripts/console/` and `scripts/biometrics/` can also
 be invoked by absolute path from any working directory. See the
-[migration record](../handoffs/2026-09-05-console-layout.md) for the complete move map.
+[verification record](console/verification.md) for preserved migration evidence.
 Dependencies and private local configuration are installed separately.
 
 The main [architecture](../prds/ALICE-DCAMR-Architecture.md), [PRD](../prds/ALICE-DCAMR-PRD.md), and [console integration requirements](../integration/technician-console.md) govern product behavior. The existing console retains its legacy DDIL/CONNECTED/DEGRADED contracts. ONLINE/OFFLINE authority transfer and real core transport remain integration work.
 
 During current Pi/ESP integration, run the console as an authenticated, read-only
-local-network web app using the [live dashboard guide](../integration/live-dashboard.md#interim-local-network-web-app).
+local-network web app using the [integrated demo runbook](demo-runbook.md#start-the-current-presentation-services).
 This lets connected devices see requests in real time. Integrate the native desktop
 app when it is finished so local LLM explanations, facial authentication and bound
 technician accept/reject responses stay on the technician workstation.
@@ -19,7 +19,7 @@ technician accept/reject responses stay on the technician workstation.
 
 The console presents policy results, anomalous behavior, evidence provenance, agent context, and technician actions. It never implements policy evaluation, anomaly training, SIEM, EDR, cyber agents, or protected-system execution. The upstream authority remains responsible for decisions and execution under the main repository's ONLINE/OFFLINE design.
 
-See [Console handoff](../handoffs/2026-09-05-console-handoff.md) for the complete implementation inventory, historical standalone setup and verification evidence, prioritized remaining work, and the deferred full visual/animation update. For real camera setup and an operator test, use [Facial verification quick start](console/facial-verification-quickstart.md).
+See [Verification status](console/verification.md) for preserved implementation evidence and remaining checks. For real camera setup and an operator test, use [Facial verification quick start](console/facial-verification-quickstart.md).
 
 For a separate chat that will craft implementation prompts, use [Prompt context](console/prompt-context.md): it provides a ready-to-paste brief, required attachments, authority rules, and current confirmed versus pending functionality.
 
