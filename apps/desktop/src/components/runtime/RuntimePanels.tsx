@@ -324,8 +324,7 @@ export function RuntimeAudit() {
           />
         </label>
         <p className="audit-count">
-          <AnimatedCounter value={events.length} /> /{' '}
-          <AnimatedCounter value={runtime.events.length} /> collected events
+          {events.length} / {runtime.events.length} collected events
         </p>
       </div>
       <div className="audit-table">

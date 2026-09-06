@@ -1,14 +1,6 @@
 import { ShieldAlert, ArrowRight, LockKeyhole, CircleCheck, Ban, ChevronRight } from 'lucide-react';
 import type { Decision } from '@alice/contracts';
-import {
-  Badge,
-  Panel,
-  toneFor,
-  human,
-  AnimatedCounter,
-  BorderTrail,
-  CommandButton,
-} from '@alice/ui';
+import { Badge, Panel, toneFor, human, AnimatedCounter, CommandButton } from '@alice/ui';
 import { useConsole } from '../../state/console';
 import { DecisionLineage, ClarificationTrack } from './DecisionLineage';
 function RiskDial({ score, severity }: { score: number; severity: string }) {
@@ -241,7 +233,6 @@ export function DecisionWorkspace({
           }
           className="clarification-panel"
         >
-          <BorderTrail active={flows[d.decision_id] === 'REASSESSMENT_PENDING'} />
           <ClarificationTrack decision={d} />
           <div className="agent-quote">
             <span className="quote-mark">“</span>
