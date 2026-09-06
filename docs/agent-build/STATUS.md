@@ -12,6 +12,11 @@ Updated 2026-09-06. Upstream machine-metrics pivot `237c307` is integrated into 
   establish identity. Existing 10 Hz polling is retained, with freshness metadata.
 - The external agent-loop console retains :8792. Cold-start restore and cloud-outage
   concepts are separate future work. Existing direct-light drivers are dormant.
+- The governed metrics payload also carries `battery_pct`. Xavier's display projects
+  yellow=power, blue=fan, red=temperature and white=battery. These are read-only
+  indicators; only fan target is agent-writable.
+- The current thermal API has no server-load actuator. Stage the hot initial condition
+  through operator configuration instead of narrating an unimplemented load spike.
 
 [Run/configuration](../guides/machine-metrics-integration.md) ·
 [Topology](topology.md) · [Test evidence](../reports/2026-09-06-metrics-reconciliation.md)

@@ -23,7 +23,8 @@ class ThermalState:
             'battery_pct': values['battery_pct'] if values else None,
             'run_id': snapshot['run_id'], 'revision': snapshot['revision'],
             'status': snapshot['status'], 'simulation': True,
-            'units': {'fan_speed': 'percent', 'server_temperature': 'degF', 'power_consumption': 'W'},
+            'units': {'fan_speed': 'percent', 'server_temperature': 'degF',
+                      'power_consumption': 'W', 'battery_pct': 'percent'},
             'metadata': snapshot['metadata'],
             'requests': snapshot['requests'],
         }

@@ -93,6 +93,11 @@ causes client-side execution. Historical execution is not replayed after restart
 
 ## Display boundary
 
+The fixed presentation mapping is yellow=power, blue=actual fan speed,
+red=temperature and white=battery remaining. Yellow, blue and red are duplicated
+pairs. White is a two-segment 0–100% gauge. This mapping is independent of the
+anomaly model and does not make the LEDs writable plant actuators.
+
 [Serial v3](esp-serial-protocol.md#version-3-environmental-patterns) sends settings,
 not edges. The runtime owns one serial controller, opened with POSIX exclusive
 ownership; do not run the existing first-light service concurrently on that port.

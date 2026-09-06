@@ -94,6 +94,14 @@ The synthetic normal-behavior package explicitly contains small `+10%` fan-speed
 adjustments under overheating conditions. Mark this data as demo-generated; it is
 not a learned production safety envelope.
 
+Use Xavier's display mapping throughout this scene: yellow shows derived power,
+blue actual fan speed, red server temperature and white battery remaining. At the
+recommended 100 F / 60% fan / 60% battery start, power is about 421.6 W. The plant
+has no load-spike input, so stage the heat through operator configuration. Above
+roughly 79% fan, derived consumption exceeds the 450 W simulated supply and begins
+drawing the battery; use an explicitly labeled energy acceleration if white must
+change visibly during the short presentation.
+
 1. `cooling-agent-01` submits `set_fan_speed` with the current value plus 10.
 2. The Pi verifies permission, scores it against the normal sequence and emits
    ALLOW. Execute and record the resulting fan level.

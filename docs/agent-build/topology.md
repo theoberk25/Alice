@@ -12,13 +12,18 @@ flowchart LR
     T --> L[Signed audit ledger and native review]
     T --> F[Simulated fan, temperature, power, battery]
     F --> R[Read-only LED renderer]
-    R --> X[XIAO local pattern scheduler]
+    R --> X[XIAO: yellow power / blue fan / red temperature / white battery]
 ```
 
 `get_metrics` and `set_fan_speed(value)` are the agent-facing interface. There is no
 MCP-to-serial path in this demo, and no direct file write authorizes a fan change.
 The thermal process is the sole serial owner. See the
 [configuration, credentials and units](../guides/machine-metrics-integration.md).
+
+Agents can read battery along with the three primary metrics, but their only write is
+the governed fan target. Temperature and power evolve from the plant model; battery
+draw occurs only above the simulated 450 W supply. The lights visualize these values
+and never act as independent plant state.
 
 Ports retained: metrics :8790, Goose UI :8791, external agent-loop console :8792,
 Decision-Brief MCP :8793, external intro prototype :8794, thermal backend :8795,
