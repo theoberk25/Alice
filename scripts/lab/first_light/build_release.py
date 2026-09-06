@@ -28,14 +28,34 @@ GRANT_ID = "G-LIGHT-ON"
 GENERATION = 1
 
 
-def build_grants_payload() -> dict:
+def _identity(agent_id: str) -> dict:
+    """Resolve subject data, preferring Jared's enterprise-sim SIEM scenario."""
+    from lab.enterprise_sim.scenario import AGENTS, USERS
+    if agent_id in AGENTS:
+        agent = AGENTS[agent_id]
+        users = {}
+        for user_id in (agent["responsible_user"], agent["delegator"]):
+            user = USERS[user_id]
+            users[user_id] = {"user_id": user_id, "display_name": user["display_name"],
+                              "unit": user["unit"], "role": user["role"]}
+        return {"users": users,
+                "agent": {"agent_id": agent_id, "agent_type": agent["type"],
+                          "responsible_user": agent["responsible_user"],
+                          "delegator": agent["delegator"]}}
+    return {"users": {USER_ID: {"user_id": USER_ID, "display_name": "Theo (test)",
+                                "role": "test-operator"}},
+            "agent": {"agent_id": agent_id, "agent_type": "terminal",
+                      "responsible_user": USER_ID, "delegator": USER_ID}}
+
+
+def build_grants_payload(agent_ids) -> dict:
     return {
         "schema_version": "alice-permissions-grants-v1",
         "site_id": "first-light-lab",
         "default_effect": "DENY",
         "grants": [{
             "grant_id": GRANT_ID,
-            "agents": [AGENT_ID],
+            "agents": sorted(agent_ids),
             "actions": ["set_light_state"],
             "targets": ["ESP-LIGHT-01"],
             "effect": "PERMIT",
@@ -45,14 +65,17 @@ def build_grants_payload() -> dict:
     }
 
 
-def build_subjects_payload() -> dict:
+def build_subjects_payload(agent_ids) -> dict:
+    users, agents = {}, {}
+    for agent_id in agent_ids:
+        identity = _identity(agent_id)
+        users.update(identity["users"])
+        agents[agent_id] = identity["agent"]
     return {
         "schema_version": "alice-permissions-subjects-v1",
         "site_id": "first-light-lab",
-        "users": {USER_ID: {"user_id": USER_ID, "display_name": "Theo (test)",
-                            "role": "test-operator"}},
-        "agents": {AGENT_ID: {"agent_id": AGENT_ID, "agent_type": "terminal",
-                              "responsible_user": USER_ID, "delegator": USER_ID}},
+        "users": users,
+        "agents": agents,
     }
 
 
@@ -67,21 +90,32 @@ def _public_hex(private: Ed25519PrivateKey) -> str:
     return private.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw).hex()
 
 
-def build(out_dir: Path) -> Path:
+def build(out_dir: Path, agent_ids=(AGENT_ID,), grant_agent_ids=None) -> Path:
+    """grant_agent_ids limits who the PERMIT grant covers; every agent in
+    agent_ids still gets a registered key, so the others authenticate but
+    resolve to NO_PERMISSION (default deny)."""
+    if isinstance(agent_ids, str):
+        agent_ids = (agent_ids,)
+    if grant_agent_ids is None:
+        grant_agent_ids = agent_ids
     release = out_dir / "release"
     trust = out_dir / "trust"
     client = out_dir / "client"
     for directory in (release, trust, client):
         directory.mkdir(parents=True, exist_ok=True)
 
-    terminal_key = Ed25519PrivateKey.generate()
-    seed = terminal_key.private_bytes_raw()
-    (client / f"{KEY_ID}.seed").write_text(seed.hex() + "\n")
+    keys = {}
+    for agent_id in agent_ids:
+        key_id = f"{agent_id}-k1"
+        terminal_key = Ed25519PrivateKey.generate()
+        (client / f"{key_id}.seed").write_text(terminal_key.private_bytes_raw().hex() + "\n")
+        keys[key_id] = {"agent_id": agent_id,
+                        "ed25519_public_hex": _public_hex(terminal_key)}
 
     payloads = {
-        "grants.json": build_grants_payload(),
-        "subjects.json": build_subjects_payload(),
-        "terminal_keys.json": build_terminal_keys_payload(_public_hex(terminal_key)),
+        "grants.json": build_grants_payload(grant_agent_ids),
+        "subjects.json": build_subjects_payload(agent_ids),
+        "terminal_keys.json": {"schema_version": "alice-terminal-keys-v1", "keys": keys},
     }
     for name, payload in payloads.items():
         (release / name).write_bytes(canonical_bytes(payload))
@@ -105,8 +139,15 @@ def build(out_dir: Path) -> Path:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("out_dir", type=Path)
+    parser.add_argument("--agent", action="append", default=None,
+                        help="agent id (repeatable); enterprise-sim SIEM agents "
+                             "resolve their responsible user/delegator from the scenario")
+    parser.add_argument("--ungranted-agent", action="append", default=None,
+                        help="agent id given a registered key but no grant "
+                             "(authenticates, then NO_PERMISSION)")
     args = parser.parse_args()
-    release = build(args.out_dir)
+    granted = tuple(args.agent or (AGENT_ID,))
+    release = build(args.out_dir, granted + tuple(args.ungranted_agent or ()), granted)
     print(f"release written: {release}")
     print("WARNING: demonstration trust only; do not provision these keys in production.")
 

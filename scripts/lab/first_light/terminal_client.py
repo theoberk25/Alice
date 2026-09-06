@@ -56,12 +56,15 @@ def main():
     parser.add_argument("--key-file", type=Path, required=True,
                         help="terminal private key seed (hex) from build_release")
     parser.add_argument("--state", choices=("on", "off"), default="on")
+    parser.add_argument("--agent", default=AGENT_ID,
+                        help="agent id (key file must match <agent>-k1)")
     parser.add_argument("--request-id", default=None)
     parser.add_argument("--repeat", type=int, default=1,
                         help="send the identical envelope N times (idempotency check)")
     args = parser.parse_args()
     seed = bytes.fromhex(args.key_file.read_text().strip())
-    envelope = build_envelope(seed, state=args.state, request_id=args.request_id)
+    envelope = build_envelope(seed, state=args.state, request_id=args.request_id,
+                              agent_id=args.agent, key_id=f"{args.agent}-k1")
     print(f"request_id: {envelope['request']['request_id']}")
     for attempt in range(max(1, args.repeat)):
         status, payload = send(args.url, envelope)

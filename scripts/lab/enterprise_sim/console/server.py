@@ -43,6 +43,12 @@ ROOT = repository_root()
 ARTIFACTS = ROOT / "artifacts" / "enterprise-sim"
 HERE = Path(__file__).resolve().parent
 
+# First-light live edge feed: the console proxies the Pi runtime's read-only
+# GET /events ledger projection. This is a lab shortcut for the demonstration —
+# in the product topology the enterprise sees edge activity only after
+# reconnect; the live view belongs to the technician surface.
+EDGE_NODE = os.environ.get("ALICE_PI", "192.168.50.20:8080")
+
 INDEXER = os.environ.get("ALICE_INDEXER", "https://localhost:9200")
 INDEXER_USER = os.environ.get("ALICE_INDEXER_USER", "admin")
 INDEXER_PW = os.environ.get("ALICE_INDEXER_PW", "SecretPassword")
@@ -461,6 +467,23 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def do_GET(self):
+        if self.path.startswith("/api/edge"):
+            after = 0
+            if "after=" in self.path:
+                try:
+                    after = int(self.path.split("after=")[1].split("&")[0])
+                except ValueError:
+                    pass
+            try:
+                with urllib.request.urlopen(
+                        f"http://{EDGE_NODE}/events?after={after}", timeout=3) as response:
+                    events = json.loads(response.read())["events"]
+                body = {"reachable": True, "endpoint": EDGE_NODE, "events": events}
+            except Exception as error:  # noqa: BLE001 - render the outage, don't crash
+                body = {"reachable": False, "endpoint": EDGE_NODE,
+                        "detail": type(error).__name__, "events": []}
+            self._send(200, json.dumps(body), "application/json")
+            return
         if self.path.startswith("/api/state"):
             try:
                 self._send(200, json.dumps(build_state()), "application/json")

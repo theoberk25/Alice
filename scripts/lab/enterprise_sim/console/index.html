@@ -126,6 +126,7 @@
   <section id="s-activity"></section>
   <section id="s-models"></section>
   <section id="s-telemetry"></section>
+  <section id="s-edge"></section>
 </main>
 <div id="detail"><button onclick="closeDetail()">&times;</button><div id="detail-body"></div></div>
 
@@ -138,6 +139,7 @@ const TABS = [
   ["activity","Returned activity","↑"],
   ["models","Behavior models","↓"],
   ["telemetry","Endpoints &amp; alerts",""],
+  ["edge","Live edge (technician)","↑"],
 ];
 let S = null;
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -557,6 +559,91 @@ function telemetry(){
       </div>
     </div>`;
 }
+
+/* ---- Live edge (technician) — read-only Pi ledger feed via /api/edge ---- */
+const EDGE = { after:0, total:0, order:0, requests:new Map(), endpoint:"…", ok:null, rtt:"—" };
+const EDGE_STAGES = [["REQUEST","REQUEST"],["ASSESSMENT","ASSESS"],["DECISION","DECIDE"],
+  ["EXECUTION_ATTEMPT","EXECUTE"],["CONTROLLER_RECEIPT","RECEIPT"],
+  ["EXECUTION_RESULT","RESULT"],["OBSERVED_STATE","OBSERVE"]];
+function edgeUser(id){
+  const u = S && S.users && S.users[id];
+  return u ? `${esc(u.display_name)} <span class="sub">${esc(u.unit)} · ${esc(u.role)}</span>` : esc(id||"—");
+}
+function renderEdge(){
+  const link = EDGE.ok===null ? `<span class="chip">connecting…</span>`
+    : EDGE.ok ? `<span class="chip live">PI FEED <b>LIVE</b> ${EDGE.rtt}</span>`
+              : `<span class="chip bad">PI FEED <b>UNREACHABLE</b></span>`;
+  const cards = [...EDGE.requests.values()].sort((a,b)=>b.order-a.order).map(r=>{
+    const by = {}; r.events.forEach(e=>by[e.event_type]=e);
+    const first = r.events[0], att = first.attribution;
+    const dec = by.DECISION && by.DECISION.detail, rej = by.REJECTION && by.REJECTION.detail;
+    const verdict = dec ? dec.outcome : rej ? "REJECTED" : "IN PROGRESS";
+    const vcls = verdict==="ALLOW" ? "live" : verdict==="IN PROGRESS" ? "local" : "bad";
+    const reasons = ((dec||rej||{}).reason_codes||[]).join(" · ");
+    const obs = by.OBSERVED_STATE && by.OBSERVED_STATE.detail;
+    const lamp = obs ? (obs.value==="1" ? "💡 LIGHT ON" : "⚫ LIGHT OFF") : "";
+    const chips = EDGE_STAGES.map(([k,label])=>{
+      if (rej && !by[k] && k!=="REQUEST") return "";
+      const cls = by[k] ? "live" : "";
+      return `<span class="chip ${cls}">${label}</span>`;
+    }).join(" ") + (rej ? ` <span class="chip bad">REJECTED</span>` : "");
+    const assess = by.ASSESSMENT && by.ASSESSMENT.detail;
+    return `<div class="card">
+      <h3><span class="chip ${vcls}"><b>${esc(verdict)}</b></span>
+          &nbsp;<code>${esc(first.correlation.request_id)}</code>
+          <span style="float:right">${lamp}</span></h3>
+      <table><tbody>
+        <tr><th>agent</th><td><code>${esc(att.agent_id||"—")}</code></td>
+            <th>responsible user</th><td>${edgeUser(att.responsible_user_id)}</td></tr>
+        <tr><th>action</th><td>set_light_state → ESP-LIGHT-01</td>
+            <th>authority</th><td>${esc(first.authority.execution_owner)} · ${esc(first.authority.product_mode)} · ${esc(first.authority.confirmation)}</td></tr>
+        <tr><th>pipeline</th><td colspan="3">${chips}</td></tr>
+        ${assess?`<tr><th>assessment</th><td colspan="3">${esc(assess.status)}/${esc(assess.result)} <span class="chip local">FIXTURE</span></td></tr>`:""}
+        ${reasons?`<tr><th>reasons</th><td colspan="3"><code>${esc(reasons)}</code></td></tr>`:""}
+      </tbody></table>
+    </div>`;
+  }).join("");
+  const rows = [...EDGE.requests.values()].flatMap(r=>r.events)
+    .sort((a,b)=>b.sequence-a.sequence).slice(0,40).map(e=>{
+      const d=e.detail, meta = d.outcome ? d.outcome+((d.reason_codes||[]).length?" · "+d.reason_codes.join(","):"")
+        : d.status ? d.status+"/"+d.result : d.property ? d.property+"="+d.value : "";
+      return `<tr><td class="mono">${e.sequence}</td><td class="mono">${esc(e.time.recorded_at||"")}</td>
+        <td>${esc(e.event_type)}</td><td><code>${esc(e.attribution.agent_id||e.attribution.actor_kind)}</code></td>
+        <td>${esc(meta)}</td></tr>`;
+    }).join("");
+  $("s-edge").innerHTML = `
+    <div class="banner">Read-only live ledger feed from the ALICE edge node
+      (<code>${esc(EDGE.endpoint)}</code>) — a lab link for the first-light test. In the
+      product topology the enterprise sees this activity only after reconnect;
+      the live surface belongs to the technician. No approval verbs exist here. ${link}</div>
+    <div class="grid g3" style="margin:14px 0">
+      ${card("Ledger events", EDGE.total, "returned live from the Pi ledger projection")}
+      ${card("Action requests", EDGE.requests.size, "correlated by request_id")}
+      ${card("Edge node", "alice-pi-01", "OFFLINE / DDIL · local authority")}
+    </div>
+    ${cards || `<div class="card"><h3>Awaiting ledger data</h3><div class="sub">No events yet. Send a signed request from the terminal client.</div></div>`}
+    <div class="scroll" style="margin-top:14px"><table>
+      <thead><tr><th>seq</th><th>recorded</th><th>event</th><th>actor</th><th>detail</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+}
+async function pollEdge(){
+  const t0 = performance.now();
+  try{
+    const r = await fetch("/api/edge?after="+EDGE.after,{cache:"no-store"});
+    const d = await r.json();
+    EDGE.endpoint = d.endpoint; EDGE.ok = d.reachable;
+    EDGE.rtt = (performance.now()-t0).toFixed(0)+"ms";
+    for (const e of d.events){
+      EDGE.after = Math.max(EDGE.after, e.sequence); EDGE.total++;
+      const rid = e.correlation.request_id || "(unattributed)";
+      if (!EDGE.requests.has(rid)) EDGE.requests.set(rid,{events:[],order:EDGE.order++});
+      EDGE.requests.get(rid).events.push(e);
+    }
+  }catch{ EDGE.ok = false; }
+  renderEdge();
+  setTimeout(pollEdge, 1500);
+}
+pollEdge();
 
 fetch("/api/state").then(r=>r.json()).then(d=>{
   if(d.error){ $("banner").className="banner warn"; $("banner").textContent=d.error; return; }
