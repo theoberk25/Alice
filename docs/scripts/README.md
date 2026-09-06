@@ -19,3 +19,5 @@ public lab.* imports. Neither migration changes product integration status.
 
 Offline ledger quota maintenance: `python -m lab.audit_resize` (runtime stopped,
 new backup required, increase-only). See the [hardware runbook](../guides/first-light-hardware.md).
+
+Read-only LED preview: [guide](../guides/led-display.md), `python3 -m lab.led_preview`.

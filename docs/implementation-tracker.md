@@ -14,6 +14,9 @@ The current increment adds the [local Decision Evidence Ledger][audit-guide];
 two-mode admission and authority transfer still need runtime integration; live
 read-only transport and Wazuh delivery are described below.
 
+Local display-only increment: [LED mapping](guides/led-display.md), eight focused
+tests passed. No hardware or core integration status promoted.
+
 ## Status and current checkpoint
 
 September 6 native backend continuation: biometric PR #4 is merged in Theodore's
