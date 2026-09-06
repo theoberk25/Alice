@@ -37,6 +37,8 @@ Enterprise presentation now uses the DN-Hacks energy-infrastructure scenario.
 The local Wazuh index contains 434 idempotent labelled scenario records spanning
 authentication, vulnerabilities, MITRE ATT&CK, configuration assessment, file
 integrity and ALICE agent governance; actual Pi ledger evidence remains separate.
+Demo runbook now records thermal feed authentication and the agent's loopback MCP
+forward; disabled metrics pollers remain optional for direct MCP clients.
 
 ## Evidence and blockers
 

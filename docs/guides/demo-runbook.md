@@ -223,6 +223,7 @@ For the interim technician web app, create an ignored `.env.web-dashboard`:
 
 ```dotenv
 ALICE_FEED_TOKEN=<random value of at least 32 characters>
+ALICE_UPSTREAM_TOKEN=<Pi THERMAL_OPERATOR_TOKEN, with surrounding quotes removed>
 ALICE_FEED_URL=http://127.0.0.1:8788
 ALICE_WEB_USERNAME=<technician web username>
 ALICE_WEB_PASSWORD=<password of at least 12 characters>
@@ -236,8 +237,16 @@ Run these in separate terminals from the repository root:
 
 ```sh
 ssh -N -o BatchMode=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 \
-  -L 127.0.0.1:18080:127.0.0.1:8080 pi@192.168.50.20
+  -L 127.0.0.1:18080:127.0.0.1:8080 \
+  -L 127.0.0.1:18790:127.0.0.1:8790 pi@192.168.50.20
 ```
+
+The thermal runtime authenticates `/events`, unlike the original first-light
+runtime. The feed bridge therefore returns 502 unless `ALICE_UPSTREAM_TOKEN`
+contains the Pi's `THERMAL_OPERATOR_TOKEN`. Transfer that value through the
+team's private credential channel; do not copy its surrounding shell quotes,
+print it in a terminal recording or commit it. Port `18790` is the host-local
+forward to the Pi's loopback-only machine-metrics MCP.
 
 ```sh
 set -a
@@ -265,7 +274,19 @@ credentials or ledger key.
 
 Every agent gets its own ID, private signing key and permissions binding. A web
 login name or source IP is not an agent identity. Keep seeds out of Git and chat.
-The current local client submits through the SSH tunnel:
+An agent that calls the machine-metrics MCP directly uses its own SSH connection:
+
+```sh
+ssh -N -o BatchMode=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 \
+  -L 127.0.0.1:18080:127.0.0.1:8080 \
+  -L 127.0.0.1:18790:127.0.0.1:8790 pi@192.168.50.20
+```
+
+Set `LIGHT_MCP_URL=http://127.0.0.1:18790/mcp` and provide that agent's private
+`LIGHT_MCP_TOKEN`. The installed `light-metrics-poller-local` and
+`light-metrics-poller-cloud` services are optional snapshot writers; leave them
+disabled when the agents call `get_metrics()` themselves. The current first-light
+client submits through the runtime forward:
 
 ```sh
 .venv/bin/python -m lab.first_light.terminal_client \
@@ -290,6 +311,19 @@ trusted context plus audit observations. During OFFLINE operation, reject cloud
 requests that cannot reach the local authenticated boundary; local agents may be
 evaluated only after ALICE has confirmed local authority. Do not permit both paths
 to command the same protected target concurrently.
+
+The existing signed USB release remains usable if `alice-permissions-cache`
+temporarily fails while the enterprise host is absent. Before the connected scene,
+restore the enterprise host at `192.168.50.50`, then run on the Pi:
+
+```sh
+sudo systemctl start alice-permissions-cache.service
+systemctl --no-pager --full status alice-permissions-cache.service
+```
+
+Proceed only when the one-shot service succeeds or explicitly present the demo as
+using the already verified cached release. Do not replace that release during the
+rehearsal.
 
 ## Integrate the native technician application
 
