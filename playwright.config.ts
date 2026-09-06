@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: 'tests/console/e2e',
-  testMatch: ['console.spec.ts', 'runtime-review.spec.ts'],
+  testMatch: ['console.spec.ts', 'runtime-review.spec.ts', 'visual.spec.ts'],
   fullyParallel: false,
   use: {
     baseURL: 'http://127.0.0.1:1420',

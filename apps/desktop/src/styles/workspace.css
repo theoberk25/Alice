@@ -1255,3 +1255,17 @@ ol.clarification-track {
     font-size: 10px;
   }
 }
+
+/* Native request bindings align with the same modal inset as the camera surface. */
+.runtime-verification-dialog > .badge {
+  margin: 18px 24px 0;
+}
+.runtime-verification-dialog > h3 {
+  margin: 12px 24px 6px;
+}
+.runtime-verification-dialog > p {
+  margin: 0 24px 8px;
+}
+.runtime-verification-dialog > [role='status'] {
+  padding: 0 24px 24px;
+}

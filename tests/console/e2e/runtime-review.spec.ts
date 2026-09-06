@@ -272,6 +272,7 @@ test('synthetic native IPC: feed-before-ack preserves camera and original decisi
   await expect(page.getByText('Sending technician response…')).toBeVisible();
   await expect(page.getByText('#3 TECHNICIAN_ACTION', { exact: true })).toBeVisible();
   await expect(page.getByRole('dialog').getByLabel('Automatic facial verification')).toBeVisible();
+  await page.screenshot({ path: 'artifacts/console/visual-overhaul/native-face-fixture.png' });
   await page.evaluate(() =>
     (Reflect.get(window, '__ALICE_TEST_NATIVE__') as TestNative).releaseAck!(),
   );

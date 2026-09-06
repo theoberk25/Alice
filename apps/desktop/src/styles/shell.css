@@ -881,3 +881,7 @@ select:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+.modal-heading {
+  background: var(--alice-bg-raised);
+}
