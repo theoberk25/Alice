@@ -16,7 +16,15 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
-September 6 native backend continuation: biometric PR #4 is merged in Theodore's
+September 6 visual overhaul: team PR #5 merged at `e1e7506`; the presentation-only
+feature is isolated in `../alice-dashboard-visual-overhaul` on
+`codex/dashboard-visual-overhaul`. Shell, both workspace modes, history/audit,
+identity/Face ID, motion and accessibility are redesigned. Existing core task
+statuses remain unchanged. [Visual validation](reports/2026-09-06-console-visual-overhaul.md)
+records actual tests, baseline/screens, 11 passing browser regressions and pending local integration.
+The [previous current snapshot](handoffs/2026-09-06-before-visual-overhaul.md) is preserved.
+
+Historical September 6 native backend continuation: biometric PR #4 is merged in Theodore's
 `upstream/main` at `d57c660`. Root checkout now uses `codex/native-live-backend`;
 original dirty work, WIP and retired trees are [verified preserved](handoffs/2026-09-06-native-live-backend-workspace.md).
 Native request visibility and signed review are locally implemented with exact
@@ -600,6 +608,8 @@ remaining integrated acceptance. The [architecture][architecture] and
 | SUP-09 | Trusted agent-to-user accountability | Establish authoritative user/agent/mission mappings and revocation/expiry behavior for ONLINE feeds and OFFLINE requests; agent-supplied identity claims cannot establish their own permissions. |
 | SUP-10 | Contextual fan-sequence escalation | Train on bounded synthetic small-step fan behavior; classify the later abrupt shutdown from sequence plus fresh telemetry, require review for an eligible `ELEVATED`/`HIGH` result, and prove technician rejection sends no command. |
 | SUP-11 | Enterprise edge-offline presentation | Show loss/staleness of authenticated Pi and sync feeds, last contact and unknown authority accurately on the disconnected enterprise host; an offline banner must not claim handover completion. |
+
+| SUP-12 | Technician console visual and motion system | Presentation implemented on team `e1e7506`: shared motion, semantic surfaces, decision/evidence hierarchy, compact identity/biometrics, responsive controls and accessibility. Existing business/security handlers unchanged. Frontend 145 + script 8; Rust 60 (2 opt-in ignored), Python biometric 165 (1 opt-in skipped), web/native builds and 11 browser regressions passed. Local integration checks in [visual validation](reports/2026-09-06-console-visual-overhaul.md). |
 
 ## Maintaining this tracker
 
