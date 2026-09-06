@@ -1,6 +1,6 @@
 import { ShieldAlert, ArrowRight, LockKeyhole, CircleCheck, Ban, ChevronRight } from 'lucide-react';
 import type { Decision } from '@alice/contracts';
-import { Badge, Panel, toneFor, human } from '@alice/ui';
+import { Badge, Panel, toneFor, human, CommandButton } from '@alice/ui';
 import { useConsole } from '../../state/console';
 import { DecisionLineage, ClarificationTrack } from './DecisionLineage';
 function RiskDial({ score, severity }: { score: number; severity: string }) {
@@ -51,6 +51,8 @@ export function DecisionWorkspace({
     reconciliations,
     contextSummaries,
     latestDecisionByRequest,
+    mode,
+    contextRequests,
     select,
   } = useConsole();
   const currentId = latestDecisionByRequest[d.request.request_id] ?? d.decision_id;
@@ -58,11 +60,17 @@ export function DecisionWorkspace({
   const result = d.decision.result;
   const action = actions[d.decision_id];
   const response = responses[d.decision_id];
+  const manualContext =
+    mode === 'mock' && import.meta.env.VITE_ALICE_MANUAL_CONTEXT_DEMO === 'true';
+  const manualPending = manualContext && !response && !contextRequests[d.decision_id];
   const reconciliation = reconciliations[d.decision_id];
   const Icon = result === 'HOLD' ? ShieldAlert : result === 'ALLOW' ? CircleCheck : Ban;
   return (
     <>
-      <section className={`decision-hero result-${result.toLowerCase()}`}>
+      <section
+        data-decision-id={d.decision_id}
+        className={`decision-hero result-${result.toLowerCase()}`}
+      >
         <div className="hero-topline">
           <span className="eyebrow">
             {current
@@ -158,9 +166,9 @@ export function DecisionWorkspace({
       {!current && (
         <div className="historical-notice">
           Historical assessment · actions require the latest decision.{' '}
-          <button className="text-button" onClick={() => select(currentId)}>
+          <CommandButton className="text-button" onClick={() => select(currentId)}>
             View current assessment
-          </button>
+          </CommandButton>
         </div>
       )}
       <DecisionLineage decision={d} />
@@ -210,9 +218,9 @@ export function DecisionWorkspace({
             <span key={code}>{human(code).toLowerCase()}</span>
           ))}
         </div>
-        <button className="text-button" onClick={onResearch}>
+        <CommandButton className="text-button" onClick={onResearch}>
           Inspect full decision record <ChevronRight size={14} />
-        </button>
+        </CommandButton>
       </Panel>
       {result === 'HOLD' && (
         <Panel
@@ -225,7 +233,9 @@ export function DecisionWorkspace({
                   ? 'NO FURTHER CONTEXT REQUIRED'
                   : response
                     ? 'RESPONSE RECEIVED'
-                    : 'AWAITING RESPONSE'}
+                    : manualPending
+                      ? 'AWAITING YOUR REQUEST'
+                      : 'AWAITING RESPONSE'}
             </Badge>
           }
           className="clarification-panel"
@@ -239,7 +249,11 @@ export function DecisionWorkspace({
                   response?.response.mission_justification ??
                   (!d.context_challenge.required
                     ? 'ALICE requires no further automatic context request for this assessment. Review the structured current decision.'
-                    : 'Additional mission justification, expected effect, evidence references, and alternatives have been requested automatically.')}
+                    : manualContext
+                      ? manualPending
+                        ? 'This simulated HOLD is waiting for you to request additional context.'
+                        : 'Additional context requested from the simulated agent.'
+                      : 'Additional mission justification, expected effect, evidence references, and alternatives have been requested automatically.')}
               </p>
               {response && (
                 <p className="muted">Claimed effect: {response.response.expected_effect}</p>
@@ -250,7 +264,9 @@ export function DecisionWorkspace({
                   ? 'AGENT-SUPPLIED CLAIM'
                   : !d.context_challenge.required
                     ? 'ALICE ASSESSMENT'
-                    : 'AUTOMATIC CONTEXT CHALLENGE'}
+                    : manualContext
+                      ? 'SIMULATED CONTEXT REQUEST'
+                      : 'AUTOMATIC CONTEXT CHALLENGE'}
               </span>
             </div>
           </div>

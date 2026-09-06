@@ -23,13 +23,42 @@ eight-test mapping increment is historical, not full hardware evidence.
 
 ## Status and current checkpoint
 
+Current local redesign integration: source preserved at `db73071`, merged first
+with team `4531277` at `4b1f67e`, then with latest `d5a0d56`. Both team behavior
+and all aesthetic work survive; the late battery/LED documentation update is
+included. [Integration evidence](reports/2026-09-06-main-redesign-integration.md)
+records validation and remaining operator acceptance. No publication/deployment.
+
+
 Machine-metrics reconciliation: upstream `237c307` is integrated. The public
 `get_metrics` / `set_fan_speed` MCP now defaults to the shared ALICE thermal
 runtime, with agent credentials, exact retry bindings and authenticated pollers.
 [Evidence](reports/2026-09-06-metrics-reconciliation.md): 467 Python tests passed;
 no deployment or physical acceptance is implied. Existing task statuses remain.
 
-September 6 native backend continuation: biometric PR #4 is merged in Theodore's
+Historical September 6 follow-up: approved visual refinements and device-local dashboard
+clock are implemented locally on `codex/dashboard-visual-refinements` from `5bb092a`.
+Final check passed frontend 163/scripts 8/typecheck/lint/build; Rust 60 (2 ignored),
+Python 166 and all 20 browser regressions passed. These are synthetic/component
+checks, not physical acceptance. [Validation](reports/2026-09-06-dashboard-visual-refinements.md).
+[Specification](handoffs/dashboard-visual-refinement-spec.md) and
+[live state](handoffs/dashboard-visual-refinement-live-state.md) record scope,
+current evidence and recovery. No publication or deployment is authorized.
+
+
+Historical September 6 initial visual overhaul: team PR #5 merged at `e1e7506`; the presentation-only
+feature is isolated in `../alice-dashboard-visual-overhaul` on
+`codex/dashboard-visual-overhaul`. Shell, both workspace modes, history/audit,
+identity/Face ID, motion and accessibility are redesigned. Existing core task
+statuses remain unchanged. [Visual validation](reports/2026-09-06-console-visual-overhaul.md)
+records actual tests, baseline/screens, 11 passing browser regressions and completed local integration.
+Team [PR #6](https://github.com/theoberk25/Alice/pull/6) was opened, then closed
+at the user’s request while a teammate prepares changes. The previously pushed
+feature branch remains; subsequent status changes stay local. Local main was never
+pushed. The original Dock-linked ALICE.app was rebuilt and reopened.
+The [previous current snapshot](handoffs/2026-09-06-before-visual-overhaul.md) is preserved.
+
+Historical September 6 native backend continuation: biometric PR #4 is merged in Theodore's
 `upstream/main` at `d57c660`. Root checkout now uses `codex/native-live-backend`;
 original dirty work, WIP and retired trees are [verified preserved](handoffs/2026-09-06-native-live-backend-workspace.md).
 Native request visibility and signed review are locally implemented with exact
@@ -605,7 +634,7 @@ remaining integrated acceptance. The [architecture][architecture] and
 | SUP-01 | Endpoint-enforced single-authority handover | Demonstrate exactly one current controller across ONLINE/OFFLINE transfer; reject competing authority, stale commands and outstanding approvals. Select and implement the authenticated fence/recovery protocol rather than treating network state as authority. |
 | SUP-02 | ONLINE activity-feed coverage and cursors | Existing collected ALICE request/audit feed is shared natively with honest freshness and bounded replay. No enterprise-wide producer or packet capture was added; attributed ONLINE source/cursor/coverage integration remains unavailable. [Parity](plans/native-live-backend-parity.md). |
 | SUP-03 | Bounded trusted cache synchronization | Bound permissions, normal behavior and relevant SIEM/EDR/mission caches; verify issuer/signature/version/validity and complete coverage, preserve usable active data, and activate compatible replacements atomically. |
-| SUP-04 | Console/core executable schema adapter and native transport | Native compact audit ingestion and exact signed review use the existing bridge/runtime. Null/unknown and original decisions are preserved. Rich decision/reassessment producers and general cross-system adapters remain unavailable. [Parity](plans/native-live-backend-parity.md). |
+| SUP-04 | Console/core executable schema adapter and native transport | Latest team `d5a0d56` retained through local visual integration, including fan review and telemetry contracts. Native tests62 passed; browser review/reconciliation remains synthetic. [Integration evidence](reports/2026-09-06-main-redesign-integration.md). Historical source continuation: User-requested local bridge recovery: stopped personal rehearsal resumed with same ports/keys and22 unchanged events; native FEED LIVE verified. New safe resume mode survives stdin EOF without creating HOLDs. Helper tests15 passed; physical Pi not tested. [Recovery evidence](reports/2026-09-06-runtime-bridge-recovery.md). Native compact audit ingestion and exact signed review use the existing bridge/runtime. Null/unknown and original decisions are preserved. Rich decision/reassessment producers and general cross-system adapters remain unavailable. [Parity](plans/native-live-backend-parity.md). |
 | SUP-05 | Remote approval proof bound to current authority | Implemented locally for the first-light runtime: exact signed request/decision/release/authority/epoch/nonce/action and fresh session, with replay/concurrency/uncertain-delivery tests. General enterprise authority transfer and real camera/physical-Pi acceptance remain. [Contract](contracts/technician-runtime-review.md). |
 | SUP-06 | Durable context/action outboxes and receipt recovery | Native review persists the exact signed submission before transmission, consumes grants once and reconciles via GET after timeout/restart. Automatic retransmission is absent. General context outboxes and enterprise recovery remain. [Contract](contracts/technician-runtime-review.md). |
 | SUP-07 | Independent execution attempt and result records | First-light native review separates action acknowledgment, controller receipt, execution result and observed state with authority/request/action bindings. Real hardware and broader controller/domain acceptance remain. [Validation](reports/2026-09-06-native-live-backend-validation.md). |
@@ -613,6 +642,8 @@ remaining integrated acceptance. The [architecture][architecture] and
 | SUP-09 | Trusted agent-to-user accountability | Establish authoritative user/agent/mission mappings and revocation/expiry behavior for ONLINE feeds and OFFLINE requests; agent-supplied identity claims cannot establish their own permissions. |
 | SUP-10 | Contextual fan-sequence escalation | Implemented for current-state context: bounded synthetic model permits tested +10 cooling steps and escalates a hot-room 60→0 cut to eligible native review; rejection sends no simulated command. Sequence-history features, real sensor training and Pi acceptance remain. |
 | SUP-11 | Enterprise edge-offline presentation | Show loss/staleness of authenticated Pi and sync feeds, last contact and unknown authority accurately on the disconnected enterprise host; an offline banner must not claim handover completion. |
+
+| SUP-12 | Technician console visual and motion system | [PR #7](https://github.com/theoberk25/Alice/pull/7) opened against Theo’s main at user request; includes team `4f98a14`, final repository Python543/266 subtests passed. User will merge; no deployment. PR publication authorized by user; latest team thermal deployment `4f98a14` merged with upstream files preserved unchanged. User subsequently requested live runtime: restored saved remote/ArcFace/database/feed profile and reopened rebuilt app at sign-in. Feed read-only check HTTP200/22 events, existing local-runtime/mock controller; test profile/history preserved. [Profile history](reports/2026-09-06-popup-testing-app.md). Historical popup work: User-authorized popup app rebuild: real ArcFace with private simulated-history copy; opt-in manual-context wait and reset controls, default/live behavior unchanged. Frontend192/scripts8/check/app build passed; default browser31 + opt-in popup1 passed, final app reopened and Face ID service READY. Launch/browser evidence in [popup report](reports/2026-09-06-popup-testing-app.md). Historical integration: Complete source `db73071` integrated over latest team `d5a0d56` in `codex/main-redesign-integration`. Context fifth action and fan details retain behavior with shared styling; all design/animation files and licenses survive. Frontend190/scripts8/browser31/native62 and web/app builds passed; Biometrics176 passed (1 model skip), full repository Python541/266 subtests passed. Details in [integration evidence](reports/2026-09-06-main-redesign-integration.md). Real camera/native appearance/physical Pi acceptance remain; no push/deployment/Dock replacement. Historical preparation/source evidence follows: Complete since-PR-5 merge context/export prepared; includes closed/unmerged PR #6 plus all15 local commits and tracked/untracked follow-ups. Newer context-request/fan-review conflicts documented; no integration performed. [Merge handoff](handoffs/2026-09-06-new-repository-merge.md). Presentation-only Face ID redesign completed: shared Motion Primitives morph/Transition Panel, Anime.js contour/check sequence, larger camera, native-only pose/progress and reduced motion. Existing handlers/lifecycle/security unchanged against pre-task snapshot. Frontend177/scripts8/browser28 and native build passed; Dock bundle rebuilt/reopened. Real-camera visual acceptance remains pending. [Premium Face ID evidence](reports/2026-09-06-premium-face-id.md). Historical previous follow-up: User-authorized Face ID follow-up: actual pending-state discard feedback, cardinal pose hysteresis/final-angle coaching, MIT liquid-glass-react adapted focused dialogs, signed-in Change user/Sign out menu and native second-login refusal. Dock app rebuilt/reopened; local face service READY. Frontend167/scripts8/Rust61 (2 ignored)/Python177/browser26 and typecheck/lint/build passed; physical camera acceptance pending. [Face ID validation](reports/2026-09-06-face-id-fixes.md). Historical prior stage: User subsequently authorized Dock app update: native app build/launch passed and native EDT/IANA clock verified; existing settings/enrollment stores untouched. Approved follow-up implemented locally from `5bb092a`: stable biometric viewport/remaining-pose feedback, restrained surfaces and device-local dashboard clock (only functional exception). Camera lifecycle/actions unchanged. Frontend 163, scripts 8, Rust 60 (2 ignored), Python 166, all 20 browser regressions and typecheck/lint/build passed; no real-camera/physical acceptance or publication. [Refinement validation](reports/2026-09-06-dashboard-visual-refinements.md). Historical initial redesign: presentation implemented on team `e1e7506`: shared motion, semantic surfaces, decision/evidence hierarchy, compact identity/biometrics, responsive controls and accessibility. Existing business/security handlers unchanged. Integrated local main: frontend 145 + script 8; Rust 60 (2 opt-in ignored), Python biometrics 166, web/native builds and 11 browser regressions passed. Dock-linked ALICE.app rebuilt/reopened. [PR #6](https://github.com/theoberk25/Alice/pull/6) closed at user request, unmerged; redesign retained locally, no further publication. Local main not pushed. Exact results in [visual validation](reports/2026-09-06-console-visual-overhaul.md). |
 
 ## Maintaining this tracker
 

@@ -1,13 +1,18 @@
 import { Bot, Network, Search, ArrowUpRight } from 'lucide-react';
-import { Panel, Badge, toneFor, human } from '@alice/ui';
+import { Panel, Badge, toneFor, human, AnimatedCounter } from '@alice/ui';
 import { useConsole } from '../../state/console';
 export function AgentsPanel() {
   const agents = Object.values(useConsole((s) => s.agents));
   const d = useConsole((s) => s.decisions[s.selectedId]);
   return (
     <Panel
+      className="agents-panel"
       title="Agent network"
-      meta={<span className="count-label">{agents.length.toString().padStart(2, '0')} NODES</span>}
+      meta={
+        <span className="count-label">
+          <AnimatedCounter value={agents.length.toString().padStart(2, '0')} /> nodes
+        </span>
+      }
     >
       <div className="agent-list">
         {agents.map((a) => (

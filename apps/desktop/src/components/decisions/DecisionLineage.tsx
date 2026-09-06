@@ -1,5 +1,5 @@
 import type { Decision } from '@alice/contracts';
-import { Panel, Badge, toneFor, human } from '@alice/ui';
+import { Panel, Badge, toneFor, human, CommandButton } from '@alice/ui';
 import { useConsole } from '../../state/console';
 
 export function DecisionLineage({ decision }: { decision: Decision }) {
@@ -11,6 +11,7 @@ export function DecisionLineage({ decision }: { decision: Decision }) {
   if (ids.length < 2 && !pending) return null;
   return (
     <Panel
+      className="lineage-panel"
       title="Assessment lineage"
       meta={<span className="count-label">{decision.request.request_id}</span>}
     >
@@ -22,7 +23,7 @@ export function DecisionLineage({ decision }: { decision: Decision }) {
             s.audit.some((e) => e.type === 'AUTO_CLARIFICATION_SENT' && e.decision_id === id);
           return (
             <li key={id}>
-              <button
+              <CommandButton
                 className="lineage-assessment"
                 onClick={() => s.select(id)}
                 aria-label={`Inspect assessment ${id}`}
@@ -46,7 +47,7 @@ export function DecisionLineage({ decision }: { decision: Decision }) {
                     {d.reassessment.sequence}
                   </small>
                 )}
-              </button>
+              </CommandButton>
               {d.context_challenge.required && (
                 <div className="lineage-events">
                   <p>
@@ -115,10 +116,13 @@ export function ClarificationTrack({ decision }: { decision: Decision }) {
   );
   const sent =
     !!response ||
+    !!s.contextRequests[contextDecision.decision_id] ||
     s.audit.some(
       (e) => e.type === 'AUTO_CLARIFICATION_SENT' && e.decision_id === contextDecision.decision_id,
     );
   const noContext = !contextDecision.context_challenge.required;
+  const manualPending =
+    s.mode === 'mock' && import.meta.env.VITE_ALICE_MANUAL_CONTEXT_DEMO === 'true' && !sent;
   const currentFlow =
     s.flows[s.latestDecisionByRequest[decision.request.request_id] ?? decision.decision_id] ?? flow;
   const reviewComplete = ['APPROVAL_SUBMITTED', 'REJECTED', 'RESOLVED'].includes(currentFlow);
@@ -140,9 +144,11 @@ export function ClarificationTrack({ decision }: { decision: Decision }) {
         ? 'not required'
         : sent
           ? 'complete'
-          : flow === 'AUTO_CONTEXT_REQUEST'
-            ? 'active'
-            : 'failed',
+          : manualPending
+            ? 'waiting'
+            : flow === 'AUTO_CONTEXT_REQUEST'
+              ? 'active'
+              : 'failed',
     ],
     [
       'Agent responded',

@@ -1,5 +1,14 @@
+import { useId } from 'react';
+import { LayoutGroup } from 'motion/react';
 import { ArrowUpRight, Check, Pause, X } from 'lucide-react';
-import { Panel, Badge, toneFor } from '@alice/ui';
+import {
+  Panel,
+  Badge,
+  toneFor,
+  AnimatedSelection,
+  AnimatedCounter,
+  CommandButton,
+} from '@alice/ui';
 import { useConsole } from '../../state/console';
 export function History({ expanded = false }: { expanded?: boolean }) {
   const {
@@ -12,80 +21,90 @@ export function History({ expanded = false }: { expanded?: boolean }) {
     requestDecisionHistory,
     latestDecisionByRequest,
   } = useConsole();
+  const selectionId = useId();
   const requests = [...new Set(order.map((id) => decisions[id]!.request.request_id))];
   return (
     <Panel
+      className={`history-panel ${expanded ? 'history-panel-expanded' : ''}`}
       title={expanded ? 'Decision history' : 'Recent decisions'}
-      meta={<span className="count-label">{order.length.toString().padStart(2, '0')} RECORDS</span>}
+      meta={
+        <span className="count-label">
+          <AnimatedCounter value={order.length.toString().padStart(2, '0')} /> records
+        </span>
+      }
     >
-      <div className={`history-list ${expanded ? 'history-expanded' : ''}`}>
-        {requests.map((request) => (
-          <div className="history-request" key={request}>
-            <div className="history-request-label">{request}</div>
-            {(
-              requestDecisionHistory[request] ??
-              order.filter((id) => decisions[id]?.request.request_id === request)
-            ).map((id) => {
-              const d = decisions[id]!;
-              const action = actions[id];
-              const outcome =
-                action?.action === 'REJECT'
-                  ? 'REJECTED'
-                  : action?.action === 'APPROVE_ONCE'
-                    ? 'APPROVED ONCE'
-                    : d.decision.result === 'ALLOW'
-                      ? 'ALLOWED'
-                      : d.decision.result === 'DENY'
-                        ? 'DENIED'
-                        : 'HELD';
-              return (
-                <button
-                  onClick={() => select(id)}
-                  key={id}
-                  aria-label={expanded ? `Inspect ${id} ${outcome}` : undefined}
-                  className={`history-item ${selectedId === id ? 'selected' : ''}`}
-                >
-                  <span className={`history-icon tone-${toneFor(outcome)}`}>
-                    {outcome === 'ALLOWED' || outcome === 'APPROVED ONCE' ? (
-                      <Check size={14} />
-                    ) : outcome === 'HELD' ? (
-                      <Pause size={12} />
-                    ) : (
-                      <X size={14} />
-                    )}
-                  </span>
-                  <span className="history-info">
-                    <strong>{d.request.action}</strong>
-                    <small>
-                      {d.reassessment ? 'REASSESSMENT' : 'ORIGINAL'}
-                      {latestDecisionByRequest[d.request.request_id] === id ? ' · CURRENT' : ''}
-                    </small>
-                    {d.reassessment && (
+      <LayoutGroup id={selectionId}>
+        <div className={`history-list ${expanded ? 'history-expanded' : ''}`}>
+          {requests.map((request) => (
+            <div className="history-request" key={request}>
+              <div className="history-request-label">{request}</div>
+              {(
+                requestDecisionHistory[request] ??
+                order.filter((id) => decisions[id]?.request.request_id === request)
+              ).map((id) => {
+                const d = decisions[id]!;
+                const action = actions[id];
+                const outcome =
+                  action?.action === 'REJECT'
+                    ? 'REJECTED'
+                    : action?.action === 'APPROVE_ONCE'
+                      ? 'APPROVED ONCE'
+                      : d.decision.result === 'ALLOW'
+                        ? 'ALLOWED'
+                        : d.decision.result === 'DENY'
+                          ? 'DENIED'
+                          : 'HELD';
+                return (
+                  <CommandButton
+                    onClick={() => select(id)}
+                    aria-current={selectedId === id ? 'true' : undefined}
+                    key={id}
+                    aria-label={expanded ? `Inspect ${id} ${outcome}` : undefined}
+                    className={`history-item ${selectedId === id ? 'selected' : ''}`}
+                  >
+                    <AnimatedSelection active={selectedId === id} layoutId="history-selection" />
+                    <span className={`history-icon tone-${toneFor(outcome)}`}>
+                      {outcome === 'ALLOWED' || outcome === 'APPROVED ONCE' ? (
+                        <Check size={14} />
+                      ) : outcome === 'HELD' ? (
+                        <Pause size={12} />
+                      ) : (
+                        <X size={14} />
+                      )}
+                    </span>
+                    <span className="history-info">
+                      <strong>{d.request.action}</strong>
                       <small>
-                        Parent {d.reassessment.previous_decision_id} · root{' '}
-                        {d.reassessment.root_decision_id}
+                        {d.reassessment ? 'REASSESSMENT' : 'ORIGINAL'}
+                        {latestDecisionByRequest[d.request.request_id] === id ? ' · CURRENT' : ''}
                       </small>
-                    )}
-                    <small>
-                      {new Date(d.timestamp).toLocaleTimeString('en-GB', { timeZone: 'UTC' })} ·{' '}
-                      {d.request.target}
-                    </small>
-                    {expanded && (
+                      {d.reassessment && (
+                        <small>
+                          Parent {d.reassessment.previous_decision_id} · root{' '}
+                          {d.reassessment.root_decision_id}
+                        </small>
+                      )}
                       <small>
-                        {d.decision_id} · {d.request.agent_id}
+                        {new Date(d.timestamp).toLocaleTimeString('en-GB', { timeZone: 'UTC' })} ·{' '}
+                        {d.request.target}
                       </small>
-                    )}
-                  </span>
-                  <span className={`history-outcome tone-${toneFor(outcome)}`}>
-                    {outcome}
-                    {reconciliations[id] && <small>RECONCILED</small>}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+                      {expanded && (
+                        <small>
+                          {d.decision_id} · {d.request.agent_id}
+                        </small>
+                      )}
+                    </span>
+                    <span className={`history-outcome tone-${toneFor(outcome)}`}>
+                      {outcome}
+                      {reconciliations[id] && <small>RECONCILED</small>}
+                    </span>
+                  </CommandButton>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </LayoutGroup>
       {!expanded && (
         <div className="panel-footnote">
           <ArrowUpRight size={12} /> Immutable upstream decisions
@@ -107,11 +126,12 @@ export function AuditLog() {
   }
   return (
     <Panel
+      className="audit-panel"
       title="Local console audit"
       meta={
-        <button className="small-button" onClick={download}>
+        <CommandButton className="small-button" onClick={download}>
           Export JSON
-        </button>
+        </CommandButton>
       }
     >
       <div className="audit-table">

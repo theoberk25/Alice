@@ -26,4 +26,6 @@ The Vite proxy lives with the desktop app and remains read-only;
 `python -m services.runtime_feed` runs the existing authenticated bridge, including
 the Pi-verified native review path. Neither creates a second backend database.
 For local personal acceptance, [the rehearsal](../guides/native-runtime-review.md)
-provides `npm run demo:hold -- --session /absolute/rehearsal/session.json`.
+provides `npm run demo:hold -- --session /absolute/rehearsal/session.json` and
+`.venv/bin/python -m lab.first_light.native_review_demo --resume /absolute/rehearsal/session.json`
+to reopen an existing stopped local rehearsal without generating new HOLDs.

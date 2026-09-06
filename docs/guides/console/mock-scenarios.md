@@ -35,3 +35,25 @@ Only scenario 04 emits a timed successor; other scenarios retain their original 
 Browser preview is transient: reload for a fresh sequence with no camera or native database. Native restart restores persisted lineage, so an already-seen DEC-185 remains current immediately. Native scenario reset retains immutable decisions and audit while clearing simulated actions/annotations/grants; it does not erase DEC-185 to pretend it never existed. For a pristine timed native replay, use a separate disposable mock database through the existing ALICE_DATABASE_PATH setting; do not delete/reset the normal enrolled operator's database. A separate ArcFace-mode database requires its own console identity setup. Ordinary restart preserves agent responses, reconciliation and actions.
 
 The sample evidence and risk changes are fixtures in `reassessedDecision()` and `fixtures/alice/reassessment.json`. No policy evaluator, anomaly algorithm, evidence verifier, agent reasoning engine or production transport has been added.
+
+## Packaged popup rehearsal with real Face ID
+
+For an explicitly requested local test build, set
+`VITE_ALICE_MANUAL_CONTEXT_DEMO=true` before `npm run build:app`, and launch
+with `ALICE_TRANSPORT_MODE=mock`, `ALICE_BIOMETRIC_MODE=arcface` and the existing
+private biometric URL/token. Use a separate private console database so simulated
+actions cannot change the normal console's history. Keep credentials and databases
+out of Git. This is an opt-in build setting; `.env.example` leaves it false.
+
+In that profile, a simulated HOLD waits for the technician to choose **Request
+more context**, allowing time to sign in. The returned fixture context still leaves
+the immutable decision HOLD and awaits upstream reassessment. **Approve once**
+requires fresh native Face ID and records a simulated receipt; no protected action
+executes. Remote mode and its existing context-delivery limitation are unchanged.
+
+The sliders button exposes **Development scenarios → Reset scenario** in this
+packaged test profile, so the same popup can be exercised again. Use the default
+`03_hold_high_anomaly` for repeat context/approval tests. The normal build continues
+to use automatic clarification and hides these controls in production.
+
+Local setup and verification: [popup rebuild report](../../reports/2026-09-06-popup-testing-app.md).

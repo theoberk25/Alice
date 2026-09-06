@@ -28,6 +28,9 @@ and evidence. Read only the detailed documents relevant to the task.
 | Native live backend | [Ready handoff](handoffs/2026-09-06-native-live-backend-ready.md), [parity checklist](plans/native-live-backend-parity.md), [validation report](reports/2026-09-06-native-live-backend-validation.md), [operator setup](guides/native-runtime-review.md), [review contract](contracts/technician-runtime-review.md), [original continuation](handoffs/2026-09-06-live-backend-after-biometric-delivery.md), [workspace recovery](handoffs/2026-09-06-native-live-backend-workspace.md) |
 | Live facial delivery | [Integration report](reports/2026-09-06-live-face-main-integration.md), [setup](guides/console/facial-verification-quickstart.md) |
 | Biometric service | [Service API](guides/biometrics-service.md) |
+| Console visual system | [Design sources and licenses](guides/console/visual-sources.md), [redesign validation](reports/2026-09-06-console-visual-overhaul.md), [refinement scope](handoffs/dashboard-visual-refinement-spec.md), [refinement live state](handoffs/dashboard-visual-refinement-live-state.md), [refinement validation](reports/2026-09-06-dashboard-visual-refinements.md), [premium Face ID](reports/2026-09-06-premium-face-id.md) |
+| Completed main/redesign integration | [Integration evidence](reports/2026-09-06-main-redesign-integration.md) |
+| Console integration carry-forward | [Complete changes since included PR #5](handoffs/2026-09-06-new-repository-merge.md) |
 | Developer tools | [Script catalog](scripts/README.md) |
 
 Existing architecture and ownership documents in prds/ retain their published

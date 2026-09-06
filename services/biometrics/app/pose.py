@@ -103,8 +103,10 @@ class NeutralPose:
             self.center = np.median(recent, axis=0)
         relative = values - self.center
         region = pose_bin(*relative)
-        if region is not None:
-            # Once in a sector, a small boundary wobble should not flicker it.
+        if region == 'CENTER':
+            # Retain small boundary wobble only near neutral. Extending a diagonal
+            # into an already valid cardinal view narrows that sector on a circle
+            # and can skip its second sample at the native 4 Hz evidence cadence.
             old = self.previous or ''
             horizontal = ('LEFT' if relative[0] >= 10 or ('LEFT' in old and relative[0] >= 7)
                           else 'RIGHT' if relative[0] <= -10 or ('RIGHT' in old and relative[0] <= -7) else '')

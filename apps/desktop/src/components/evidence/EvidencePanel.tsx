@@ -1,6 +1,6 @@
 import { Check, Clock3, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import type { Decision } from '@alice/contracts';
-import { Panel, Badge, toneFor, human } from '@alice/ui';
+import { Panel, Badge, toneFor, human, CommandButton } from '@alice/ui';
 import { useConsole } from '../../state/console';
 export function EvidencePanel({
   decision: d,
@@ -11,14 +11,14 @@ export function EvidencePanel({
 }) {
   const reconciled = useConsole((s) => s.reconciliations[d.decision_id]);
   return (
-    <Panel title="Evidence ledger" meta={<ShieldCheck size={14} />}>
+    <Panel className="evidence-panel" title="Evidence ledger" meta={<ShieldCheck size={14} />}>
       <div className="evidence-score">
         <strong>
           {d.evidence.verified}
           <span> / {d.evidence.items.length}</span>
         </strong>
         <div>
-          REFERENCES VERIFIED<small>At this assessment</small>
+          References verified<small>At this assessment</small>
         </div>
       </div>
       <div className="evidence-meter">
@@ -70,9 +70,9 @@ export function EvidencePanel({
           <p>External references await cloud verification. Local enforcement remains active.</p>
         </div>
       )}
-      <button className="full-text-button" onClick={onResearch}>
+      <CommandButton className="full-text-button" onClick={onResearch}>
         Open evidence workspace <ArrowUpRight size={15} />
-      </button>
+      </CommandButton>
       <div className="evidence-footer">
         <Badge tone="neutral">CLAIMS ≠ VERIFIED EVIDENCE</Badge>
       </div>

@@ -35,7 +35,11 @@ export function SystemPanel() {
   ];
   return (
     <>
-      <Panel title="System integrity" meta={<span className="count-label">LOCAL NODE</span>}>
+      <Panel
+        className="integrity-panel"
+        title="System integrity"
+        meta={<span className="count-label">LOCAL NODE</span>}
+      >
         <div className="system-rows">
           {items.map(({ label, state, icon: Icon, detail }) => (
             <div className="system-row" key={label}>
@@ -61,7 +65,7 @@ export function SystemPanel() {
           </span>
         </div>
       </Panel>
-      <Panel title="Internal activity" meta={<Activity size={14} />}>
+      <Panel className="activity-panel" title="Internal activity" meta={<Activity size={14} />}>
         <div className="service-list">
           {Object.values(services).map((service) => (
             <div className="service-row" key={service.service_id}>

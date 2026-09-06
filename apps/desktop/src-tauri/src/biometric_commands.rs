@@ -106,6 +106,13 @@ pub(crate) fn eligible(s: &Inner, attempt: &Attempt) -> Result<(), String> {
     }
 }
 
+fn require_signed_out(s: &Inner) -> Result<(), String> {
+    if require_technician(s).is_ok() {
+        return Err("ALREADY_SIGNED_IN: sign out or choose Change user before logging in".into());
+    }
+    Ok(())
+}
+
 fn current(s: &mut Inner, id: &str) -> Result<(), String> {
     if s.biometrics.get(id)?.terminal() {
         return Err("BIOMETRIC_SESSION_TERMINAL".into());
@@ -158,6 +165,7 @@ pub fn begin_biometric_session(
                 (intent.technician_id.ok_or("TECHNICIAN_REQUIRED")?, None)
             }
             Purpose::Login => {
+                require_signed_out(&s)?;
                 if intent.technician_id.is_some()
                     || intent.decision_id.is_some()
                     || intent.request_id.is_some()
@@ -1057,6 +1065,7 @@ mod tests {
                 enabled: true,
                 enrolled: false,
                 enrollment_version: None,
+                enrollment_pending: false,
             },
         )
         .unwrap();
@@ -1417,6 +1426,26 @@ mod tests {
     }
 
     #[test]
+    fn login_requires_signout_but_expired_sessions_can_authenticate() {
+        let (app, _dir, _) = setup();
+        let state = app.state::<AppState>();
+        {
+            let mut s = lock(&state).unwrap();
+            s.technician = Some(Session {
+                id: "T1".into(),
+                expires_at: Utc::now().timestamp() + 60,
+            });
+            assert!(require_signed_out(&s)
+                .unwrap_err()
+                .starts_with("ALREADY_SIGNED_IN"));
+            s.technician.as_mut().unwrap().expires_at = Utc::now().timestamp() - 1;
+            assert!(require_signed_out(&s).is_ok());
+        }
+        logout(state.clone()).unwrap();
+        assert!(require_signed_out(&lock(&state).unwrap()).is_ok());
+    }
+
+    #[test]
     fn removal_preserves_pending_activation_on_lost_ack_and_retries_after_restart() {
         let (app, _dir, old_id) = setup();
         let state = app.state::<AppState>();
@@ -1464,6 +1493,7 @@ mod tests {
             assert!(s.technician.is_none());
             assert_eq!(active_generation(&s, "T1").unwrap(), "g1");
             assert!(generation(&s, "T1").is_err());
+            assert!(technician(&s, "T1").unwrap().enrollment_pending);
             assert!(commit_metadata(&mut s, "T1", "g2").is_err());
             let blocked = s
                 .biometrics
@@ -1502,6 +1532,7 @@ mod tests {
         assert_eq!(generation(&s, "T1").unwrap(), "none");
         assert!(removal_intent(&s.db, "T1").unwrap().is_none());
         assert!(!technician(&s, "T1").unwrap().enrolled);
+        assert!(!technician(&s, "T1").unwrap().enrollment_pending);
         assert!(s.grants.is_empty());
     }
 

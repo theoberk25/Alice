@@ -15,7 +15,32 @@ describe('technician request more context (mock mode)', () => {
   });
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
+  });
+
+  it('manual popup rehearsal waits for sign-in and an explicit context request', async () => {
+    vi.stubEnv('VITE_ALICE_MANUAL_CONTEXT_DEMO', 'true');
+    vi.useFakeTimers();
+    await useConsole.getState().start('03_hold_high_anomaly');
+    const technician = useConsole.getState().technician;
+    useConsole.setState({ technician: undefined });
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(useConsole.getState().responses[held]).toBeUndefined();
+    expect(useConsole.getState().flows[held]).toBe('AWAITING_TECHNICIAN');
+    await expect(useConsole.getState().requestContext(held)).rejects.toThrow(/authenticated/);
+    useConsole.setState({ technician });
+    await useConsole.getState().requestContext(held);
+    await vi.advanceTimersByTimeAsync(1200);
+    expect(useConsole.getState().responses[held]).toBeDefined();
+    expect(useConsole.getState().flows[held]).toBe('REASSESSMENT_PENDING');
+    expect(useConsole.getState().decisions[held]?.decision.result).toBe('HOLD');
+  });
+
+  it('manual popup rehearsal cannot enable remote context delivery', async () => {
+    vi.stubEnv('VITE_ALICE_MANUAL_CONTEXT_DEMO', 'true');
+    useConsole.setState({ mode: 'remote' });
+    await expect(useConsole.getState().requestContext(held)).rejects.toThrow(/read-only/i);
   });
 
   it('issues Record 1 and surfaces the returned blurb', async () => {
@@ -23,7 +48,9 @@ describe('technician request more context (mock mode)', () => {
     await useConsole.getState().requestContext(held);
     let s = useConsole.getState();
     // Record 1: the audited fact that the technician asked for more context.
-    expect(s.audit.some((e) => e.type === 'CONTEXT_REQUESTED' && e.decision_id === held)).toBe(true);
+    expect(s.audit.some((e) => e.type === 'CONTEXT_REQUESTED' && e.decision_id === held)).toBe(
+      true,
+    );
     expect(s.contextRequests[held]).toBeTruthy();
     expect(s.responses[held]).toBeUndefined();
     // Record 2: the agent's returned claim binds to this assessment and parks the

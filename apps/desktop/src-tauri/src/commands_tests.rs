@@ -240,6 +240,7 @@ fn native_admin_gate_and_password_hash_work() {
         enabled: true,
         enrolled: false,
         enrollment_version: None,
+        enrollment_pending: false,
     };
     commands::save_technician(s.clone(), t).unwrap();
     commands::set_technician_enabled(s.clone(), "T1".into(), false).unwrap();
