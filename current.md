@@ -1,6 +1,6 @@
 # Current
 Updated: 2026-09-06 EDT.
-Baseline: freshly fetched Theodore Berk `upstream/main` at `de6c6cb`.
+Baseline: freshly fetched Theodore Berk `upstream/main` at `966632e`.
 Everyday checkout: `/Users/alexdaoud/Documents/Alice`; branch `codex/native-live-backend`.
 
 ## Active objective
@@ -15,7 +15,9 @@ execution and observation. No deepfake work or device-output adjustments.
 - Root is the sole registered worktree. Original biometric/WIP and verified source
   snapshots remain on named backup branches; private settings/models are preserved.
 - Biometric PR #4 merged at `d57c660`; local commits now include the subsequent
-  upstream wireless/fan roadmap. No duplicate biometric commits or remote writes.
+  upstream wireless/fan roadmap and pitch deliverables. No duplicate biometric commits.
+- Published to `Adaoud03/Alice:main` at the user's request; upstream [PR #5](https://github.com/theoberk25/Alice/pull/5)
+  contains the implementation, evidence and limitations. Upstream merge is pending.
 - Native/web share collected history, evidence and explicit freshness. Native adds
   exact retained requests and signed fresh-face approve/reject through the existing
   bridge, Pi ledger and execution path, with durable uncertain-delivery reconciliation.
@@ -38,7 +40,8 @@ Cross-language proofs, cancellation, replay, restart, concurrency and uncertaint
 have automated evidence. No human camera→Pi/hardware acceptance or live Ollama test.
 Telemetry covers collected ALICE request/audit traffic, not every network packet.
 Verified preservation includes the concurrent Desktop auto-stash recovery; tracked
-source is committed. No push, remote merge, deployment, remote trust or hardware use.
+source is committed and published to the fork. No upstream merge, deployment,
+remote trust provisioning or hardware operation was performed.
 
 ## Next steps
 

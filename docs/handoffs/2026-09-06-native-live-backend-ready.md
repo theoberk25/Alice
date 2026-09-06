@@ -119,3 +119,24 @@ and device/base output-adjustment controls remain excluded.
 No push, remote merge, deployment, remote trust provisioning or hardware operation
 was performed. Real facial and separately authorized physical-Pi acceptance are
 the next concrete external dependencies; no owner is assigned by this handoff.
+
+## Authorized publication follow-up
+
+The user subsequently authorized publishing the entire source integration to
+`Adaoud03/Alice:main` and opening a detailed PR against Theodore Berk's main.
+[PR #5](https://github.com/theoberk25/Alice/pull/5) is open with implementation,
+security boundaries, exact prior validation and remaining acceptance documented.
+
+Before publication, upstream advanced to `966632e` with three pitch deliverables.
+Those files were preserved unchanged, and the focused integration commits were
+rebased onto that main. Application, runtime, configuration and test sources were
+compared against `codex/backup-native-before-publication-20260906` and are identical;
+the recorded tests/build remain applicable. A publication scan found no private
+runtime artifacts or recognized credential patterns in the proposed source delta.
+
+The fork update is a normal fast-forward, with no forced history replacement.
+Local `main` is synchronized to the same published commit; the everyday active
+branch remains `codex/native-live-backend`. All original and backup branches remain
+local recovery references. Ignored private settings, keys, stores, environments,
+retired worktrees and built binaries were not pushed. No upstream merge, deployment,
+remote trust provisioning or hardware operation was authorized or performed here.

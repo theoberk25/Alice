@@ -26,6 +26,10 @@ local automated evidence from unperformed real camera/physical-Pi acceptance.
 Dock/Finder launch follow-up: existing private settings now select the same remote
 rehearsal as the tested launch; original settings are backed up and direct launch
 was verified. This does not provision a physical Pi or change execution authority.
+Publication: the user authorized updating `Adaoud03/Alice:main` and submitting
+[upstream PR #5](https://github.com/theoberk25/Alice/pull/5). Latest upstream pitch
+deliverables at `966632e` are included unchanged; tested runtime/native/frontend
+sources are unchanged by that rebase. Upstream merge and physical acceptance remain pending.
 
 
 Historical September 6 biometric delivery: `codex/live-face-upstream-integration` starts from

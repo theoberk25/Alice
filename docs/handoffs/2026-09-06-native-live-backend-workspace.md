@@ -31,6 +31,7 @@ The earlier `.tools/biometric-integration-backup-20260906/` is unchanged.
 | `codex/live-face-port-source` at `be85a87` | Earlier source-port recovery branch |
 | `codex/backup-native-interrupted-20260906` at `fc18f80` | Native implementation snapshot recovered after an external GitHub Desktop auto-stash |
 | `codex/backup-native-before-upstream-20260906` at `346ee6e` | Focused completed implementation commits before rebasing onto the final upstream documentation update |
+| `codex/backup-native-before-publication-20260906` at `d6b9c12` | Completed local integration and Dock settings record before rebasing onto upstream pitch deliverables for publication |
 
 The bundle contains all pre-cleanup refs and the snapshot. No stash is needed
 for recovery. A separately requested branch-sync task later updated local `main`
@@ -38,7 +39,9 @@ to `d57c660` and removed four redundant local refs after creating its own backup
 this native-backend task did not delete those branches. Original biometric, dirty
 snapshot, port-source and saved WIP branches remain visible. Local `main` stays at
 that task's `d57c660` checkpoint; the active native branch includes the subsequently
-fetched `de6c6cb`. `origin/main` is still the fork's older remote branch.
+fetched `de6c6cb`. At that checkpoint, `origin/main` was still the fork's older
+remote branch. The later [authorized publication](2026-09-06-native-live-backend-ready.md#authorized-publication-follow-up)
+fast-forwards both fork and local `main` to the complete integration on `966632e`.
 `original-working.patch`, `original-index.patch`, `original-status.z`,
 `original-files.json`, `untracked-source.tar.gz`, the copied original handoff and
 `verification.json` independently describe the original working state.
