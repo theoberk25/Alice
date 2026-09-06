@@ -154,6 +154,30 @@ export const useConsole = create<ConsoleState>((set, get) => ({
   select: (selectedId) => set({ selectedId }),
   setTechnician: (technician) => {
     set({ technician });
+    if (isNative && get().mode === 'remote') {
+      // Native feed reads require a current technician. Logout stops polling and
+      // clears renderer copies; signing in starts the authoritative history replay.
+      if (technician)
+        void get()
+          .start()
+          .catch((e) => get().error(`Runtime connection failed: ${String(e)}`));
+      else {
+        ++epoch;
+        disconnect?.();
+        disconnect = undefined;
+        set({
+          runtime: emptyRuntime(),
+          selectedRuntimeId: '',
+          feed: {
+            event_type: 'alice.feed_status',
+            state: 'unavailable',
+            last_success_at: null,
+            message: 'Technician authentication required to read the live runtime',
+          },
+        });
+      }
+      return;
+    }
     if (technician && isNative)
       void get()
         .hydrate()
@@ -481,6 +505,18 @@ export const useConsole = create<ConsoleState>((set, get) => ({
       contextSummaries: {},
       challenges: {},
     });
+    if (isNative && config.transport_mode === 'remote' && !get().technician) {
+      set({
+        ready: true,
+        feed: {
+          event_type: 'alice.feed_status',
+          state: 'unavailable',
+          last_success_at: null,
+          message: 'Sign in to connect to the authoritative runtime',
+        },
+      });
+      return;
+    }
     transport =
       config.transport_mode === 'mock'
         ? new MockAliceTransport(scenario)
@@ -490,7 +526,17 @@ export const useConsole = create<ConsoleState>((set, get) => ({
         if (generation === epoch) get().ingest(event);
       },
       (message) => {
-        if (generation === epoch) get().error(message);
+        if (generation === epoch) {
+          get().error(message);
+          if (
+            isNative &&
+            config.transport_mode === 'remote' &&
+            /Technician authentication required|Technician is disabled|TECHNICIAN_SESSION_CHANGED|Technician session changed/.test(
+              message,
+            )
+          )
+            get().setTechnician(undefined);
+        }
       },
     );
     if (generation !== epoch) {

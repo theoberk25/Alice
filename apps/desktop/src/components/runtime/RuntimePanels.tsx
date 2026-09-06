@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Panel, Badge, Empty, toneFor } from '@alice/ui';
+import { RuntimeReviewPanel } from './RuntimeReview';
 import { useConsole } from '../../state/console';
 import type { RuntimeEvent } from '@alice/contracts';
 const when = (e?: RuntimeEvent) =>
   e?.time.recorded_at ? `${e.time.recorded_at} · ${e.time.confidence}` : 'Timestamp unavailable';
-const outcome = (e?: RuntimeEvent) => e?.detail.outcome ?? 'UNAVAILABLE';
+const outcome = (e?: RuntimeEvent) =>
+  e?.detail.outcome === 'CHALLENGE' ? 'HOLD' : (e?.detail.outcome ?? 'UNAVAILABLE');
 export function RuntimeHistory() {
   const { runtime, selectedRuntimeId, selectRuntime } = useConsole();
   const requests = Object.values(runtime.requests).reverse();
@@ -91,8 +94,8 @@ export function RuntimeWorkspace() {
           </div>
         </div>
         <div className="panel-footnote">
-          Remote accept/deny and biometric proof delivery unavailable. No dashboard action can
-          execute this request.
+          The original ALICE decision remains unchanged by technician review. Controller receipts,
+          execution results and observed state are recorded separately.
         </div>
       </section>
       <div className="request-context">
@@ -105,6 +108,7 @@ export function RuntimeWorkspace() {
           <strong>{r.events[0]?.attribution.agent_id ?? 'Unavailable'}</strong>
         </div>
       </div>
+      <RuntimeReviewPanel key={selectedRuntimeId} />
       <Panel title="Runtime event timeline">
         {r.events.map((e) => (
           <article className="reconciliation-row" key={e.event_id}>
@@ -112,7 +116,12 @@ export function RuntimeWorkspace() {
               <strong>
                 #{e.sequence} {e.event_type}
               </strong>
-              <p>{e.detail.outcome ?? e.detail.result ?? e.detail.property ?? 'Recorded event'}</p>
+              <p>
+                {e.detail.outcome ??
+                  e.detail.result ??
+                  e.detail.property ??
+                  (typeof e.detail.intent === 'string' ? e.detail.intent : 'Recorded event')}
+              </p>
               <small>
                 {when(e)}
                 <br />
@@ -190,6 +199,10 @@ export function RuntimeSystem() {
       <p role="status">{feed.message}</p>
       <p>Source: {runtime.source?.connection ?? 'Unavailable'}</p>
       <p>
+        Coverage: collected ALICE requests and audit events. Network packet telemetry is not
+        connected.
+      </p>
+      <p>
         Feed last received:{' '}
         {feed.last_success_at ? new Date(feed.last_success_at).toISOString() : 'Never'}
       </p>
@@ -233,10 +246,29 @@ export function RuntimeAgents() {
 }
 export function RuntimeAudit() {
   const { runtime } = useConsole();
+  const [filter, setFilter] = useState('');
+  const events = [...runtime.events]
+    .reverse()
+    .filter((e) => JSON.stringify(e).toLowerCase().includes(filter.toLowerCase()));
   return (
     <Panel title="Pi audit trail">
+      <p>
+        Collected request, decision, technician and execution events. This is not a record of every
+        network packet.
+      </p>
+      <label>
+        Filter collected traffic{' '}
+        <input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Request, agent, action or outcome"
+        />
+      </label>
+      <p>
+        {events.length} / {runtime.events.length} collected events
+      </p>
       <div className="audit-table">
-        {[...runtime.events].reverse().map((e) => (
+        {events.map((e) => (
           <article key={e.event_id}>
             <span>#{e.sequence}</span>
             <div>

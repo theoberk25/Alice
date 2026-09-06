@@ -85,7 +85,7 @@ export class RemoteAliceTransport implements AliceTransport {
         if (!active) return;
         recovering = true;
         onError(
-          `Runtime feed unavailable: ${error instanceof Error ? error.message : 'invalid response'}`,
+          `Runtime feed unavailable: ${error instanceof Error ? error.message : String(error)}`,
         );
         status('disconnected', 'Connection failed; retaining received history without fallback');
       } finally {

@@ -37,6 +37,7 @@ import {
   RuntimeAudit,
 } from '../components/runtime/RuntimePanels';
 import { scenarioNames, type ScenarioName } from '../../../../fixtures/scenarios';
+import { isNative } from '../lib/native';
 type View = 'overview' | 'history' | 'audit' | 'admin';
 type Overlay = 'approval' | 'research' | 'identity' | 'settings' | undefined;
 export default function App() {
@@ -231,9 +232,7 @@ export default function App() {
                 <div className="decision-counts">
                   <span className="tone-healthy">{allowCount} ALLOWED</span>
                   <i />
-                  <span className="tone-warning">
-                    {holdCount} {remote ? 'CHALLENGED' : 'HELD'}
-                  </span>
+                  <span className="tone-warning">{holdCount} HELD</span>
                   <i />
                   <span className="tone-danger">{denyCount} DENIED</span>
                 </div>
@@ -296,7 +295,9 @@ export default function App() {
             <div>
               <strong>
                 {remote
-                  ? 'Read-only runtime feed · remote responses unavailable'
+                  ? isNative
+                    ? 'Live runtime · review eligible HOLDs in the decision workspace'
+                    : 'Read-only runtime feed · native review required'
                   : s.actions[s.selectedId]?.action === 'APPROVE_ONCE'
                     ? 'Approval submitted · awaiting upstream'
                     : d?.decision.result === 'HOLD'

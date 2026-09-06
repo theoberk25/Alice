@@ -94,4 +94,10 @@ export type LiveBiometricSession = z.infer<typeof LiveBiometricSessionSchema>;
 export type BiometricIntent =
   | { purpose: 'ENROLLMENT'; technician_id: string }
   | { purpose: 'LOGIN'; username: string }
-  | { purpose: 'APPROVAL'; technician_id: string; decision_id: string; request_id: string };
+  | {
+      purpose: 'APPROVAL';
+      technician_id: string;
+      decision_id: string;
+      request_id: string;
+      runtime_action?: 'APPROVE_ONCE' | 'REJECT';
+    };

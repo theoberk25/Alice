@@ -5,3 +5,4 @@ export * from './adapters/legacy';
 
 export * from './alice/runtime';
 export * from './biometrics';
+export * from './runtime-review';

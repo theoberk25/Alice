@@ -691,6 +691,47 @@ a {
   color: var(--alice-text-secondary);
   overflow-wrap: anywhere;
 }
+.runtime-review-panel {
+  padding: 18px;
+}
+.runtime-review-panel > p {
+  margin: 10px 0;
+  line-height: 1.6;
+}
+.runtime-review-panel .request-context {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin: 18px 0;
+  gap: 16px;
+}
+.runtime-review-panel dt {
+  color: var(--alice-text-muted);
+  font: 9px var(--alice-font-mono);
+  letter-spacing: 0.5px;
+}
+.runtime-review-panel dd {
+  margin: 0;
+  font: 12px var(--alice-font-mono);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.runtime-review-panel .action-buttons {
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+.runtime-submission {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid var(--alice-border-bright);
+  background: var(--alice-bg-raised);
+  overflow-wrap: anywhere;
+}
+.runtime-submission h3 {
+  margin: 0 0 8px;
+  color: var(--alice-cyan);
+}
+.runtime-submission p {
+  margin: 8px 0;
+}
 .policy-description {
   padding: 15px 19px 13px;
   color: var(--alice-text-secondary);
@@ -2578,7 +2619,10 @@ ol.clarification-track {
   border: 1px solid var(--color-border, #334656);
   background: var(--color-panel, #111f2b);
 }
-.web-login label { display: grid; gap: 7px; }
+.web-login label {
+  display: grid;
+  gap: 7px;
+}
 .web-login input {
   padding: 11px 12px;
   color: inherit;
