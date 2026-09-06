@@ -5,7 +5,7 @@ Follow [AGENTS.md](../../AGENTS.md). Built on architecture checkpoint `417b9de`
 and merged teammate updates through `7081b6a`, on local `codex/live-dashboard`.
 Published to `origin/main` as `44f4d73` with explicit user authorization.
 That checkpoint performed no deployment. Jared subsequently provisioned USB/Wazuh;
-see the [ESP handoff](esp-technician-handoff.md) and [joint acceptance](pi-technician-acceptance.md).
+see the [ESP handoff](esp-handoff.md) and [joint acceptance](pi-technician-acceptance.md).
 
 ## Local snapshot continuation
 
@@ -205,7 +205,7 @@ against ext4 USB `/mnt/alice-usb`, UUID `0742aa3f-38fe-44aa-a382-9be9c4d9bb52`.
 The real paths are `/mnt/alice-usb/pi-data` and `/mnt/alice-usb/release`; private
 signing key remains on Pi internal storage. The first new USB-backed action
 produced seven automatically delivered Wazuh records. Read the current
-[ESP/technician handoff](esp-technician-handoff.md) before configuring a client.
+[ESP handoff](esp-handoff.md) before configuring a client.
 Earlier local-only tests below remain historical; live outage, physical actuation
 and power-loss acceptance are not established. Do not start a second runtime.
 

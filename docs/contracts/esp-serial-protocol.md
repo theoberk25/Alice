@@ -123,3 +123,7 @@ strings and embedded NUL/trailing data before changing GPIO, and counts the newl
 inside its 256-byte limit. Host-compiled tests exercise the actual firmware loop
 against test-only serial/GPIO stubs. They do not establish Arduino board compilation
 or physical acceptance of the changed firmware.
+
+The current eight-LED bench wiring is recorded in the [ESP handoff](../integration/esp-handoff.md).
+Production firmware explicitly holds the seven non-D0 outputs LOW; this does not
+add channel fields or authorize multi-light actions.

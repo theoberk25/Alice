@@ -52,3 +52,6 @@ embeddings/
 
 # Generated first-light terminal and ledger private seeds.
 *.seed
+
+# Arduino CLI generated firmware output (retain source sketches).
+firmware/**/build/

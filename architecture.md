@@ -337,5 +337,5 @@ source differences, current owners and the next-session boundary. Detailed produ
 tasks remain in the [tracker](docs/implementation-tracker.md).
 
 Current physical USB/Wazuh deployment and ESP/technician connection recommendations:
-[team handoff](docs/integration/esp-technician-handoff.md). Automatic audit delivery
+[team handoff](docs/integration/esp-handoff.md). Automatic audit delivery
 does not implement authority transfer or technician accept/prevent commands.

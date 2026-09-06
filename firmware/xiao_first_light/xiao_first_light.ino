@@ -28,7 +28,7 @@
 #include <Arduino.h>
 
 static const int LED_PIN = D0;  // D0 == GPIO1 on the XIAO ESP32-S3
-static const int QUIESCENT_TX_PIN = D6;  // D6 == GPIO43, ROM UART0 TX (idles HIGH)
+static const int UNUSED_LED_PINS[] = {D3, D5, D6, D10, D9, D8, D7};
 static const uint8_t PROTOCOL_VERSION = 1;
 static const size_t MAX_LINE = 256;
 static const size_t MAX_ID = 32;
@@ -205,15 +205,13 @@ void setup() {
   digitalWrite(LED_PIN, LOW);  /* dark before the host can speak */
   g_state_on = false;
 
-  /* D6 (GPIO43) is the ROM UART0 TX pin and idles HIGH, which lights anything
-   * wired to it even though no code drives it. The protocol runs over native
-   * USB CDC, so claim the pin and hold it low to keep the bench unambiguous.
-   * This is pin hygiene, not a second controlled light: there is no action,
-   * target or command for it, and nothing else in the firmware reads or
-   * writes it. Removing these two lines restores UART0 TX for hardware-serial
-   * debugging. */
-  pinMode(QUIESCENT_TX_PIN, OUTPUT);
-  digitalWrite(QUIESCENT_TX_PIN, LOW);
+  /* The bench has eight active-HIGH LEDs. Only D0 is addressable by this
+   * protocol; explicitly hold the other seven low instead of leaving their
+   * pads floating. D6 also doubles as UART0 TX. No hardware UART is used. */
+  for (int pin : UNUSED_LED_PINS) {
+    digitalWrite(pin, LOW);
+    pinMode(pin, OUTPUT);
+  }
 
   snprintf(g_boot_id, sizeof(g_boot_id), "%08x", (unsigned)esp_random());
 

@@ -266,6 +266,6 @@ the physical serial XIAO. Jared visually confirmed the external LED on.
 Seven events automatically reached Wazuh; worker reported IDLE, delivered 7,
 last event ending `.observed`, and no error. USB ledger total: 104.
 All 97 predeployment canonical events were byte-identical to the backup.
-See the [existing ESP handoff](esp-technician-handoff.md) for configuration,
+See the [existing ESP handoff](esp-handoff.md) for configuration,
 backup and validation. This does not activate cached generation 44 permissions
 or establish technician approval transport.

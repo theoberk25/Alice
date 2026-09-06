@@ -16,13 +16,20 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
+Eight-LED identification completed with all colors visually confirmed; pin/color
+map is in the ESP handoff. Original firmware restored with hash verification and
+runtime resumed. Subsequent dim D7 report led to an idle-low firmware fix;
+readback/tests passed; Jared confirmed D7 fully dark. Runtime grants unchanged.
+
 Local merge `bf6fee0` preserves main `d3502e3` and Jared's SIEM/cache work.
 Physical Pi USB-serial light-on now passed: ALLOW/COMPLETED/on, external D0 LED
 visually confirmed by Jared, seven events delivered to Wazuh. All 97 original
 canonical events preserved; 104 total. Python: 357 passed plus 261 subtests.
 npm check passed typecheck/lint, 73 frontend tests, 5 script tests and build.
-[Deployment and evidence](integration/esp-technician-handoff.md).
-No push; firmware was not reflashed, real ML and remote human approval remain.
+[Deployment and evidence](integration/esp-handoff.md).
+Earlier physical checkpoint preceded the later idle-low firmware deployment.
+ESP handoff publication includes the verified mapping; real ML and remote human
+approval remain.
 
 
 Enterprise presentation now includes live alert metrics/search, endpoint evidence
@@ -40,7 +47,7 @@ login `ssgt.a.okafor`, scoped read-only ALICE data role, and descriptive ESP pro
 provisioned. Authentication/read tests passed; security administration denied.
 No signed permissions, Pi grants, technician authority or task status changed.
 
-[ESP/technician connection handoff](integration/esp-technician-handoff.md) documents
+[ESP connection handoff](integration/esp-handoff.md) documents
 current service/storage paths, firmware interface, client setup and the recommended
 authenticated held-action response sequence. Recommendations do not change task status.
 
@@ -49,7 +56,7 @@ snapshot/Wazuh/dashboard work. Hardware testing was reported on his development 
 That checkpoint predates the successful Pi physical light-on acceptance below. [Integration evidence](handoffs/2026-09-06-xavier-serial-integration.md).
 
 Integrated locally from Jared's `origin/main` checkpoint `ef413b6` and the preserved
-SQL snapshot checkpoint `73dfa91`. [ESP/technician handoff](integration/esp-technician-handoff.md)
+SQL snapshot checkpoint `73dfa91`. [ESP handoff](integration/esp-handoff.md)
 and [Wazuh runbook](integration/wazuh-audit-sync.md) define the provisioned paths.
 
 Jared's [automatic USB proof](reports/2026-09-06-automatic-usb-wazuh-sync.md) reports

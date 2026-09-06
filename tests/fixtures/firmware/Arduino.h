@@ -5,7 +5,13 @@
 #include <cstdio>
 #include <string>
 #define D0 1
+#define D3 4
+#define D5 6
 #define D6 43
+#define D7 44
+#define D8 7
+#define D9 8
+#define D10 9
 #define HIGH 1
 #define LOW 0
 #define OUTPUT 1

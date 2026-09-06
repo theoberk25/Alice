@@ -9,8 +9,8 @@ commands over USB serial. Read [AGENTS.md](../../AGENTS.md) and
 
 One LED, one transport. The Pi authenticates, authorizes and records the audit trail;
 the XIAO applies an output and reports it. The node has no network, no policy and no
-decisions. Nothing here implements the technician approval (HOLD) flow, multiple
-lights, sensors or motors.
+decisions. The production protocol does not implement technician approval (HOLD), multiple
+addressable lights, sensors or motors; the separate identification sketch is bench-only.
 
 ## Wiring
 
@@ -26,11 +26,11 @@ XIAO GND ───────────────────────�
 
 - **D0 is GPIO1.** Not GPIO0, and not the onboard user LED on GPIO21.
 - Power comes from the Pi's USB port; the LED is the only load.
-- **D6 (GPIO43) is the ROM UART0 TX pin and idles HIGH**, so anything wired there
-  lights on its own before any code runs. The firmware claims that pin and holds it
-  low at boot so the bench is unambiguous. This is pin hygiene, not a second
-  controlled light. Removing those two lines in `setup()` restores UART0 TX if you
-  need hardware-serial debugging.
+- The bench now has eight individually identified LEDs; use the verified
+  [ESP mapping](../integration/esp-handoff.md). Production commands still target
+  D0 only. All seven unused LED pins are explicitly driven LOW at startup,
+  including D6 (GPIO43/UART TX) and D7 (GPIO44/UART RX). Do not enable hardware
+  UART while these pads are used for LEDs. Jared confirmed the dim D7 glow is gone.
 
 ## Build and upload
 
@@ -130,8 +130,9 @@ the full signed pipeline producing ALLOW/COMPLETED/`observed=on` with the seven-
 chain; a repeated envelope replaying with no second device write; an unknown-agent
 request refused with no device write.
 
-Not yet done: the same run on the Raspberry Pi 4B itself, over the Pi's USB port and
-against a USB-backed ledger. Nothing here has been deployed to the Pi.
+Subsequent Pi acceptance: physical D0 light-on, USB-backed ledger and Wazuh
+delivery passed. The idle-low production firmware was then flashed and D0 OFF
+readback verified; see the [ESP handoff](../integration/esp-handoff.md) for evidence.
 
 `observed_state` is the node's own driven output, not measured illumination — a dead
 LED still reports `on`. Exactly-once physical execution is not claimed across

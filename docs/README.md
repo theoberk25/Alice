@@ -13,7 +13,7 @@ and evidence. Read only the detailed documents relevant to the task.
 | Architecture | [Whole-system overview](../architecture.md), [detail index](architecture.md), [canonical system design](prds/ALICE-DCAMR-Architecture.md), architecture/ |
 | Component contracts | contracts/; executable schemas remain in ../common/schemas/ |
 | Setup and operation | guides/; [demo runbook](guides/demo-runbook.md) |
-| Integration boundaries | [Technician console](integration/technician-console.md), [Pi → Wazuh](integration/wazuh-audit-sync.md), [ESP/technician handoff](integration/esp-technician-handoff.md) |
+| Integration boundaries | [Technician console](integration/technician-console.md), [Pi → Wazuh](integration/wazuh-audit-sync.md), [ESP handoff](integration/esp-handoff.md) |
 | Accepted decisions | [Data direction](decisions/2026-09-05-data-direction.md) |
 | Implementation plans | plans/; [Theo’s older runtime reference](plans/2026-09-05-theo-pi-runtime-reference.md) (historical proposals; use the corrected root architecture) |
 | Team responsibilities | [Developer handoff](prds/ALICE-DCAMR-PRD-Handoff.md) |

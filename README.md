@@ -12,7 +12,7 @@ Moving code into the shared layout does not make the live system complete.
 
 The intended decision split is **Pi ML classification → local Mac held-action
 accept/deny after biometric verification → Pi validation/enforcement**. Physical light-on is verified; authenticated held-action responses are next; use the
-[ESP/technician handoff](docs/integration/esp-technician-handoff.md) and
+[ESP handoff](docs/integration/esp-handoff.md) and
 [automatic Wazuh runbook](docs/integration/wazuh-audit-sync.md).
 
 Start with [architecture.md](architecture.md) for the whole-system picture,

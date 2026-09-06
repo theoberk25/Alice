@@ -1,8 +1,72 @@
-# ESP grid demo and technician integration handoff
+# ESP handoff — eight-light power-grid demo
 
 Updated 2026-09-06 UTC. Read [AGENTS.md](../../AGENTS.md) and
 [current.md](../../current.md). This guide joins the implemented interfaces;
 recommendations below are not claims that remote approval or grid control exists.
+
+Renamed from `docs/integration/esp-technician-handoff.md` at Jared's request.
+Existing technician integration notes are retained below for interface continuity;
+the technician team owns that implementation.
+
+## Power-grid team: start here
+
+All eight LEDs were individually selected and visually identified by Jared.
+The pin/color mapping below is verified. Suggested grid roles are **proposals**,
+not active permissions, electrical wiring or simulated voltage measurements.
+
+| Channel | Board pin | GPIO | Verified label | Suggested simulated role |
+| --- | --- | --- | --- | --- |
+| 1 | D0 | 1 | Yellow 1 | Primary utility feed |
+| 2 | D3 | 4 | Blue 1 | Server rack A supply |
+| 3 | D5 | 6 | Red 1 | Cooling plant supply |
+| 4 | D6 | 43 | White 1 | Communications rack supply |
+| 5 | D10 | 9 | Yellow 2 | Backup generator feed |
+| 6 | D9 | 8 | Blue 2 | Server rack B supply |
+| 7 | D8 | 7 | Red 2 | Auxiliary maintenance load |
+| 8 | D7 | 44 | White 2 | Security monitoring rack supply |
+
+Keep these stable channel/pin/color identities when assigning your own asset names.
+Use ON to mean a simulated circuit is energized and OFF to mean disconnected;
+color identifies the LED, not alarm severity. Show alarm state separately in UI.
+Suggested topology: utility and generator feed a transfer switch, then a bus
+supplies the six loads. Model interlocks in software; these LEDs do not physically
+switch utility power. Define whether transfer permits an interruption and which
+loads are critical before making demo scenarios.
+
+### What to implement next
+
+1. Current production supports only D0 through the signed single-light contract.
+   Extend the request schema, signed grants, permission resolution, controller,
+   firmware and operator UI together. Use stable target IDs for each circuit;
+   never infer permission from a color or send arbitrary GPIO numbers from a client.
+2. Version the multi-channel serial contract. Bind SET, GET and acknowledgments to
+   the selected channel; reject unknown channels, preserve the bounded parser,
+   and do not retry an uncertain SET automatically. Keep all outputs LOW at boot.
+   D6/D7 are UART pads: keep hardware UART disabled when using them for these LEDs.
+3. Carry the same target through decision, execution receipt, observation, USB
+   ledger and Wazuh records. Remove hardcoded ESP-LIGHT-01 provenance only as part
+   of that coordinated change. The technician team consumes these same IDs.
+4. Keep permissions and grid rules explicit: approved circuit actions may execute;
+   HOLD waits for an authenticated, request-bound human response; DENY never writes
+   to the device. A simulated transfer interlock needs its own defined rules.
+5. Represent sensor values with units, timestamp, source and freshness. Label
+   generated voltages as simulated; LED output readback is not measured voltage.
+   Preserve the PRE/POST assessment split. The current live demo uses fixture
+   assessment, not the trained Isolation Forest.
+6. Test each channel alone, no change to other channels, invalid channel rejection,
+   signed permission denial, request replay, device disconnect and restart-to-OFF.
+   Then verify one approved circuit action across the USB ledger and Wazuh before
+   adding the technician workflow. Do not expand the existing live release silently.
+
+### Current deployed state
+
+The production sketch now holds the other seven LED outputs LOW; White 2's dim
+idle glow was fixed and visually confirmed. All eight can be selected with the
+separate bench-identification sketch, but **the operator application still controls
+only D0**. The Pi service is running with production firmware; bench mode is over.
+The full original flash backup is historical recovery material and predates the
+idle-low fix. For normal deployment, build the current production source instead
+of restoring that backup. Never flash while alice-runtime owns the serial port.
 
 ## Current connection map
 
@@ -13,7 +77,7 @@ recommendations below are not claims that remote approval or grid control exists
 | USB | `/mnt/alice-usb/pi-data/ledger.sqlite`, sibling `evidence/` | Real new events stored and automatically uploaded |
 | Signed release | `/mnt/alice-usb/release/` | Existing first-light JSON grants, not general enterprise SQL permissions |
 | Available physical controller | XIAO ESP32-S3 via `--esp-serial` | Pi deployed and external LED visually confirmed by Jared; see physical acceptance below |
-| Wazuh indexer | Jared Mac `192.168.50.50:9200`, TLS name `wazuh.indexer` | 83 records at last observed test, including seven from USB |
+| Wazuh indexer | Jared Mac `192.168.50.50:9200`, TLS name `wazuh.indexer` | 104 records at physical light-on checkpoint, including seven new events |
 | Technician | Theo's Mac; use the SSH tunnel below | Dashboard transport setup is separate from Wazuh credentials |
 
 Pi host ED25519 fingerprint supplied by Theo:
@@ -220,4 +284,54 @@ Combined Python verification: 357 tests plus 261 subtests passed.
 `npm ci && npm run check` passed typecheck, lint, 73 frontend tests,
 5 script tests and production build. Native biometric checks were not rerun.
 Remote technician accept/prevent transport, real ML integration and live
-outage/reboot/unplug acceptance remain separate. Changes remain local, not pushed.
+outage/reboot/unplug acceptance remain separate. This was local acceptance before the ESP handoff publication.
+
+## Eight-LED bench identification (colors confirmed)
+
+Jared supplied this wiring order and visually confirmed every color:
+
+| Test | Pin | Color label |
+| --- | --- | --- |
+| 1 | D0 | Yellow 1 (visually confirmed) |
+| 2 | D3 | Blue 1 (visually confirmed) |
+| 3 | D5 | Red 1 (visually confirmed) |
+| 4 | D6 | White 1 (visually confirmed) |
+| 5 | D10 | Yellow 2 (visually confirmed on retest) |
+| 6 | D9 | Blue 2 (visually confirmed) |
+| 7 | D8 | Red 2 (visually confirmed on retest) |
+| 8 | D7 | White 2 (visually confirmed on retest) |
+
+Temporary sketch: `firmware/xiao_light_identify/xiao_light_identify.ino`.
+ASCII digits 1–8 select exactly one LED; 0 clears all outputs.
+This is a direct bench identification test, not an authorized ALICE request and
+not evidence of an audit or SIEM decision. Pause alice-runtime during this mode.
+Restore current production firmware before resuming normal signed light commands;
+the old full-flash backup predates the idle-low fix.
+The teammate owns grid semantics; retain the pin/color map independently of
+future asset titles. Firmware backup location:
+`/home/pi/first-light/pre-identify-backup/esp-flash.bin`.
+
+Identification sketch compiled with Arduino ESP32 core 3.3.11 and flashed at
+0x10000 with device hash verification. First command acknowledged `IDENTIFY D0`;
+That was the initial identification checkpoint; all labels are now confirmed and
+the production runtime has resumed.
+Original full-flash SHA-256:
+`e1a4be6ae9053036dbf095e13894a6d229bbc5048b158fa5fa5bc627c43ea324`.
+Second backup: ignored `artifacts/local-state/esp-identify/esp-flash-before.bin`
+on Jared's Mac. No normal ledger data or permissions were changed.
+
+Identification completed: all eight colors visually confirmed. All outputs were
+commanded OFF, then the original full flash was restored with device hash
+verification. Pi alice-runtime resumed. Normal operator control remains the
+original D0-only contract; the grid teammate owns multi-channel integration.
+
+After restoring the original firmware, Jared reported White 2 (D7) glowing dimly.
+The production sketch now explicitly drives all seven unused LED pins LOW at
+startup. Compiled, flashed with hash verification; D0 readback reports OFF and
+runtime resumed. Two firmware tests plus six subtests passed. Jared visually confirmed White 2 is now completely dark. Floating input remains
+a hypothesis, not a measured electrical diagnosis.
+
+Publication verification: 31 serial/firmware tests plus 24 subtests passed.
+Changed documentation links resolve; current.md meets both size limits. The
+authorized rename preserves prior handoff material and all tracker IDs. Generated
+Arduino build directories and private local artifacts are excluded from Git.

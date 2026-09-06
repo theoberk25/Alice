@@ -79,5 +79,5 @@ the existing `lab.*` namespace; tests in `tests/`; deployment unit in
 `services/systemd/`; all detailed Markdown in `docs/`. No source moves were needed.
 Changed Markdown links resolve; current.md is within both limits; git diff --check
 passes. No private credentials, live ledger or signing seeds are part of publication.
-The [team handoff](../integration/esp-technician-handoff.md) supplies actual interface
+The [team handoff](../integration/esp-handoff.md) supplies actual interface
 examples and explicitly separates pending technician/grid work from tested behavior.

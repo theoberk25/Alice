@@ -1,7 +1,7 @@
 # Joint Pi, USB, Wazuh and live technician acceptance
 
 Follow [AGENTS.md](../../AGENTS.md) and Jared's
-[ESP/technician handoff](esp-technician-handoff.md). This guide prepares a joint
+[ESP handoff](esp-handoff.md). This guide prepares a joint
 operator test; none of these physical checks ran on Merek's disconnected Mac.
 
 ## What the data paths mean

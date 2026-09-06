@@ -2,7 +2,7 @@
 
 Updated: 2026-09-06 UTC (September 5 EDT).
 Baseline: merge `bf6fee0` combines main `d3502e3` and local SIEM work.
-Objective achieved: Sentinel operator turns on the physical Pi-connected ESP LED.
+Objective: publish ESP handoff with verified eight-light mapping and grid guidance.
 Teammates own Pi ↔ technician approval transport and enterprise cache publication.
 
 ## Implemented and observed
@@ -48,11 +48,11 @@ Key `/home/pi/first-light/pi-data/ledger_key.seed`; private sync config
 as inactive backup, along with `~/first-light/pre-auto-sync-backup/`.
 Stop systemd before maintenance; do not start a second tmux runtime or CLI writer.
 Physical XIAO uses stable USB by-id path; 60-physical-esp.conf overrides transport.
-Backup: ~/first-light/pre-serial-backup/. Firmware not reflashed. Mock idle.
+Backup: ~/first-light/pre-serial-backup/. Idle-low firmware flashed. Mock idle.
 
 ## Evidence and blockers
 
-Fresh merged Python suite: **357 passed plus 261 subtests**.
+Historical merged Python suite: **357 passed plus 261 subtests**.
 npm check: typecheck/lint, 73 frontend + 5 script tests, build passed.
 Changed Markdown links and file placement checked against README/AGENTS.md.
 Live outage test was previously staged but not run: approval review rejected SSH
@@ -62,15 +62,17 @@ Real ML, semantic reconciliation, evidence-blob upload,
 full snapshot activation and technician accept/prevent commands remain.
 Uploader connectivity never changes first-light execution authority.
 
+Eight colors confirmed; idle-low firmware deployed; D7 dark confirmed; runtime active.
+
 ## Next steps
 
 1. Complete the staged live outage/recovery test; publication does not imply acceptance.
 2. Test service restart and missing-USB fail-closed behavior in a maintenance window.
-3. Keep the merged checkpoint local; no push. Preserve data during future merges.
+3. Publish the preserved integration and ESP mapping; retain all private data.
 4. Teammates integrate authenticated, request-bound technician accept/prevent responses.
 5. Integrate full enterprise permission semantics and compatible baseline/model activation.
 
-[ESP/technician handoff](docs/integration/esp-technician-handoff.md) ·
+[ESP handoff](docs/integration/esp-handoff.md) ·
 [Sync runbook](docs/integration/wazuh-audit-sync.md) ·
 [Backend guide](docs/integration/live-dashboard.md) · [Rules](AGENTS.md) ·
 [Tracker](docs/implementation-tracker.md) · [Scripts](docs/scripts/README.md)
