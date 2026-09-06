@@ -90,7 +90,10 @@ export function SystemPanel() {
           </div>
           <div className="service-row">
             <span>
-              <Fingerprint size={12} /> Face identity<small>Liveness not configured</small>
+              <Fingerprint size={12} /> Face identity
+              <small>
+                {biometricMode === 'mock' ? 'Simulated verification' : 'Local camera verification'}
+              </small>
             </span>
             <Badge tone="neutral">{biometricMode === 'mock' ? 'SIMULATED' : 'ON DEMAND'}</Badge>
           </div>

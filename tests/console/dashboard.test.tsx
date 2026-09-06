@@ -17,7 +17,35 @@ beforeEach(async () => {
 });
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   vi.useRealTimers();
+});
+it('submits once on repeated clicks and disables dialog close only during submission', async () => {
+  const d = baseDecision();
+  d.decision.biometric_required_for_approval = false;
+  useConsole.setState({
+    decisions: { [d.decision_id]: d },
+    flows: { [d.decision_id]: 'APPROVAL_REQUESTED' },
+  });
+  let resolve!: () => void;
+  const submit = vi.spyOn(useConsole.getState(), 'act').mockReturnValue(
+    new Promise<void>((r) => {
+      resolve = r;
+    }),
+  );
+  const close = vi.fn();
+  render(<ApprovalModal decisionId={d.decision_id} onClose={close} />);
+  const confirm = screen.getByRole('button', { name: 'Confirm approve once' });
+  fireEvent.click(confirm);
+  fireEvent.click(confirm);
+  expect(submit).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole('button', { name: 'Close dialog' })).toBeDisabled();
+  fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }));
+  expect(close).not.toHaveBeenCalled();
+  await act(async () => resolve());
+  expect(screen.getByRole('button', { name: 'Close dialog' })).toBeEnabled();
+  fireEvent.click(screen.getByRole('button', { name: 'Return to console' }));
+  expect(close).toHaveBeenCalledTimes(1);
 });
 it('shows the original supplied HOLD, anomaly and execution status', () => {
   render(<DecisionWorkspace decision={baseDecision()} onResearch={() => {}} />);

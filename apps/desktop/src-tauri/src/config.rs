@@ -1,5 +1,67 @@
 use serde::Serialize;
 use std::{env, path::PathBuf};
+
+/// A checkout-local .app opened from Finder has no shell environment. Locate its
+/// own repository through the executable's ancestors; never embed credentials in
+/// the bundle or execute .env as shell code. Explicit process values win.
+fn load_checkout_environment() {
+    let Ok(executable) = env::current_exe() else {
+        return;
+    };
+    for root in executable.ancestors().skip(1) {
+        let marker = root.join("package.json");
+        let matches = std::fs::read(&marker)
+            .ok()
+            .and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok())
+            .is_some_and(|v| v["name"] == "alice-technician-console");
+        if !matches {
+            continue;
+        }
+        if let Ok(contents) = std::fs::read_to_string(root.join(".env")) {
+            for (key, value) in local_settings(&contents) {
+                if env::var_os(&key).is_none() {
+                    env::set_var(key, value);
+                }
+            }
+        }
+        break;
+    }
+}
+
+fn local_settings(contents: &str) -> Vec<(String, String)> {
+    const KEYS: [&str; 11] = [
+        "ALICE_TRANSPORT_MODE",
+        "ALICE_BIOMETRIC_MODE",
+        "ALICE_LLM_MODEL",
+        "OLLAMA_BASE_URL",
+        "ALICE_BIOMETRIC_SERVICE_URL",
+        "ALICE_BIOMETRIC_TOKEN",
+        "ALICE_DATABASE_PATH",
+        "ALICE_FEED_URL",
+        "ALICE_FEED_TOKEN",
+        "ALICE_ADMIN_USERNAME",
+        "ALICE_ADMIN_PASSWORD",
+    ];
+    contents
+        .lines()
+        .filter_map(|line| {
+            let (key, raw) = line.split_once('=')?;
+            if !KEYS.contains(&key) {
+                return None;
+            }
+            let value = raw.trim();
+            let value = if value.len() >= 2
+                && ((value.starts_with('"') && value.ends_with('"'))
+                    || (value.starts_with('\'') && value.ends_with('\'')))
+            {
+                &value[1..value.len() - 1]
+            } else {
+                value
+            };
+            Some((key.to_owned(), value.to_owned()))
+        })
+        .collect()
+}
 #[derive(Clone)]
 pub struct Config {
     pub mode: String,
@@ -18,6 +80,7 @@ pub struct PublicConfig {
     pub ollama_url: String,
     pub biometric_url: String,
     pub admin_configured: bool,
+    pub biometric_policy: &'static str,
 }
 pub fn loopback_url(value: &str) -> Result<String, String> {
     let u = url::Url::parse(value).map_err(|_| "Invalid local service URL")?;
@@ -35,6 +98,7 @@ pub fn loopback_url(value: &str) -> Result<String, String> {
 }
 impl Config {
     pub fn load(data_dir: PathBuf) -> Result<Self, String> {
+        load_checkout_environment();
         let mode = env::var("ALICE_TRANSPORT_MODE").unwrap_or_else(|_| "remote".into());
         if !["mock", "remote"].contains(&mode.as_str()) {
             return Err("ALICE_TRANSPORT_MODE must be mock or remote".into());
@@ -94,5 +158,25 @@ mod feed_tests {
         }
         assert!(feed_config("http://127.0.0.1:8787", "").is_err());
         assert!(feed_config("http://127.0.0.1:8787", &"x".repeat(32)).is_ok());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn local_configuration_is_literal_and_limited_to_known_settings() {
+        let values = local_settings("ALICE_TRANSPORT_MODE=mock\nALICE_ADMIN_PASSWORD='literal $(not-executed)'\nPATH=ignored\n# comment\nALICE_LLM_MODEL=\"a=b\"\n");
+        assert_eq!(
+            values,
+            vec![
+                ("ALICE_TRANSPORT_MODE".into(), "mock".into()),
+                (
+                    "ALICE_ADMIN_PASSWORD".into(),
+                    "literal $(not-executed)".into()
+                ),
+                ("ALICE_LLM_MODEL".into(), "a=b".into())
+            ]
+        );
     }
 }

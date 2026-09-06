@@ -1,0 +1,6 @@
+# Install AFTER requirements-lock.txt with --no-deps. The MediaPipe task uses
+# the existing cv2 headless distribution. Do not install a second cv2 provider.
+# sounddevice is an upstream import dependency; ALICE never opens audio devices.
+mediapipe==0.10.35
+absl-py==2.5.0
+sounddevice==0.5.6

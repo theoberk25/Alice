@@ -15,6 +15,7 @@
     "desktop": "node scripts/console/desktop.mjs",
     "build": "npm run typecheck && vite build --config apps/desktop/vite.config.ts",
     "build:app": "node scripts/console/desktop.mjs build --bundles app",
+    "launch:app": "node scripts/console/desktop.mjs launch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint apps/desktop packages/contracts packages/domain packages/ui fixtures tests/console scripts/console scripts/biometrics *.ts *.js",
     "test": "vitest run",

@@ -82,8 +82,8 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         <div className="settings-boundary">
           <h3>Face identity</h3>
           <p>
-            ArcFace identity matching is available through the local biometric service. Liveness and
-            deepfake detection are not configured.
+            Live face recognition uses your Mac camera and the local biometric service. Enrollment
+            collects multiple angles; later sign-in is automatic. Face data stays on this computer.
           </p>
         </div>
       </div>

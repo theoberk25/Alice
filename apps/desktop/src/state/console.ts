@@ -39,6 +39,7 @@ export interface AuditEvent {
   detail: string;
 }
 export interface Technician {
+  enrollment_version?: 'IDENTITY_ONLY_V1' | 'MULTI_POSE_V2';
   technician_id: string;
   username: string;
   display_name: string;
@@ -54,6 +55,7 @@ interface ConsoleState {
   ready: boolean;
   mode: 'mock' | 'remote';
   biometricMode: 'mock' | 'arcface';
+  biometricPolicy: 'alice.live-face.v3';
   scenario: ScenarioName;
   decisions: Record<string, Decision>;
   requestDecisionHistory: Record<string, string[]>;
@@ -110,6 +112,7 @@ export const useConsole = create<ConsoleState>((set, get) => ({
   ready: false,
   mode: 'mock',
   biometricMode: 'mock',
+  biometricPolicy: 'alice.live-face.v3',
   scenario: '03_hold_high_anomaly',
   decisions: {},
   requestDecisionHistory: {},
@@ -459,6 +462,7 @@ export const useConsole = create<ConsoleState>((set, get) => ({
       },
       mode: config.transport_mode,
       biometricMode: config.biometric_mode,
+      biometricPolicy: config.biometric_policy ?? 'alice.live-face.v3',
       scenario,
       decisions: {},
       requestDecisionHistory: {},

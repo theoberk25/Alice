@@ -1,3 +1,6 @@
+mod biometric_capture;
+mod biometric_commands;
+mod biometric_sessions;
 mod commands;
 #[cfg(test)]
 mod commands_tests;
@@ -15,6 +18,7 @@ pub struct Inner {
     pub technician: Option<Session>,
     pub admin: Option<Session>,
     pub grants: HashMap<String, Grant>,
+    pub biometrics: biometric_sessions::Book,
     pub failures: HashMap<String, (u32, i64)>,
 }
 pub struct AppState(pub Mutex<Inner>);
@@ -47,10 +51,28 @@ pub fn run() {
                 admin: None,
                 grants: HashMap::new(),
                 failures: HashMap::new(),
+                biometrics: biometric_sessions::Book::default(),
             })));
             Ok(())
         })
+        .on_window_event(|window, event| {
+            if matches!(
+                event,
+                tauri::WindowEvent::Destroyed | tauri::WindowEvent::CloseRequested { .. }
+            ) {
+                if let Some(state) = window.try_state::<AppState>() {
+                    if let Ok(mut s) = state.0.lock() {
+                        s.biometrics.revoke("WINDOW_CLOSED");
+                    }
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![
+            biometric_commands::begin_biometric_session,
+            biometric_commands::read_biometric_session,
+            biometric_commands::read_biometric_preview,
+            biometric_commands::cancel_biometric_session,
+            biometric_commands::recover_face_enrollment,
             commands::runtime_config,
             commands::read_runtime_events,
             commands::demo_session,

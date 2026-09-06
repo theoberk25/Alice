@@ -152,3 +152,18 @@ Parents must arrive before children during live ingestion. The current implement
 Once DEC-185 is accepted, every new technician action uses DEC-185 / REQ-88291. A DEC-184 biometric grant is revoked locally and cannot authorize DEC-185. A modal or capture already in progress for DEC-184 is invalidated; a fresh DEC-185 capture is required when its biometric flag is true. The future upstream must independently enforce currentness and binding through the agreed attestation protocol. No remote attestation or protected execution is implemented here.
 
 Local audit records preserve REASSESSMENT_PENDING, REASSESSMENT_RECEIVED, DECISION_SUPERSEDED and CURRENT_ASSESSMENT_UPDATED with decision/request correlation. Old decisions, evidence-at-assessment facts, actions and reconciliation annotations remain historical records. A late receipt for an action accepted before supersession remains attached to that historical assessment.
+
+## Live facial integration, September 6, 2026
+
+The native `alice.live-face.v3` upgrade adds automatic multi-pose enrollment,
+automatic gallery login and fresh local fixture approval. Capture/session authority
+stays native; no renderer frame submission can authenticate. Encrypted generations
+and biometric-specific Zod contracts supplement the team's existing contracts.
+The five controls exclude deepfake detection. See the
+[delivery report](../reports/2026-09-06-live-face-main-integration.md).
+
+The live Pi feed and its read-only action boundary are unchanged. This branch has
+no live HOLD review endpoint, proof delivery or device-output controls. Unfinished
+review work is preserved on local `codex/live-runtime-review-wip`, outside this PR.
+Theodore's newer dashboard, runtime, MCP services, agent and network behavior remain
+its authoritative base; no common/core contract is promoted by this face upgrade.

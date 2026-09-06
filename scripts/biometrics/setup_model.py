@@ -2,6 +2,7 @@
 from pathlib import Path
 from console_paths import CONSOLE_ROOT
 import os
+from pathlib import Path
 from insightface.app import FaceAnalysis
 root = Path(os.environ.get("ALICE_INSIGHTFACE_ROOT") or CONSOLE_ROOT / "services/biometrics/models")
 model = FaceAnalysis(name="buffalo_l", root=str(root), allowed_modules=["detection", "recognition"], providers=["CPUExecutionProvider"])

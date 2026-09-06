@@ -16,6 +16,18 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
+September 6 biometric delivery: `codex/live-face-upstream-integration` starts from
+Theodore's `upstream/main` `f79cd8e` and ports the completed native live facial
+upgrade only. Automatic multi-pose enrollment, passive gallery login, encrypted
+generations, native session protections and fresh local fixture approval are
+included, with no deepfake detection. See the [delivery report](reports/2026-09-06-live-face-main-integration.md)
+for tests/build and the remaining operator acceptance. Original branch/worktree
+preserved. Unfinished live HOLD review is saved on local
+`codex/live-runtime-review-wip` (`aa5bae8`), excluded from delivery. No live Pi
+control, output adjustments or full-network packet visibility is claimed.
+All 118 task IDs and existing core statuses remain unchanged.
+
+
 Current transition instructions are consolidated in `docs/guides/demo-runbook.md`.
 The superseded ESP handoff, live-dashboard guide, joint acceptance checklist,
 live-dashboard plan and five completed September 6 session handoffs were moved
@@ -485,7 +497,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 067 | Export Live Pi Status to Dashboard | Planned | The live display reports feed reachability/staleness and retained authority metadata honestly. Current Pi hardware/engine/cloud/SIEM readiness telemetry is still unavailable; no status fields are inferred from HTTP success. |
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | Target clarified: local Mac resolves held actions to accept/deny after biometric verification; Merek's backend must deliver that bound response to the Pi. No real receiver is connected; authentication, proof/currentness checks and receipts remain. |
-| 070 | Require Technician Authentication for Approval | Planned | Local ArcFace enrollment/login and native approval grants exist. Target held-action accept/deny choice is biometric-gated on the Mac; both response paths and Pi-verifiable proof bound to current request/assessment/authority need agreement and acceptance. |
+| 070 | Require Technician Authentication for Approval | Planned | Native live v3 multi-pose enrollment, automatic ArcFace gallery login and fresh local approval grants are integrated; [delivery evidence](reports/2026-09-06-live-face-main-integration.md). Target held-action accept/deny choice is biometric-gated on the Mac; both response paths and Pi-verifiable proof bound to current request/assessment/authority need agreement and acceptance. |
 | 071 | Execute Approved Action | Partial | HTTP light adapter and XIAO USB-serial adapter share existing receipt/observation contracts. Serial, snapshot, Wazuh and replay integration tests pass. Pi serial deployment and eight-light operator control passed with visual confirmation; crash-window physical acceptance remains. [Hardware runbook](guides/first-light-hardware.md). |
 | 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
 | 073 | Record Action Execution Result | Partial | Runtime records controller receipt, execution result and observed state separately; live dashboard updates these after the immutable decision. Real local runtime/mock-controller browser acceptance passed; physical serial light-on receipt and visual LED acceptance now passed; independent sensor acceptance remains. [Integrated runbook](guides/demo-runbook.md). |

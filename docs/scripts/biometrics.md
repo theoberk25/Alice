@@ -10,7 +10,9 @@ the checkout package manifest, not the current directory or a fixed parent count
 | [biometrics.mjs](../../scripts/biometrics/biometrics.mjs) | `npm run biometrics` from root; loads .env and starts the local service |
 | [setup_model.py](../../scripts/biometrics/setup_model.py) | Explicit InsightFace model provisioning; never runs implicitly during login |
 | [smoke_arcface.py](../../scripts/biometrics/smoke_arcface.py) | Public-image inference check using a temporary encrypted store |
-| [smoke_native_identity.py](../../scripts/biometrics/smoke_native_identity.py) | Isolated public-image Rust/service identity integration |
+| [setup_live_models.py](../../scripts/biometrics/setup_live_models.py) | Explicit checksum-verified MediaPipe/MiniFAS provisioning |
+| [smoke_live_camera.py](../../scripts/biometrics/smoke_live_camera.py) | Operator-invoked native live camera diagnostic; not automatic acceptance |
+| [smoke_native_identity.py](../../scripts/biometrics/smoke_native_identity.py) | Public-image ArcFace inference and rejection of retired renderer-frame IPC |
 
 The launcher keeps models under services/biometrics/models and private enrollment
 data under services/biometrics/data by default. ALICE_INSIGHTFACE_ROOT and

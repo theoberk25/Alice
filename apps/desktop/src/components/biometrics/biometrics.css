@@ -1,0 +1,309 @@
+.biometric-session {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0;
+}
+.biometric-session .biometric-preview {
+  aspect-ratio: 4 / 3;
+  width: min(100%, 640px);
+  margin-inline: auto;
+  background: radial-gradient(ellipse at center, #142b35, #09151e);
+  border: 1px solid var(--alice-border);
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--alice-cyan);
+  contain: layout paint;
+}
+.biometric-session .biometric-placeholder {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  inset: 0;
+  opacity: 0.7;
+}
+.biometric-session .biometric-complete .biometric-placeholder {
+  opacity: 1;
+}
+.biometric-session-complete > .biometric-frame-guidance,
+.biometric-session-complete > .biometric-check-details,
+.biometric-session-complete > .biometric-policy {
+  /* Keep the preview and confirmation stationary while retiring capture instructions. */
+  visibility: hidden;
+}
+.biometric-session .biometric-success-mark {
+  width: 80px;
+  height: 80px;
+}
+.biometric-session .biometric-success-mark circle {
+  opacity: 0.35;
+}
+/* CSS adaptation of pqoqubbw/icons circle-check's 400ms path / 100ms opacity reveal.
+   MIT, commit 072c38b1b04ea738d90a084485ccaad4b890ddca; see docs/guides/live-face-third-party-notices.md. */
+.biometric-session .biometric-success-mark path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation:
+    biometric-check-draw 400ms ease-out both,
+    biometric-check-appear 100ms ease-out both;
+}
+.biometric-session .biometric-complete::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, #35d8bd18, transparent 65%);
+  animation: biometric-check-appear 180ms ease-out both;
+}
+.biometric-session .biometric-complete .biometric-face-guide,
+.biometric-session .biometric-complete .biometric-center-status,
+.biometric-session .biometric-complete .biometric-preview-badge {
+  visibility: hidden;
+}
+@keyframes biometric-check-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes biometric-check-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.modal.biometric-dialog-exit,
+.modal.biometric-dialog-exit::backdrop {
+  animation: biometric-dialog-dismiss 120ms ease-in both;
+}
+@keyframes biometric-dialog-dismiss {
+  to {
+    opacity: 0;
+  }
+}
+.biometric-session .biometric-preview img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scaleX(-1);
+}
+.biometric-session .biometric-preview img[hidden] {
+  display: none;
+}
+.biometric-session .biometric-face-guide {
+  position: absolute;
+  height: 78%;
+  width: auto;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+  stroke-width: 3;
+  filter: drop-shadow(0 1px 3px #0008);
+}
+.biometric-session .biometric-guide-track {
+  stroke: #ffffff90;
+}
+.biometric-session .biometric-guide-progress {
+  stroke: var(--alice-cyan);
+  stroke-width: 5;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: stroke-dasharray 280ms ease-out;
+}
+.biometric-session .biometric-coverage-arc .biometric-guide-track {
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke: #ffffff55;
+}
+.biometric-session .biometric-arc-progress {
+  stroke: var(--alice-cyan);
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dasharray 350ms ease-out;
+}
+.biometric-session .biometric-center-guide {
+  stroke: #ffffffb0;
+  stroke-width: 1;
+  stroke-dasharray: 3 6;
+}
+.biometric-session .biometric-center-status {
+  position: absolute;
+  top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #08131dcc;
+  color: #f4fbff;
+  font-size: 11px;
+}
+.biometric-session .biometric-center-status.center-ready {
+  color: var(--alice-cyan);
+}
+.biometric-session .biometric-complete .biometric-guide-track {
+  stroke: var(--alice-cyan);
+}
+.biometric-session .biometric-paused .biometric-guide-track {
+  stroke: #ffffff35;
+}
+.biometric-session .biometric-preview-badge {
+  position: absolute;
+  bottom: 12px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  color: #f4fbff;
+  background: #08131dcc;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.biometric-session .biometric-guidance {
+  text-align: center;
+  min-height: 64px;
+}
+.biometric-session .biometric-guidance[role='alert'] {
+  grid-row: 1;
+}
+.biometric-session .biometric-preview.biometric-paused {
+  height: 128px;
+  aspect-ratio: auto !important;
+}
+.biometric-session .biometric-paused .biometric-face-guide {
+  display: none;
+}
+.biometric-session .biometric-guidance > strong {
+  font-size: 19px;
+  line-height: 1.4;
+}
+.biometric-session p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.biometric-session .biometric-progress {
+  overflow: hidden;
+  height: 4px;
+  border-radius: 5px;
+  background: var(--alice-border);
+}
+.biometric-session .biometric-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--alice-cyan);
+  transition: width 280ms ease-out;
+}
+.biometric-session .biometric-coverage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.biometric-session .biometric-coverage > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border: 1px solid var(--alice-border);
+  border-radius: 20px;
+  font-size: 11px;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease;
+}
+.biometric-session .biometric-angle-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+.biometric-session .angle-complete,
+.biometric-session .angle-partial {
+  color: var(--alice-cyan);
+}
+.biometric-session .angle-complete {
+  border-color: var(--alice-cyan);
+}
+.biometric-session .biometric-progress-label {
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+}
+.biometric-session .biometric-direction-note {
+  text-align: center;
+  font-size: 11px;
+  margin: 0;
+}
+.biometric-session .biometric-check-details {
+  font-size: 12px;
+}
+.biometric-session .biometric-check-details summary {
+  cursor: pointer;
+  padding-block: 7px;
+}
+.biometric-session .biometric-error-reason {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--alice-text-primary);
+  border: 1px solid var(--alice-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.biometric-session .biometric-frame-guidance {
+  text-align: center;
+  font-size: 12px;
+  margin: 0;
+}
+.admin-content .enrollment-capture {
+  max-width: 720px;
+}
+.biometric-session .biometric-controls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+}
+.biometric-session .biometric-controls li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--alice-border);
+}
+.biometric-session .biometric-policy {
+  text-align: center;
+  font-size: 11px;
+}
+.biometric-session .biometric-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+.biometric-session .biometric-actions button {
+  min-height: 40px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal.biometric-dialog-exit,
+  .modal.biometric-dialog-exit::backdrop {
+    animation: none !important;
+  }
+  .biometric-session *,
+  .biometric-session *::before,
+  .biometric-session *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

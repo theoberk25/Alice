@@ -44,6 +44,7 @@ import('node:fs').then(({ writeFileSync }) => writeFileSync(process.env.ALICE_TE
     'node_modules/.bin/tauri',
     '.tools/cargo/bin/cargo',
     'services/biometrics/.venv/bin/python',
+    'apps/desktop/src-tauri/target/release/bundle/macos/ALICE.app/Contents/MacOS/alice-technician-console',
   ]) {
     const path = resolve(workstation, binary);
     mkdirSync(dirname(path), { recursive: true });
@@ -86,6 +87,14 @@ test('Rust launcher forwards arguments to the original native package', (t) => {
   assert.equal(child.cwd, resolve(workstation, 'apps/desktop/src-tauri'));
   assert.deepEqual(child.args, ['test', 'example', '--', '--ignored']);
   assert.equal(child.cargo, resolve(workstation, '.tools/cargo'));
+});
+
+test('built app launch reloads checkout configuration without invoking a build', (t) => {
+  const { workstation, run } = fixture(t);
+  const child = run('scripts/console/desktop.mjs', ['launch']);
+  assert.equal(child.cwd, resolve(workstation, 'apps/desktop'));
+  assert.deepEqual(child.args, []);
+  assert.equal(child.dotenv, 'from-checkout');
 });
 
 test('biometric launcher retains service, model and store paths and respects overrides', (t) => {

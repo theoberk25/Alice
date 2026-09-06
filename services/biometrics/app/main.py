@@ -1,5 +1,7 @@
 import secrets
 import threading
+import logging
+import re
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -9,6 +11,11 @@ from .schemas import Identity, Capture, Enrollment, VerificationResult
 from .engine import ArcFaceEngine, IdentityEngine, unit, similarity
 from .imaging import CaptureError
 from .storage import EnrollmentStore
+from .live_contract import Begin, Observation, Binding, GenerationCommit, GenerationRemoval
+from .sessions import LiveInference
+from .live_models import load as load_live_models
+
+logger = logging.getLogger('alice.biometrics')
 
 def create_app(settings: Settings | None = None, engine: IdentityEngine | None = None):
     config = settings or Settings.from_env()
@@ -18,7 +25,25 @@ def create_app(settings: Settings | None = None, engine: IdentityEngine | None =
     async def lifespan(app):
         app.state.engine = engine or ArcFaceEngine(config)
         app.state.store = EnrollmentStore(config.data_dir)
-        yield
+        pose_factory, pad, models = load_live_models(config)
+        app.state.live = LiveInference(config, app.state.engine, app.state.store, pose_factory, pad, models)
+        stopped = threading.Event()
+        def reap():
+            while not stopped.wait(0.25):
+                if mutex.acquire(blocking=False):
+                    try:
+                        app.state.live.expire()
+                    finally:
+                        mutex.release()
+        worker = threading.Thread(target=reap, daemon=True)
+        worker.start()
+        try:
+            yield
+        finally:
+            stopped.set()
+            worker.join(timeout=1)
+            with mutex:
+                app.state.live.close()
 
     api = FastAPI(title="ALICE Face Identity", version="0.1.0", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 
@@ -47,6 +72,64 @@ def create_app(settings: Settings | None = None, engine: IdentityEngine | None =
     def ready():
         if not api.state.engine.ready:
             raise HTTPException(503, api.state.engine.error)
+
+    @api.get("/live/readiness", dependencies=[Depends(authorized)])
+    def live_readiness():
+        return api.state.live.readiness()
+
+    def live_call(operation, binding=None):
+        if not mutex.acquire(blocking=False):
+            raise HTTPException(409, "INFERENCE_BUSY")
+        try:
+            return operation()
+        except (CaptureError, ValueError) as exc:
+            # Diagnosable failures without recording frames, identities, bearer
+            # tokens or session bindings. Never log arbitrary exception text.
+            code = str(exc)
+            if not re.fullmatch(r'[A-Z][A-Z0-9_]{0,79}', code):
+                code = 'LIVE_OPERATION_REJECTED'
+            logger.warning('Live biometric operation rejected: %s', code)
+            # Only a failure bound to this active operation may terminate it.
+            # A late cancel/response for an old operation cannot stop a newer one.
+            active = api.state.live.active
+            if binding is not None and active is not None and binding.service_epoch == api.state.live.epoch and binding.session_id == active['request'].session_id and binding.nonce == active['request'].nonce:
+                api.state.live.close()
+            raise HTTPException(422, str(exc)) from exc
+        finally:
+            mutex.release()
+
+    @api.post("/live/begin", dependencies=[Depends(authorized)])
+    def live_begin(request: Begin):
+        return live_call(lambda: api.state.live.begin(request))
+
+    @api.post("/live/observe", dependencies=[Depends(authorized)])
+    def live_observe(request: Observation):
+        return live_call(lambda: api.state.live.observe(request), request)
+
+    @api.post("/live/cancel", dependencies=[Depends(authorized)])
+    def live_cancel(request: Binding):
+        def cancel():
+            api.state.live.bound(request)
+            api.state.live.close()
+            return {"status": "CANCELLED"}
+        return live_call(cancel, request)
+
+    @api.post("/generation/activate", dependencies=[Depends(authorized)])
+    def activate_generation(request: GenerationCommit):
+        def activate():
+            api.state.store.activate(request.technician_id, request.generation, request.previous_generation)
+            return {"generation": api.state.store.generation(request.technician_id)}
+        return live_call(activate)
+
+    @api.post("/generation/remove", dependencies=[Depends(authorized)])
+    def remove_generation(request: GenerationRemoval):
+        def remove():
+            removed = api.state.store.remove_guarded(request.technician_id, request.removal_id, request.expected_generations)
+            active = api.state.live.active
+            if removed and active is not None and active['request'].technician_id == request.technician_id:
+                api.state.live.close()
+            return {"status": "REMOVED", "technician_id": request.technician_id, "removal_id": request.removal_id}
+        return live_call(remove)
 
     @api.get("/health", dependencies=[Depends(authorized)])
     def health():
