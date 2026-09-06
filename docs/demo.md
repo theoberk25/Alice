@@ -37,7 +37,7 @@ Configure the hot starting condition explicitly.
 
 ## Part 1 — connected enterprise operation
 
-1. Configure the plant at **100 F, 60% fan, 60% battery**, then start it. At the initial
+1. Configure the plant at **90 F, 60% fan, 60% battery**, then start it. At the initial
    state power is about **421.6 W**. Do not begin from fabricated zero readings.
 2. Keep the Opal router and enterprise/Wazuh host online. Show the cloud agent reading
    the plant through `get_metrics()` with its own bearer identity.
@@ -92,8 +92,10 @@ provides the human decision moment.
 
 The governed metrics adapter, synthetic model, ALLOW/HOLD decision paths, signed native
 review, plant equations and display mapping exist in the repository and have automated
-tests. The physical Pi still needs the integrated thermal service and serial-v3 firmware
-deployed and accepted together. Local autonomous triggers, enterprise authority
-handover, real sensor calibration and a visible battery-drain rehearsal remain open.
+tests. The physical Pi runs the integrated thermal service and serial-v3 firmware;
+three ordinary increases and an anomalous cut passed through its model, USB ledger,
+Wazuh uploader and technician review feed. Visual confirmation of every indicator,
+local autonomous triggers, enterprise authority handover and real sensor calibration
+remain open.
 Use [the runbook](guides/demo-runbook.md) for host addresses, credentials, startup,
 outage and reconciliation steps.

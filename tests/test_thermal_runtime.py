@@ -2,6 +2,7 @@
 import base64
 from copy import deepcopy
 import json
+import sys
 import time
 import uuid
 from unittest.mock import patch
@@ -205,9 +206,72 @@ def test_native_bridge_can_read_and_review_authenticated_demo(integrated):
         assert get('/review/' + held['audit_request_id'])['eligible']
         assert get('/review', sign(held))['execution_status'] == 'COMPLETED'
         assert env.model.fan_target_pct == 0
+        status_request = Request(f'http://127.0.0.1:{upstream.server_port}/sync-status',
+                                 headers={'Authorization': 'Bearer operator-secret'})
+        with urlopen(status_request, timeout=3) as response:
+            assert json.load(response) == {'state': 'DISABLED'}
     finally:
         for server in (upstream, bridge):
             server.shutdown()
             server.server_close()
         for thread in threads:
             thread.join()
+
+
+def test_server_cli_wires_usb_ledger_and_wazuh(monkeypatch, tmp_path):
+    """Deployment CLI must preserve the existing USB/Wazuh trust boundary."""
+    from services.thermal_demo import runtime as runtime_module
+    from services.thermal_demo import server as server_module
+
+    trust = tmp_path / 'manifest-public.hex'
+    trust.write_text('00' * 32)
+    paths = {name: tmp_path / name for name in
+             ('release', 'data', 'usb', 'ledger.seed', 'agents.json', 'model.json',
+              'console.json', 'wazuh.json')}
+    for name, path in paths.items():
+        if name in ('release', 'data', 'usb'):
+            path.mkdir()
+        else:
+            path.write_text('{}')
+    captured = {}
+
+    class Runtime:
+        controller = None
+        agent_keys = {'cooling-agent-01': object()}
+
+        def __init__(self, **options):
+            captured['options'] = options
+
+        def start_wazuh_sync(self, config):
+            captured['wazuh'] = config
+
+        def close(self):
+            captured['closed'] = True
+
+    class Server:
+        server_address = ('127.0.0.1', 8080)
+
+        def serve_forever(self):
+            pass
+
+        def server_close(self):
+            captured['server_closed'] = True
+
+    monkeypatch.setattr(runtime_module, 'ThermalRuntime', Runtime)
+    monkeypatch.setattr(runtime_module, 'load_agent_keys', lambda _: Runtime.agent_keys)
+    monkeypatch.setattr(server_module, 'make_server', lambda *args, **kwargs: Server())
+    monkeypatch.setenv('THERMAL_OPERATOR_TOKEN', 'operator-token')
+    monkeypatch.setenv('THERMAL_AGENT_TOKENS',
+                       json.dumps({'cooling-agent-01': 'cooling-token'}))
+    monkeypatch.setattr(sys, 'argv', ['thermal-server', '--release', str(paths['release']),
+        '--trust-key', str(trust), '--data-dir', str(paths['data']),
+        '--usb-root', str(paths['usb']), '--ledger-key-file', str(paths['ledger.seed']),
+        '--wazuh-sync-config', str(paths['wazuh.json']), '--agent-keys', str(paths['agents.json']),
+        '--fan-model-file', str(paths['model.json']), '--console-trust-file', str(paths['console.json'])])
+
+    server_module.main()
+
+    assert captured['options']['usb_root'] == paths['usb']
+    assert captured['options']['ledger_key_file'] == paths['ledger.seed']
+    assert captured['wazuh'] == paths['wazuh.json']
+    assert captured['closed'] and captured['server_closed']

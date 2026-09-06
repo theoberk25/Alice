@@ -131,3 +131,18 @@ private store. Raw logs and preservation inventory are under ignored
 Browser camera/native IPC fixtures are synthetic. Real camera angle/PAD checks,
 native visual acceptance and physical Pi integration need operator acceptance.
 No push, deployment or Dock app replacement was performed.
+
+
+## PR preparation and latest upstream deployment
+
+The user subsequently authorized publishing a PR to `theoberk25/Alice:main` and
+will perform the merge. A fresh fetch found `4f98a14`, the team's integrated Pi
+thermal deployment. It was merged into the redesign branch; only `current.md`
+conflicted. The team's current checkpoint is preserved in
+[deployment checkpoint](../handoffs/2026-09-06-before-pr-thermal-deployment-merge.md).
+All nine newly changed upstream code/test/guide/service paths match that commit
+byte-for-byte; tracker rows 086, 108 and 112 retain the team's updated evidence.
+Frontend, native and biometric inputs did not change in this final upstream merge.
+The current checkpoint passes its line/word limits and local link checks.
+
+Final `PYTHONPATH="$PWD/.tools/integration-mcp" .venv/bin/python -m pytest tests -q -ra`: 543 passed, 266 subtests passed, 12 MCP deprecation warnings.

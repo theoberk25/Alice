@@ -1,14 +1,14 @@
 # Current
 Updated: 2026-09-06 EDT. Owners unassigned.
 Branch: `codex/main-redesign-integration`.
-Team baseline: `d5a0d56f69b007e388b5a4c49b00b363b7bd0f25` (latest fetched main).
+Team baseline: `4f98a14d4ef3cd16355de9d48847211ad08c91ca` (latest fetched main).
 Initial integration checkpoint: `4b1f67e`, based on previous team main `4531277`.
 Preserved redesign: `db730710750787af9064b495c6a236e0b504b2fe`.
 
 ## Active objective
 
 Integrate the complete local redesign onto Theo's current main while preserving
-all teammate content, contracts and behavior. Integration is complete. The user
+all teammate content, contracts and behavior. Integration is complete; PR publication is now user-authorized. The user
 requested the live-runtime app after testing. The rebuilt app is now open in
 remote/ArcFace mode with the original saved database and feed. Popup profile is preserved.
 [Popup setup/evidence](docs/reports/2026-09-06-popup-testing-app.md).
@@ -26,10 +26,14 @@ Worktree: `artifacts/console/main-redesign-integration` within the original chec
   docs/tracker row 035. [Team checkpoint](docs/handoffs/2026-09-06-before-telemetry-redesign-merge.md).
 - The original checkout, private settings/models/stores and running services remain
   separate. The rebuilt integration app now uses the saved live-runtime profile;
-  the original Dock-linked bundle and live profile remain unchanged. No push/deploy.
+  the original Dock-linked bundle and live profile remain unchanged. No deployment.
+
+Latest team Pi deployment, USB/Wazuh and exhausted-light behavior are retained
+unchanged. [Team checkpoint](docs/handoffs/2026-09-06-before-pr-thermal-deployment-merge.md).
 
 ## Evidence and blockers
 
+Latest upstream merge: repository Python543 and266 subtests passed.
 Latest popup build: frontend192/scripts8/check and app build passed; default
 browser31 plus the opt-in popup case passed. Historical popup app validation complete; real Face ID service READY.
 Live profile restored and app reopened at sign-in. Saved feed HTTP200/22 events,
@@ -47,7 +51,7 @@ The pre-merge checkpoints are preserved for both
 
 1. Sign in to the reopened live-runtime app to connect to the saved feed.
 2. Perform real-camera/native appearance and physical-Pi operator acceptance.
-3. Publish or replace the Dock app only on explicit user authorization.
+3. Publish the PR to Theo’s main for user review/merge; keep the Dock app unchanged.
 
 [Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
 [Design sources](docs/guides/console/visual-sources.md) ·
