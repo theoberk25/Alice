@@ -56,9 +56,30 @@ Stop before reconfiguration.
 
 Add `--esp-serial /dev/serial/by-id/...` only on a separately prepared Pi with the
 v3 firmware and existing eight-channel wiring. Stop any other service owning that
-port first. This implementation does not flash boards, install services or deploy.
+port first; repository tests do not establish a physical flash or deployment.
 Add `--energy-time-scale 60` only for explicitly labeled compressed battery energy;
 thermal time remains unscaled. Readback is configured output, never visual proof.
+At zero battery the runtime latches every display channel continuously off; it does
+not use the unavailable-data flash pattern for energy exhaustion.
+
+For the integrated Pi deployment, also pass `--usb-root /mnt/alice-usb`, the
+provisioned `--ledger-key-file` outside the USB and the private
+`--wazuh-sync-config`. USB root and ledger key must be supplied together. The
+runtime then applies the same storage readiness checks and automatic Wazuh delivery
+as the first-light service. The maintained unit template is
+`services/systemd/alice-thermal-demo.service`; it preserves port 8080 for the
+technician bridge and conflicts with `alice-runtime.service` so only one ledger and
+serial owner can run.
+
+The 2026-09-06 Pi acceptance used a 90 F / 60% fan / 60% battery start. Authenticated
+cooling requests 60→70→80→90 each produced ALLOW and executed. The authenticated
+power-agent 90→0 request produced `ANOMALY_REVIEW_REQUIRED`, remained unexecuted and
+was exported as an eligible technician HOLD. The same USB ledger's Wazuh worker
+delivered through that decision without error. Serial-v3 returned a real board boot
+identifier and configured-state acknowledgements; these acknowledgements do not
+measure visible illumination. A separate accelerated live run reached zero battery
+and returned `EXHAUSTED_OFF`, confirming that all channels were commanded continuously
+off rather than assigned the unavailable-data flash pattern.
 
 Verify with `python -m pytest -q tests/test_thermal* tests/test_pattern_renderer.py
  tests/test_serial_firmware.py` (join into one shell line). Tests generate temporary

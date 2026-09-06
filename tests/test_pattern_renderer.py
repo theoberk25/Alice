@@ -95,6 +95,15 @@ def test_unknown_write_get_reconciliation_then_new_snapshot(firmware):
     assert controller.pattern(2, operation='get')['mhz'] == 4550
 
 
+def test_exhausted_battery_latches_all_channels_off(firmware):
+    controller, _ = firmware
+    renderer = PatternRenderer(controller, clock=lambda: 0)
+    renderer.update(state(status='EXHAUSTED'), received_at=0)
+    assert renderer.status['state'] == 'EXHAUSTED_OFF'
+    for channel in range(1, 9):
+        assert controller.pattern(channel, operation='get')['mode'] == 'off'
+
+
 def test_legacy_override_and_malformed_v3_reply(firmware):
     controller, _ = firmware
     controller.pattern(1, mode='solid')

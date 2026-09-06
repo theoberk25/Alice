@@ -53,6 +53,10 @@ def make_server(environment, operator_token, agent_token=None, agent_id='demo-ag
             if not role:
                 return self.reply(401, {'error': 'Authentication required'})
             path = self.path.removeprefix('/demo')
+            if path == '/sync-status' and role == 'operator' and runtime:
+                status = (runtime.sync_worker.status() if runtime.sync_worker
+                          else {'state': 'DISABLED'})
+                return self.reply(200, status)
             if path.startswith('/review/') and role == 'operator' and runtime:
                 return self.reply(*runtime.review(request_id=path[len('/review/'):]))
             if urlsplit(path).path == '/events' and role == 'operator' and runtime:
@@ -132,6 +136,12 @@ def main():
     parser.add_argument('--release', type=Path, required=True)
     parser.add_argument('--trust-key', type=Path, required=True)
     parser.add_argument('--data-dir', type=Path, required=True)
+    parser.add_argument('--usb-root', type=Path,
+                        help='Existing mounted USB root; enables storage readiness checks')
+    parser.add_argument('--ledger-key-file', type=Path,
+                        help='Provisioned private ledger key outside USB; required with --usb-root')
+    parser.add_argument('--wazuh-sync-config', type=Path,
+                        help='Private HTTPS Wazuh credentials; enables automatic ledger delivery')
     parser.add_argument('--agent-keys', type=Path, required=True)
     parser.add_argument('--fan-model-file', type=Path, required=True)
     parser.add_argument('--console-trust-file', type=Path)
@@ -139,11 +149,15 @@ def main():
     parser.add_argument('--capacity-wh', type=float, default=100)
     parser.add_argument('--energy-time-scale', type=float, default=1)
     args = parser.parse_args()
+    if bool(args.usb_root) != bool(args.ledger_key_file):
+        parser.error('--usb-root and --ledger-key-file must be supplied together')
     env = Environment(capacity_wh=args.capacity_wh, energy_time_scale=args.energy_time_scale)
     runtime = ThermalRuntime(environment=env, agent_keys=load_agent_keys(args.agent_keys),
         fan_model_file=args.fan_model_file,
         release_dir=args.release, trusted_manifest_key=bytes.fromhex(args.trust_key.read_text().strip()),
-        data_dir=args.data_dir, esp_serial=args.esp_serial, serial_timeout=.25,
+        data_dir=args.data_dir, usb_root=args.usb_root,
+        ledger_key_file=args.ledger_key_file,
+        esp_serial=args.esp_serial, serial_timeout=.25,
         console_trust_file=args.console_trust_file)
     stopped = threading.Event()
     workers = []
@@ -152,6 +166,8 @@ def main():
         agents = json.loads(os.environ['THERMAL_AGENT_TOKENS'])
         if set(agents) != set(runtime.agent_keys):
             raise ValueError('Agent tokens must exactly match configured signing identities')
+        if args.wazuh_sync_config:
+            runtime.start_wazuh_sync(args.wazuh_sync_config)
         renderer = PatternRenderer(runtime.controller) if runtime.controller else None
         server = make_server(env, os.environ.get('THERMAL_OPERATOR_TOKEN'), agents=agents,
                              port=args.port, runtime=runtime, renderer=renderer)

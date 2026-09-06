@@ -23,8 +23,9 @@ class PatternRenderer:
             telemetry.update(temperature_f=values['temperature_f'], fan_pct=values['fan_actual_pct'],
                              power_w=values['power_w'], battery_pct=values['battery_pct'])
         patterns = map_patterns(telemetry, stale=stale)
+        exhausted = snapshot.get('status') == 'EXHAUSTED'
         # MCU updates yellow/blue/red pairs atomically; whites remain independent.
-        desired = {i + 1: (p.mode.lower(), round(p.hz * 1000))
+        desired = {i + 1: (('off', 0) if exhausted else (p.mode.lower(), round(p.hz * 1000)))
                    for i, p in enumerate(patterns) if i in (0, 1, 2, 3, 7)}
         try:
             if self.reconcile_required:
@@ -53,7 +54,8 @@ class PatternRenderer:
                     return
                 self.configured[channel] = setting
                 self.refreshed[channel] = now
-            self.status = {'state': 'UNAVAILABLE' if stale else 'CONFIGURED',
+            self.status = {'state': 'EXHAUSTED_OFF' if exhausted else
+                           'UNAVAILABLE' if stale else 'CONFIGURED',
                            'boot_id': self.controller.boot_id, 'measured_illumination': False}
         except ControllerError:
             self.reconcile_required = True

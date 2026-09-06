@@ -1,11 +1,13 @@
 [Unit]
 Description=ALICE governed machine-metrics MCP server (Streamable HTTP)
 Wants=network-online.target
-After=network-online.target
+Requires=alice-thermal-demo.service
+After=network-online.target alice-thermal-demo.service
 
 [Service]
 Type=simple
-# Adjust User/Group/WorkingDirectory for the target host.
+User=pi
+Group=pi
 WorkingDirectory=/home/pi/Alice
 Environment=PYTHONUNBUFFERED=1
 Environment=LIGHT_MCP_HOST=127.0.0.1
