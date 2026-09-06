@@ -72,6 +72,7 @@ export const LiveBiometricSessionSchema = z
         role: z.string(),
         enabled: z.boolean(),
         enrolled: z.boolean(),
+        enrollment_pending: z.boolean().optional(),
         enrollment_version: z.enum(['IDENTITY_ONLY_V1', 'MULTI_POSE_V2']).optional(),
       })
       .strict()

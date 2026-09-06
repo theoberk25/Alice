@@ -1,38 +1,40 @@
 # Current
-Updated: 2026-09-06.
-Baseline: local `0e4e747` merged with upstream main `54634adc`; merge commit pending.
+Updated: 2026-09-06 EDT. Owners unassigned.
+Branch: `codex/main-redesign-integration`.
+Team baseline: `45312778b802b95488015b673ba1bd30b0b15f88` (freshly fetched main).
+Preserved redesign: `db730710750787af9064b495c6a236e0b504b2fe`.
 
 ## Active objective
 
-Finish the shared thermal-demo merge so teammates can pull one path from agent MCP
-through model-backed ALICE decisions, native technician review and the simulated
-fan/LED environment.
+Integrate the complete local redesign onto Theo's current main while preserving
+all teammate content, contracts and behavior. Local merge and validation in progress.
+Worktree: `artifacts/console/main-redesign-integration` within the original checkout.
+[Integration evidence](docs/reports/2026-09-06-main-redesign-integration.md).
 
-## Current state
+## Scope and preservation
 
-- Upstream per-agent MCP on `:8790`, thermal backend on `:8795`, revision locking,
-  simulated plant, LED renderer and native review contracts are preserved.
-- The thermal runtime now loads the bounded data-only fan model and binds each score
-  to the current fan target, temperature, power, signed request and audit evidence.
-- Signed permissions permit cooling and power agents across 0–100%; LOW assessment
-  ALLOWs, ELEVATED/HIGH produces `ANOMALY_REVIEW_REQUIRED`, and missing permission
-  DENYs. The local LLM may explain a HOLD; human approval is still required.
-- Direct legacy fan requests remain supported during the coordinated migration.
+- Source commit includes closed/unmerged PR #6 and all later tracked/untracked work.
+- Motion/Anime, themes, responsive shell, device clock, account/Face ID presentation
+  and the existing narrow biometric/rehearsal fixes are carried forward.
+- Team context-request guards/fifth action, fan review/schema/native additions and
+  all newer thermal, enterprise, runtime and firmware implementation are preserved.
+- The original checkout, private settings/models/stores and running services remain
+  separate. No push, deployment, or replacement of the Dock-linked app is authorized.
 
-## Evidence and limits
+## Evidence and blockers
 
-- Python repository tests: 509 passed, 1 skipped, 266 subtests.
-- Targeted fan/thermal/MCP tests: 13 passed, 1 skipped.
-- Console: TypeScript typecheck passed; 136 Vitest tests passed.
-- Full root pytest collection additionally requires the separate biometric service
-  environment (`cv2`, FastAPI and Pydantic). Rust was not run on this Mac.
-- No merged code from this session has been deployed to the Pi or physically accepted.
+Integrated checks are running; prior source/team test results are historical only.
+Real-camera, physical Pi and native visual acceptance remain outside automated tests.
+The pre-merge checkpoints are preserved for both
+[source](docs/handoffs/2026-09-06-before-redesign-integration-source.md) and
+[team](docs/handoffs/2026-09-06-before-redesign-integration-team.md).
 
 ## Next steps
 
-1. Complete and push the merge after final lint/build and secret/path checks.
-2. Merek pulls main and runs the native console against the updated thermal backend.
-3. Deploy the reviewed model and merged services to the Pi in a separate controlled step.
-4. Rehearse +10/+10/+10 ALLOWs, then the power-agent 0% HOLD and signed rejection.
+1. Finish semantic conflict review and verify all source/team paths survived.
+2. Complete integrated frontend, browser, native, biometric and runtime checks.
+3. Commit the local integration and record results/remaining acceptance.
 
-[Demo](docs/demo.md) · [Environmental guide](docs/guides/environmental-demo.md) · [Tracker](docs/implementation-tracker.md)
+[Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
+[Design sources](docs/guides/console/visual-sources.md) ·
+[Original transfer handoff](docs/handoffs/2026-09-06-new-repository-merge.md)

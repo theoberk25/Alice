@@ -1,0 +1,34 @@
+/* Geometry belongs to this blank surface alone; camera pixels and native controls never scale. */
+.face-id-morph-anchor {
+  display: none;
+}
+dialog[data-face-id-morph-opening='true'] {
+  opacity: 0 !important;
+}
+.face-id-morph-surface {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  color: transparent;
+  border: 1px solid rgb(218 229 237 / 12%);
+  background: rgb(27 32 39 / 98%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 8%),
+    0 8px 24px rgb(0 0 0 / 16%);
+  opacity: 0.96;
+  contain: layout paint;
+}
+.face-id-morph-surface::backdrop {
+  background: transparent;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .face-id-morph-surface {
+    display: none;
+  }
+}

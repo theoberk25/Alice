@@ -1,5 +1,10 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test as base, expect, type Page } from '@playwright/test';
 import { event, page as feedPage } from '../runtime-fixtures';
+
+type NativeRequestKind = 'light' | 'demo-fan';
+const test = base.extend<{ nativeRequestKind: NativeRequestKind }>({
+  nativeRequestKind: ['light', { option: true }],
+});
 
 // Browser lifecycle evidence only: all native IPC, camera results and review
 // receipts below are synthetic. Rust/Python signed bridge tests cover authority.
@@ -8,15 +13,43 @@ interface TestNative {
   delivery: 'normal' | 'late' | 'uncertain';
   sends: number;
   cancelled: string[];
-  intents: Array<{ purpose: string; runtime_action?: string }>;
+  intents: Array<{
+    purpose: string;
+    runtime_action?: string;
+    request_id?: string;
+    decision_id?: string;
+  }>;
   releaseAck?: () => void;
 }
-async function installNativeFixture(page: Page) {
-  const decision = event(2, 'DECISION');
+async function installNativeFixture(page: Page, kind: NativeRequestKind) {
+  const requestId = kind === 'demo-fan' ? 'c'.repeat(64) : 'request-1';
+  const request =
+    kind === 'demo-fan'
+      ? {
+          schema_version: 'alice-demo-fan-v1',
+          request_id: requestId,
+          client_request_id: 'fan-1',
+          agent_id: 'power-agent-01',
+          run_id: 'd'.repeat(32),
+          expected_revision: 7,
+          action: 'set_demo_fan_pct',
+          target: 'DEMO-SERVER-01',
+          parameters: { fan_basis_points: 8500 },
+        }
+      : {
+          schema_version: '1.0',
+          request_id: requestId,
+          agent_id: 'agent-1',
+          action: 'set_light_state',
+          target: 'ESP-LIGHT-01',
+          parameters: { state: 'on' },
+          issued_at: '2026-09-06T01:00:00Z',
+        };
+  const decision = event(2, 'DECISION', requestId);
   decision.detail.outcome = 'CHALLENGE';
-  const accepted = event(3, 'TECHNICIAN_ACTION');
+  const accepted = event(3, 'TECHNICIAN_ACTION', requestId);
   await page.addInitScript(
-    ({ feed, actionEvent }) => {
+    ({ feed, actionEvent, request, requestId, kind }) => {
       type Submission = {
         schema_version: string;
         request_id: string;
@@ -66,7 +99,7 @@ async function installNativeFixture(page: Page) {
       );
       const receipt = () => ({
         schema_version: 'alice-review-receipt-v1',
-        request_id: 'request-1',
+        request_id: requestId,
         action_id: saved!.action_id,
         status: 'ACCEPTED',
         review_state: saved!.action === 'REJECT' ? 'REJECTED' : 'APPROVED',
@@ -75,7 +108,7 @@ async function installNativeFixture(page: Page) {
       });
       const snapshot = () => ({
         schema_version: 'alice-runtime-review-v1',
-        request_id: 'request-1',
+        request_id: requestId,
         request_sha256: 'a'.repeat(64),
         decision_event_id: 'event-2',
         decision_event_hash: '2'.padStart(64, '0'),
@@ -83,16 +116,22 @@ async function installNativeFixture(page: Page) {
         authority_interval_ref: 'interval-1',
         runtime_epoch: 'boot-1',
         review_nonce: 'nonce-1',
-        request: {
-          schema_version: '1.0',
-          request_id: 'request-1',
-          agent_id: 'agent-1',
-          action: 'set_light_state',
-          target: 'ESP-LIGHT-01',
-          parameters: { state: 'on' },
-          issued_at: '2026-09-06T01:00:00Z',
-        },
-          decision: 'CHALLENGE',
+        request,
+        ...(kind === 'demo-fan'
+          ? {
+              decision_reason_codes: ['ANOMALY_REVIEW_REQUIRED'],
+              assessment: {
+                status: 'OK',
+                result: 'HIGH',
+                score_ppm: 1_000_000,
+                raw_score_ppm: -612_345,
+                model_id: 'fan-hybrid-synthetic-v2',
+                model_fingerprint: 'e'.repeat(64),
+                reason_codes: ['OUTSIDE_NORMAL_SUPPORT'],
+              },
+            }
+          : {}),
+        decision: 'CHALLENGE',
         review_state: saved ? receipt().review_state : 'PENDING',
         accepted_action_id: saved?.action_id ?? null,
         accepted_action: saved?.action ?? null,
@@ -194,14 +233,17 @@ async function installNativeFixture(page: Page) {
               if (
                 saved ||
                 current?.state !== 'SUCCEEDED' ||
-                current.verification?.verification_id !== args.verificationId
+                !current.verification ||
+                current.verification.verification_id !== args.verificationId ||
+                current.verification.request_id !== requestId ||
+                current.verification.decision_id !== 'event-2'
               )
                 throw new Error('Synthetic fixture requires fresh verification');
               control.sends++;
               sessionStorage.setItem('synthetic-sends', String(control.sends));
               saved = {
                 schema_version: 'alice-native-review-submission-v1',
-                request_id: 'request-1',
+                request_id: requestId,
                 action_id: String(args.verificationId),
                 action: control.intents.at(-1)!.runtime_action!,
                 state: 'PENDING',
@@ -246,7 +288,13 @@ async function installNativeFixture(page: Page) {
         },
       });
     },
-    { feed: feedPage([event(), decision]), actionEvent: accepted },
+    {
+      feed: feedPage([event(1, 'REQUEST', requestId), decision]),
+      actionEvent: accepted,
+      request,
+      requestId,
+      kind,
+    },
   );
 }
 async function signIn(page: Page) {
@@ -256,8 +304,8 @@ async function signIn(page: Page) {
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'HOLD', exact: true })).toBeVisible();
 }
-test.beforeEach(async ({ page }) => {
-  await installNativeFixture(page);
+test.beforeEach(async ({ page, nativeRequestKind }) => {
+  await installNativeFixture(page, nativeRequestKind);
   await page.goto('/');
   await signIn(page);
   await expect(page.getByRole('button', { name: 'Log out', exact: true })).toHaveCount(0);
@@ -272,6 +320,7 @@ test('synthetic native IPC: feed-before-ack preserves camera and original decisi
   await expect(page.getByText('Sending technician response…')).toBeVisible();
   await expect(page.getByText('#3 TECHNICIAN_ACTION', { exact: true })).toBeVisible();
   await expect(page.getByRole('dialog').getByLabel('Automatic facial verification')).toBeVisible();
+  await page.screenshot({ path: 'artifacts/console/visual-overhaul/native-face-fixture.png' });
   await page.evaluate(() =>
     (Reflect.get(window, '__ALICE_TEST_NATIVE__') as TestNative).releaseAck!(),
   );
@@ -349,4 +398,80 @@ test('synthetic native IPC: uncertain delivery survives renderer restart and rec
   expect(
     await page.evaluate(() => (Reflect.get(window, '__ALICE_TEST_NATIVE__') as TestNative).sends),
   ).toBe(1);
+});
+
+test.describe('synthetic native fan review', () => {
+  test.use({ nativeRequestKind: 'demo-fan' });
+
+  test('retains exact fan context and fresh action binding through the redesigned review dialog', async ({
+    page,
+  }) => {
+    const requestId = 'c'.repeat(64);
+    await expect(page.getByText('SIMULATED FAN / RUN', { exact: true })).toBeVisible();
+    await expect(
+      page.getByText(`85% · ${'d'.repeat(32)} · revision 7`, { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText('{"fan_basis_points":8500}', { exact: true })).toBeVisible();
+    await expect(
+      page.getByText('Anomaly: HIGH · normal-tail rank 100.0% · model fan-hybrid-synthetic-v2', {
+        exact: true,
+      }),
+    ).toBeVisible();
+    const approve = page.getByRole('button', { name: 'Verify to approve once', exact: true });
+    const reject = page.getByRole('button', { name: 'Verify to reject', exact: true });
+    await expect(approve).toBeEnabled();
+    await expect(reject).toBeEnabled();
+    await expect(approve).toHaveAttribute('data-morph-id', 'runtime-review-APPROVE_ONCE');
+    await page.evaluate(() => {
+      (Reflect.get(window, '__ALICE_TEST_NATIVE__') as TestNative).holdCamera = true;
+    });
+    await approve.click();
+    const dialog = page.getByRole('dialog', { name: 'Verify to approve this request' });
+    await expect(dialog).toHaveClass(/runtime-verification-dialog/);
+    await expect(dialog).toHaveAttribute('data-morph-dialog', 'runtime-review-APPROVE_ONCE');
+    await expect(dialog.getByLabel('Automatic facial verification')).toBeVisible();
+    await expect(
+      dialog.getByRole('heading', { name: 'set_demo_fan_pct · DEMO-SERVER-01', exact: true }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByText(`{"fan_basis_points":8500} · ${requestId}`, { exact: true }),
+    ).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          (Reflect.get(window, '__ALICE_TEST_NATIVE__') as TestNative).intents.at(-1),
+        ),
+      )
+      .toMatchObject({
+        purpose: 'APPROVAL',
+        runtime_action: 'APPROVE_ONCE',
+        request_id: requestId,
+        decision_id: 'event-2',
+      });
+    await dialog.getByRole('button', { name: 'Close dialog', exact: true }).click();
+    expect(
+      await page.evaluate(() => (Reflect.get(window, '__ALICE_TEST_NATIVE__') as TestNative).sends),
+    ).toBe(0);
+    await page.evaluate(() => {
+      (Reflect.get(window, '__ALICE_TEST_NATIVE__') as TestNative).holdCamera = false;
+    });
+    await reject.click();
+    await expect(page.getByRole('heading', { name: 'Rejection accepted by Pi' })).toBeVisible();
+    await page.getByRole('button', { name: 'Done', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'HOLD', exact: true })).toBeVisible();
+    await expect(page.getByText(/Execution: NOT_EXECUTED\. Controller receipt/)).toBeVisible();
+    expect(
+      await page.evaluate(() =>
+        (Reflect.get(window, '__ALICE_TEST_NATIVE__') as TestNative).intents.at(-1),
+      ),
+    ).toMatchObject({
+      purpose: 'APPROVAL',
+      runtime_action: 'REJECT',
+      request_id: requestId,
+      decision_id: 'event-2',
+    });
+    expect(
+      await page.evaluate(() => (Reflect.get(window, '__ALICE_TEST_NATIVE__') as TestNative).sends),
+    ).toBe(1);
+  });
 });

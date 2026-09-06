@@ -22,6 +22,7 @@ it('lets an administrator retry a lost removal acknowledgment before first enrol
           role: 'Technician',
           enabled: true,
           enrolled: false,
+          enrollment_pending: removals < 2,
         },
       ];
     if (command === 'remove_enrollment' && ++removals === 1)
@@ -44,6 +45,8 @@ it('lets an administrator retry a lost removal acknowledgment before first enrol
   await waitFor(() => expect(screen.getByRole('alert')).toBeEmptyDOMElement());
   expect(nativeCall).toHaveBeenCalledWith('remove_enrollment', { technicianId: 'T1' });
   expect(screen.getByText('NO FACE')).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Discard pending enrollment' })).toBeNull();
+  expect(screen.getByRole('status')).toHaveTextContent('Pending enrollment discarded');
 });
 
 it('edits identity metadata without opening another enrollment and locks the identity ID', async () => {
@@ -103,6 +106,7 @@ it('serializes administration mutations and does not enroll disabled identities'
   fireEvent.click(screen.getByRole('button', { name: 'Authenticate administrator' }));
   const enable = await screen.findByRole('button', { name: 'Enable' });
   expect(screen.getByRole('button', { name: 'Begin enrollment' })).toBeDisabled();
+  expect(screen.queryByRole('button', { name: 'Discard pending enrollment' })).toBeNull();
   fireEvent.click(enable);
   fireEvent.click(enable);
   expect(screen.getByRole('button', { name: 'Edit' })).toBeDisabled();

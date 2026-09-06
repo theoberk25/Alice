@@ -21,7 +21,8 @@ from services.light_mcp.thermal_state import ThermalState
 from services.light_mcp.poller import _payload, _snapshot_path, poll
 from services.thermal_demo.client import DemoClient
 from services.thermal_demo.server import make_server
-from tests.test_thermal_runtime import integrated  # shared real signed-release fixture
+# Pytest must discover both the shared fixture and its model dependency here.
+from tests.test_thermal_runtime import integrated, thermal_model_file
 
 
 @pytest.fixture

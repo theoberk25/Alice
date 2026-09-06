@@ -1,7 +1,19 @@
-import { useEffect, useState } from 'react';
-import { ShieldCheck, Radio, WifiOff, UserRound, Settings2 } from 'lucide-react';
-import { Badge } from '@alice/ui';
+import { useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { nativeCall, isNative } from '../../lib/native';
+import {
+  ShieldCheck,
+  Radio,
+  WifiOff,
+  UserRound,
+  Settings2,
+  LogOut,
+  UsersRound,
+  ChevronDown,
+} from 'lucide-react';
+import { Badge, CommandButton, Tooltip } from '@alice/ui';
 import { useConsole } from '../../state/console';
+import { useDashboardClock } from './dashboard-clock';
 export function Header({
   onIdentity,
   onSettings,
@@ -10,11 +22,30 @@ export function Header({
   onSettings: () => void;
 }) {
   const { status, mode, biometricMode, technician, llm, runtime, feed } = useConsole();
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const clock = useDashboardClock();
+  const [signingOut, setSigningOut] = useState(false);
+  const operation = useRef(false);
+  const accountMenu = useRef<HTMLDetailsElement>(null);
+  const signInButton = useRef<HTMLButtonElement>(null);
+  async function endSession(changeUser: boolean) {
+    if (operation.current) return;
+    operation.current = true;
+    setSigningOut(true);
+    try {
+      if (isNative) await nativeCall('logout');
+      // Commit the replacement trigger before opening its native dialog so Escape
+      // restores focus to Sign in after the old account menu unmounts.
+      flushSync(() => useConsole.getState().setTechnician(undefined));
+      signInButton.current?.focus();
+      if (accountMenu.current) accountMenu.current.open = false;
+      if (changeUser) onIdentity();
+    } catch (error) {
+      useConsole.getState().error(`Unable to sign out: ${String(error)}`);
+    } finally {
+      operation.current = false;
+      setSigningOut(false);
+    }
+  }
   return (
     <header className="topbar">
       <div className="brand">
@@ -24,14 +55,14 @@ export function Header({
         <div>
           <div className="brand-name">
             ALICE
-            <span className="brand-divider" /> <span>TECHNICIAN CONSOLE</span>
+            <span className="brand-divider" /> <span>Technician console</span>
           </div>
-          <p>AUTHENTICATED LOCAL IDENTITY & CYBER ENFORCEMENT</p>
+          <p>Authenticated local identity & cyber enforcement</p>
           {mode === 'mock' && <span className="mobile-simulation">SIMULATION</span>}
         </div>
       </div>
       <div className="topbar-node">
-        <span className="eyebrow">ENFORCEMENT NODE</span>
+        <span className="eyebrow">Enforcement node</span>
         <strong>
           <Radio size={12} />
           {mode === 'remote'
@@ -48,38 +79,78 @@ export function Header({
           {!status ? 'UNKNOWN' : status.connections.cloud ? 'ONLINE' : 'OFFLINE'}
         </span>
       </div>
-      <div className="clock">
-        <strong>{now.toLocaleTimeString('en-GB', { timeZone: 'UTC' })}</strong>
+      <div
+        className="clock"
+        role="timer"
+        aria-label={`Device time: ${clock.time}, ${clock.date}, ${clock.zoneLabel} (${clock.timeZone})`}
+        title={`Device time zone: ${clock.timeZone}`}
+      >
+        <strong>{clock.time}</strong>
         <span>
-          UTC /{' '}
-          {now
-            .toLocaleDateString('en-US', { month: 'short', day: '2-digit', timeZone: 'UTC' })
-            .toUpperCase()}
+          {clock.zoneLabel} / {clock.date}
         </span>
       </div>
-      <button className="identity-button" onClick={onIdentity}>
-        <span className="avatar">
-          <UserRound size={17} />
-        </span>
-        <span>
-          <strong>{technician?.display_name ?? 'Sign in'}</strong>
-          <small>
-            {mode === 'remote' && biometricMode === 'mock'
-              ? 'READ-ONLY PREVIEW'
-              : biometricMode === 'mock'
-                ? 'SIMULATED SESSION'
-                : (technician?.role ?? 'IDENTITY REQUIRED')}
-          </small>
-        </span>
-      </button>
-      <button
-        className="icon-button"
-        title={`Local gateway: ${llm.status}`}
-        aria-label="Connection settings"
-        onClick={onSettings}
-      >
-        <Settings2 size={18} />
-      </button>
+      {technician ? (
+        <details
+          className="account-menu"
+          ref={accountMenu}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.currentTarget.open = false;
+              event.currentTarget.querySelector('summary')?.focus();
+            }
+          }}
+        >
+          <summary className="identity-button" aria-label={`Account: ${technician.display_name}`}>
+            <span className="avatar">
+              <UserRound size={17} />
+            </span>
+            <span>
+              <strong>{technician.display_name}</strong>
+              <small>{technician.role}</small>
+            </span>
+            <ChevronDown size={13} aria-hidden="true" />
+          </summary>
+          <div className="account-menu-actions">
+            <button type="button" disabled={signingOut} onClick={() => void endSession(true)}>
+              <UsersRound size={15} aria-hidden="true" /> Change user
+            </button>
+            <button type="button" disabled={signingOut} onClick={() => void endSession(false)}>
+              <LogOut size={15} aria-hidden="true" /> {signingOut ? 'Signing out…' : 'Sign out'}
+            </button>
+          </div>
+        </details>
+      ) : (
+        <CommandButton
+          ref={signInButton}
+          data-morph-id="technician-identity"
+          className="identity-button"
+          onClick={onIdentity}
+        >
+          <span className="avatar">
+            <UserRound size={17} />
+          </span>
+          <span>
+            <strong>Sign in</strong>
+            <small>
+              {mode === 'remote' && biometricMode === 'mock'
+                ? 'READ-ONLY PREVIEW'
+                : biometricMode === 'mock'
+                  ? 'SIMULATED SESSION'
+                  : 'IDENTITY REQUIRED'}
+            </small>
+          </span>
+        </CommandButton>
+      )}
+      <Tooltip align="end" content={`Connection settings · Local gateway: ${llm.status}`}>
+        <CommandButton
+          className="icon-button"
+          aria-label="Connection settings"
+          onClick={onSettings}
+        >
+          <Settings2 size={18} />
+        </CommandButton>
+      </Tooltip>
     </header>
   );
 }

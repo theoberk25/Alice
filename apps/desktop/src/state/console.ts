@@ -39,6 +39,7 @@ export interface AuditEvent {
   detail: string;
 }
 export interface Technician {
+  enrollment_pending?: boolean;
   enrollment_version?: 'IDENTITY_ONLY_V1' | 'MULTI_POSE_V2';
   technician_id: string;
   username: string;

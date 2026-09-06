@@ -67,6 +67,32 @@ Type `hold` for another synthetic request, `status` for mock-command counts, and
 `stop` to stop the rehearsal/app. Runtime data stays in its private directory.
 `session.json` contains private session configuration and must not be shared.
 
+### Resume a stopped local rehearsal
+
+A Dock app can outlive its terminal-owned rehearsal. In that case its saved
+loopback feed address has no listener and the UI correctly says Runtime bridge
+unavailable. This does not establish that a physical Pi is offline. The original
+interactive launcher stops its servers when stdin closes or `stop` is entered.
+
+To reopen the **same** private local rehearsal and retained history:
+
+```sh
+.venv/bin/python -m lab.first_light.native_review_demo \
+  --resume /absolute/existing-private-rehearsal/session.json
+```
+
+Resume reuses the stored loopback ports, feed credential, signed release, ledger
+and console trust. It refuses missing required state and does not create new
+requests, release material, trust or a database. It waits for an explicit process
+signal rather than stdin, so EOF does not shut down this resumed session. Stop it
+with Ctrl-C or SIGTERM. The already-running native app reconnects automatically;
+its existing login and `.env` do not need replacing.
+
+The mock controller starts with fresh in-memory state (`off`, zero commands).
+Historical commands are not replayed to reconstruct it; retained observations
+remain historical. This command never resumes a physical Pi or establishes a
+remote SSH tunnel. Preserve the existing private session before recovery.
+
 From a second terminal in the repository root, add another HOLD to a running
 rehearsal with:
 

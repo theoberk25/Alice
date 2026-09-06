@@ -28,7 +28,7 @@ pub(crate) fn load_decision(s: &Inner, id: &str) -> Result<Value, String> {
     serde_json::from_str(&raw).map_err(|e| e.to_string())
 }
 pub(crate) fn technician(s: &Inner, id: &str) -> Result<Technician, String> {
-    s.db.query_row("SELECT t.technician_id,t.username,t.display_name,t.role,t.enabled,EXISTS(SELECT 1 FROM face_enrollments f WHERE f.technician_id=t.technician_id) ,(SELECT format FROM face_enrollments f WHERE f.technician_id=t.technician_id) FROM technicians t WHERE technician_id=?1",[id],|r|Ok(Technician{technician_id:r.get(0)?,username:r.get(1)?,display_name:r.get(2)?,role:r.get(3)?,enabled:r.get(4)?,enrolled:r.get(5)?,enrollment_version:r.get(6)?})).map_err(|_|"Technician identity not found".into())
+    s.db.query_row("SELECT t.technician_id,t.username,t.display_name,t.role,t.enabled,EXISTS(SELECT 1 FROM face_enrollments f WHERE f.technician_id=t.technician_id) ,(SELECT format FROM face_enrollments f WHERE f.technician_id=t.technician_id), (EXISTS(SELECT 1 FROM face_activation_intents a WHERE a.technician_id=t.technician_id) OR EXISTS(SELECT 1 FROM face_removal_intents d WHERE d.technician_id=t.technician_id)) FROM technicians t WHERE technician_id=?1",[id],|r|Ok(Technician{technician_id:r.get(0)?,username:r.get(1)?,display_name:r.get(2)?,role:r.get(3)?,enabled:r.get(4)?,enrolled:r.get(5)?,enrollment_version:r.get(6)?,enrollment_pending:r.get(7)?})).map_err(|_|"Technician identity not found".into())
 }
 pub(crate) fn require_current_assessment(s: &Inner, decision: &Value) -> Result<(), String> {
     let request = decision["request"]["request_id"]
@@ -239,6 +239,7 @@ pub fn demo_session(state: State<AppState>) -> Result<Technician, String> {
         enabled: true,
         enrolled: true,
         enrollment_version: None,
+        enrollment_pending: false,
     })
 }
 #[tauri::command]
