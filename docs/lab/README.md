@@ -91,3 +91,9 @@ The generic `run.py` allowlist does not include this maintenance command.
 loopback runtime, read-only USB SQL and optional Wazuh GET. It never submits or
 uploads events and may run beside the runtime owner. Follow the
 [integrated demo acceptance guide](../guides/demo-runbook.md#acceptance-sequence).
+
+Fan demo data: `python -m lab.fan_demo_data --output /absolute/new-directory`;
+see [corpus contract and usage](../guides/anomaly-training.md#fan-demo-jsonl-corpus-2026-09-06).
+
+Fan candidate fitting: `python -m lab.train_fan_demo --data /path/to/corpus --output /new/model-directory`.
+Workstation experiment only; [measured limits](../guides/anomaly-training.md#first-fitted-fan-candidate).
