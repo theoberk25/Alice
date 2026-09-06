@@ -42,6 +42,10 @@ LIGHT_MCP_URL = "http://127.0.0.1:8790/mcp"
 MODEL = os.getenv("ADK_MODEL", "gemini-flash-latest")
 
 _INSTRUCTION = (
+    "To boot or wake the plant (messages like 'boot the plant', 'all systems on', "
+    "'turn the plant on'), call boot_plant: it spins the asleep simulation up to the "
+    "designated 90F / 60% fan / 60% battery READY levels. This is an operator setup "
+    "action, not a governed ALICE decision, and does not command fans through the gate. "
     "Use only get_metrics and set_fan_speed(value) through the shared metrics MCP. "
     "Read metrics before proposing a fan change. fan_speed is actual percent; "
     "fan_target_speed is the authorized target. server_temperature is Fahrenheit "
@@ -74,6 +78,14 @@ ENTERPRISE_INGRESS_URL = os.getenv("ALICE_ENTERPRISE_INGRESS_URL")
 # the Wazuh receipt, and forwards the unchanged signed bytes to the live Pi. See
 # docs/plans/2026-09-06-demo-part1-cloud-governed-ingress.md.
 THERMAL_REQUEST_URL = os.getenv("ALICE_THERMAL_REQUEST_URL")
+
+# Plant lifecycle (OPERATOR) path. "boot the plant" / "all systems on" spins the
+# asleep simulation up to the designated 90 F / 60% fan / 60% battery via the demo
+# server's operator routes (/demo/configure + /demo/start). Those routes live on
+# the direct-Pi demo server, NOT the signed-fan ingress, so this URL is separate
+# from ALICE_THERMAL_REQUEST_URL and defaults to the direct-Pi tunnel. Requires the
+# OPERATOR token (ALICE_THERMAL_OPERATOR_TOKEN_FILE / ALICE_THERMAL_OPERATOR_TOKEN).
+PLANT_LIFECYCLE_URL = os.getenv("ALICE_PLANT_LIFECYCLE_URL", "http://127.0.0.1:18080")
 
 
 def submit_governed_fan_request(fan_pct: float, run_id: str, expected_revision: int) -> dict:
@@ -129,6 +141,24 @@ def submit_governed_request(state: str, target: str = "ESP-LIGHT-01") -> dict:
 
 
 
+def boot_plant() -> dict:
+    """Boot the asleep thermal plant to its designated READY levels.
+
+    Operator lifecycle action for a message like "boot the plant" / "all systems
+    on" / "turn the plant on": configures the simulation to the designated
+    90 F / 60% fan / 60% battery (env-overridable via ALICE_PLANT_TEMPERATURE_F /
+    ALICE_PLANT_FAN_PCT / ALICE_PLANT_BATTERY_PCT) and starts it, then returns the
+    plant status, run_id, revision and values. This is NOT a governed ALICE
+    decision -- it sets up the simulation; it does not command fans or lights
+    through the gate. Targets ALICE_PLANT_LIFECYCLE_URL (the demo server, not the
+    ingress) and requires the operator token (ALICE_THERMAL_OPERATOR_TOKEN_FILE
+    or ALICE_THERMAL_OPERATOR_TOKEN).
+    """
+    from cloud.thermal_operator_client import bring_all_systems_online
+
+    return bring_all_systems_online(base_url=PLANT_LIFECYCLE_URL)
+
+
 def build_agent(model: str = MODEL) -> LlmAgent:
     """Construct the cloud machine-ops agent bound to the Light MCP.
 
@@ -143,6 +173,7 @@ def build_agent(model: str = MODEL) -> LlmAgent:
                 if os.environ.get("LIGHT_MCP_TOKEN") else None)),
         )
     ]
+    tools.append(FunctionTool(boot_plant))
     if ENTERPRISE_INGRESS_URL:
         tools.append(FunctionTool(submit_governed_request))
     if THERMAL_REQUEST_URL:
