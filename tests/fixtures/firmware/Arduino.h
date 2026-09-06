@@ -27,8 +27,10 @@ struct SerialMock {
 };
 extern SerialMock Serial;
 extern int writes;
-inline void digitalWrite(int, int) { writes++; }
+static int pin_levels[64] = {};
+static unsigned long clock_ms = 0;
+inline void digitalWrite(int pin, int level) { writes++; pin_levels[pin] = level; }
 inline void pinMode(int, int) {}
-inline unsigned long millis() { return 0; }
+inline unsigned long millis() { return clock_ms; }
 inline void delay(int) {}
 inline unsigned int esp_random() { return 1; }

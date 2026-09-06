@@ -61,3 +61,6 @@ class SerialFirmwareTests(unittest.TestCase):
                 frame={'v':2,'id':'bad','op':'set','channel':invalid,'state':'on'}
                 writes, _ = self.run_frames(json.dumps(frame).encode()+b'\n')
                 self.assertEqual(writes, 0)
+
+    def test_blink_timing_and_off_cancellation(self):
+        subprocess.run([str(self.binary), '--blink'],check=True,capture_output=True)

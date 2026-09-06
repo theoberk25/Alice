@@ -82,7 +82,7 @@ def make_server(*, upstream, token, source, controller, port=8787):
     upstream = loopback_url(upstream)
     if len(token) < 32 or not token.isascii() or any(c.isspace() for c in token):
         raise ValueError('ALICE_FEED_TOKEN must contain at least 32 non-whitespace ASCII characters')
-    if source not in ('local-runtime', 'ssh-tunnel') or controller not in ('mock', 'unavailable'):
+    if source not in ('local-runtime', 'ssh-tunnel') or controller not in ('mock', 'physical-serial', 'unavailable'):
         raise ValueError('Explicit supported source/controller labels required')
     opener = build_opener(ProxyHandler({}), NoRedirect())
 
@@ -137,7 +137,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--upstream', required=True)
     parser.add_argument('--source', required=True, choices=('local-runtime', 'ssh-tunnel'))
-    parser.add_argument('--controller', default='unavailable', choices=('mock', 'unavailable'),
+    parser.add_argument('--controller', default='unavailable', choices=('mock', 'physical-serial', 'unavailable'),
                         help='Operator-declared mock or unknown hardware provenance; never a hardware verification claim')
     parser.add_argument('--port', type=int, default=8787)
     args = parser.parse_args()

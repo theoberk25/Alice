@@ -193,27 +193,30 @@ outcome and cause no second execution. A new invocation creates a new request ID
 Do not share signing seeds in Git or chat. The existing runtime binds the verified
 key to the agent and checks exact signed grants; changing a UI username grants nothing.
 
-## Connect Theo's technician dashboard
+## Connect the interim technician web app
 
-Use the tunnel above on Theo's Mac. Start the authenticated loopback bridge from
-his checkout. Port 8788 below avoids collision with the enterprise console on 8787:
+Host the web app on Jared's wired Mac for the current demo. Theo and other connected
+devices open it in a browser and receive the Pi event stream in real time. The web
+app is read-only; integrate Theo's native desktop application when it is finished
+for local LLM explanations, facial identity and bound accept/reject responses.
+
+Use the tunnel above on the host Mac. Start the authenticated loopback bridge from
+its checkout. Port 8788 below avoids collision with the enterprise console on 8787:
 
 ```sh
 export ALICE_FEED_TOKEN="$(.venv/bin/python -c 'import secrets; print(secrets.token_hex(32))')"
 export ALICE_FEED_URL=http://127.0.0.1:8788
 .venv/bin/python -m services.runtime_feed \
-  --upstream http://127.0.0.1:18080 --source ssh-tunnel --controller mock --port 8788
+  --upstream http://127.0.0.1:18080 --source ssh-tunnel \
+  --controller physical-serial --port 8788
 ```
 
 Supply the same token and feed URL to the dashboard process using its private local
 environment, without echoing or committing the token. In that configured terminal:
 
-```sh
-VITE_ALICE_PREVIEW_MODE=remote npm run dev
-```
-
-Keep `--controller mock` while connected to the mock. When switching to a real
-controller, omit that label; its provenance remains unverified until implemented.
+Follow the authenticated LAN environment and launch steps in the
+[live dashboard guide](live-dashboard.md#interim-local-network-web-app). Use
+`--controller mock` only while connected to the mock controller.
 For native biometric setup and existing remote transport options, follow the
 [live dashboard guide](live-dashboard.md) and [console guide](../guides/technician-console.md).
 Do not supply Wazuh admin/service credentials to the dashboard renderer.
@@ -357,3 +360,13 @@ Arduino build directories and private local artifacts are excluded from Git.
 Final regression: 361 tests plus 266 subtests passed. Operator White 2 OFF
 request e74c1b0b-a118-43d0-ac55-04bb94bd4f64 returned ALLOW/COMPLETED/off
 after quota recovery, with all seven records visible in Wazuh.
+
+## Operator blink and all-off controls
+
+ON starts slow blinking (one second lit, one second dark); OFF immediately stops
+it. Readback means logical enabled/off, not current brightness. All lights off
+sends eight sequential signed OFF requests through the existing Pi permission and
+audit path. It reports individual results and does not claim atomic execution or
+success for unavailable/denied lights. No automatic retry after uncertainty.
+Firmware compiled/flashed with hash verification; timing/cancellation host tests
+passed (4 tests plus 11 subtests).

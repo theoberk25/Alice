@@ -9,6 +9,12 @@ Dependencies and private local configuration are installed separately.
 
 The main [architecture](../prds/ALICE-DCAMR-Architecture.md), [PRD](../prds/ALICE-DCAMR-PRD.md), and [console integration requirements](../integration/technician-console.md) govern product behavior. The existing console retains its legacy DDIL/CONNECTED/DEGRADED contracts. ONLINE/OFFLINE authority transfer and real core transport remain integration work.
 
+During current Pi/ESP integration, run the console as an authenticated, read-only
+local-network web app using the [live dashboard guide](../integration/live-dashboard.md#interim-local-network-web-app).
+This lets connected devices see requests in real time. Integrate the native desktop
+app when it is finished so local LLM explanations, facial authentication and bound
+technician accept/reject responses stay on the technician workstation.
+
 **Authenticated Local Identity & Cyber Enforcement.** A native macOS console for reviewing the decisions an independent ALICE edge node makes about autonomous agents. Built with Tauri 2, React, TypeScript, Zustand, Zod, Rust, SQLite, and a local FastAPI/ArcFace service.
 
 The console presents policy results, anomalous behavior, evidence provenance, agent context, and technician actions. It never implements policy evaluation, anomaly training, SIEM, EDR, cyber agents, or protected-system execution. The upstream authority remains responsible for decisions and execution under the main repository's ONLINE/OFFLINE design.

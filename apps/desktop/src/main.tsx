@@ -8,6 +8,7 @@ import '@fontsource/ibm-plex-mono/500.css';
 import '@fontsource/barlow-condensed/500.css';
 import '@fontsource/barlow-condensed/600.css';
 import App from './app/App';
+import { WebAccessGate } from './app/WebAccessGate';
 import './styles/tokens.css';
 import './styles/global.css';
 class ErrorBoundary extends React.Component<React.PropsWithChildren, { error: string }> {
@@ -29,6 +30,6 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren, { error: st
 }
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <ErrorBoundary>
-    <App />
+    <WebAccessGate><App /></WebAccessGate>
   </ErrorBoundary>,
 );

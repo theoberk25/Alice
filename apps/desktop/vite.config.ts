@@ -26,7 +26,11 @@ export default defineConfig({
     },
   },
   server: {
-    host: '127.0.0.1',
+    host:
+      process.env.ALICE_WEB_LISTEN === 'lan' &&
+      process.env.VITE_ALICE_WEB_LOGIN === 'enabled'
+        ? '0.0.0.0'
+        : '127.0.0.1',
     port: 1420,
     strictPort: true,
     watch: { ignored: ['**/src-tauri/**'] },

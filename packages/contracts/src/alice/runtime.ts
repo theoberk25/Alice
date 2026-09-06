@@ -165,7 +165,7 @@ export const RuntimeFeedSchema = z.strictObject({
   schema_version: z.literal('alice-runtime-feed-v1'),
   source: z.strictObject({
     connection: z.enum(['local-runtime', 'ssh-tunnel']),
-    controller: z.enum(['mock', 'unavailable']),
+    controller: z.enum(['mock', 'physical-serial', 'unavailable']),
   }),
   events: z.array(RuntimeEventSchema),
 });

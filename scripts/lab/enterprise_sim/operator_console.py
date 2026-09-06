@@ -15,7 +15,8 @@ PAGE = '''<!doctype html><meta charset="utf-8"><title>Sentinel operator</title>
 <style>body{background:#101820;color:#e7eef6;font:17px system-ui;max-width:1000px;margin:45px auto;padding:20px}button,a{padding:12px;margin:8px;color:#071b25;background:#66d9bc;border:0;border-radius:6px;font:inherit}pre{white-space:pre-wrap;background:#1d2a37;padding:18px;border-radius:8px}small{color:#afbfce}</style>
 <h1>Sentinel · SSgt A. Okafor</h1><p>Electrician · elec-agent-01 · Eight mapped lights</p>
 <p>Signed action → Pi permissions check → USB audit → Wazuh upload</p>
-<p><strong>Controller: CONTROLLER_LABEL.</strong> Device feedback reports the driven output; visually confirm the external LED.</p>
+<p><strong>Controller: CONTROLLER_LABEL.</strong> ON enables slow blinking (1 second lit / 1 second dark). Feedback reports blink enabled, not instantaneous brightness.</p>
+<button onclick="allOff()">All lights off</button><pre id="bulk" hidden></pre>
 <div id="lights"></div>
 <a href="http://127.0.0.1:8787/" target="_blank">Enterprise overview</a>
 <p id="message">Ready. Actions use your provisioned agent key on this Mac.</p>
@@ -29,6 +30,20 @@ const labels=['Yellow 1 · D0','Blue 1 · D3','Red 1 · D5','White 1 · D6','Yel
 labels.forEach((label,i)=>{const row=document.createElement('p');row.textContent=label+' ';['on','off'].forEach(state=>{const b=document.createElement('button');b.textContent=state.toUpperCase();b.onclick=()=>act(state,'ESP-LIGHT-'+String(i+1).padStart(2,'0'));row.appendChild(b)});document.getElementById('lights').appendChild(row)});
 async function act(state,target){document.querySelectorAll('button').forEach(b=>b.disabled=true);
 try{const r=await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json','X-Operator-Token':token},body:JSON.stringify({state,target})});const d=await r.json();if(!r.ok)throw Error(d.error||'Action failed');id=d.request_id;document.getElementById('pi').textContent=JSON.stringify(d,null,2);document.getElementById('message').textContent='Request '+id;await poll();}catch(e){document.getElementById('message').textContent=e.message;}finally{document.querySelectorAll('button').forEach(b=>b.disabled=false);}}
+async function allOff(){
+ document.querySelectorAll('button').forEach(b=>b.disabled=true);
+ id=null;const results=[];const box=document.getElementById('bulk');box.hidden=false;
+ try{for(let i=0;i<8;i++){
+  const target='ESP-LIGHT-'+String(i+1).padStart(2,'0');
+  try{const r=await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json','X-Operator-Token':token},body:JSON.stringify({state:'off',target})});
+   const d=await r.json();const ok=r.ok&&d.http_status===200&&d.response?.execution==='COMPLETED'&&d.response?.observed_state==='off';
+   results.push({light:labels[i],target,status:ok?'OFF confirmed':'Not confirmed',request_id:d.request_id,result:d});
+  }catch(e){results.push({light:labels[i],target,status:'Not confirmed',error:e.message});}
+  box.textContent=JSON.stringify(results,null,2);
+ }
+ document.getElementById('message').textContent=results.every(r=>r.status==='OFF confirmed')?'All eight lights confirmed OFF':'Some lights could not be confirmed OFF—see results';
+ }finally{document.querySelectorAll('button').forEach(b=>b.disabled=false);}
+}
 async function poll(){if(!id)return;try{const r=await fetch('/status?id='+encodeURIComponent(id));const d=await r.json();document.getElementById('pi').textContent=JSON.stringify(d.pi,null,2);document.getElementById('siem').textContent=JSON.stringify(d.wazuh,null,2);}catch(e){document.getElementById('siem').textContent='Unavailable: '+e.message;}}
 setInterval(poll,2500);
 </script>'''

@@ -1,11 +1,17 @@
 # Live technician dashboard and USB SQL configuration
 
-Status: local runtime/browser slice, 2026-09-06 UTC (September 5 EDT).
-Follow [AGENTS.md](../../AGENTS.md). Built on architecture checkpoint `417b9de`
-and merged teammate updates through `7081b6a`, on local `codex/live-dashboard`.
-Published to `origin/main` as `44f4d73` with explicit user authorization.
-That checkpoint performed no deployment. Jared subsequently provisioned USB/Wazuh;
-see the [ESP handoff](esp-handoff.md) and [joint acceptance](pi-technician-acceptance.md).
+Status: authenticated LAN web/physical-Pi feed, 2026-09-06 UTC (September 5 EDT).
+Follow [AGENTS.md](../../AGENTS.md). Current work is based on main checkpoint
+`3bceeac` on `codex/wazuh-log-sync`. The earlier local runtime/browser slice was
+published as `44f4d73`; Jared subsequently provisioned USB/Wazuh and the physical
+serial controller. See the [ESP handoff](esp-handoff.md) and
+[joint acceptance](pi-technician-acceptance.md).
+
+The current demo uses the **web app as the technician viewing surface** so any
+device on the isolated local network can sign in and watch Pi requests arrive.
+This is an interim read-only deployment. The finished native desktop app will
+replace it for local LLM explanations, facial authentication and bound technician
+accept/reject responses; those controls are not claimed by the web deployment.
 
 ## Local snapshot continuation
 
@@ -60,12 +66,13 @@ Physical removal/power-loss durability and the real filesystem require acceptanc
 USB SQLite ledger → existing Pi GET /events
   → SSH forwarding to Mac (physical Pi; host-key and user authentication)
   → authenticated loopback Python feed bridge
-  → native Rust command OR same-origin Vite development proxy
+  → server-side authenticated Vite development proxy
+  → local-network web browser
   → RemoteAliceTransport → existing console store/layout/panels
 ```
 
-Both workstation entry points keep `ALICE_FEED_TOKEN` outside renderer code and
-only contact a configured loopback bridge. The bridge binds `127.0.0.1`, requires
+The workstation keeps `ALICE_FEED_TOKEN` outside renderer code and only contacts
+a configured loopback bridge. The bridge binds `127.0.0.1`, requires
 a bearer token, accepts only read-only `/events?after=N`, disables redirects and
 proxy-environment routing, and connects only to an explicit loopback runtime URL.
 For a physical Pi that URL is an SSH tunnel. Do not expose the unauthenticated
@@ -78,6 +85,62 @@ The bridge reuses `dcamr.audit.event_contract.validate_event`: strict schema,
 semantic bindings and event-hash checks. It validates predecessor hashes and
 sequence continuity. These checks do not claim ledger checkpoint signature
 verification or physical sensor verification in the dashboard.
+
+## Interim local-network web app
+
+Use this mode while the native technician desktop application is being finished.
+The web server exposes only the dashboard assets and its authenticated read-only
+event proxy. The Pi runtime and feed bridge stay on loopback. The browser never
+receives the feed bearer token, SSH material, Wazuh credentials or ledger keys.
+
+Create a gitignored local environment file such as `.env.web-dashboard` and set:
+
+```dotenv
+ALICE_FEED_TOKEN=<random value of at least 32 characters>
+ALICE_FEED_URL=http://127.0.0.1:8788
+ALICE_WEB_USERNAME=<technician web username>
+ALICE_WEB_PASSWORD=<password of at least 12 characters>
+ALICE_WEB_PUBLIC_HOST=192.168.50.50:1420
+ALICE_WEB_LISTEN=lan
+VITE_ALICE_WEB_LOGIN=enabled
+VITE_ALICE_PREVIEW_MODE=remote
+```
+
+Start the SSH tunnel, bridge and web app in separate terminals. Load the private
+environment into the bridge and web-app shells without printing its values:
+
+```sh
+ssh -N -o BatchMode=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 \
+  -L 127.0.0.1:18080:127.0.0.1:8080 pi@192.168.50.20
+```
+
+```sh
+set -a
+. ./.env.web-dashboard
+set +a
+.venv/bin/python -m services.runtime_feed \
+  --upstream http://127.0.0.1:18080 --source ssh-tunnel \
+  --controller physical-serial --port 8788
+```
+
+```sh
+set -a
+. ./.env.web-dashboard
+set +a
+npm run dev
+```
+
+Open `http://192.168.50.50:1420` from a connected device and use the configured
+web credentials. Sessions are held server-side for eight hours in memory, use an
+HttpOnly same-site cookie, and can be ended with **Log out**. Login attempts are
+limited per client address. Restarting Vite ends all sessions. LAN listening is
+enabled only when web login is also enabled; ordinary `npm run dev` remains bound
+to loopback.
+
+This deployment uses HTTP and is intended for the isolated demonstration LAN.
+Before using a routed, shared or internet-connected network, put it behind an
+authenticated TLS reverse proxy and replace the shared web credential with the
+finished native identity flow. The web app remains read-only even after login.
 
 ## Mapping for Alex
 
@@ -180,7 +243,7 @@ VITE_ALICE_PREVIEW_MODE=remote npm run dev
 Open **http://127.0.0.1:1420**. This browser mode is a read-only preview, with no
 biometric session or remote action capability. `npm run build` builds assets;
 the Vite development proxy is not a production web hosting service.
-For the native app, retain the existing biometric setup and launch with
+When the desktop app is finished, retain the existing biometric setup and launch with
 `ALICE_TRANSPORT_MODE=remote ALICE_BIOMETRIC_MODE=arcface npm run desktop -- dev`.
 Its new `read_runtime_events` Rust command uses the same bridge configuration;
 native compilation/camera acceptance is pending in this environment.
@@ -236,8 +299,10 @@ ssh -N -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 \
 
 Then use the same authenticated bridge/dashboard setup, replacing the bridge
 arguments with `--upstream http://127.0.0.1:18080 --source ssh-tunnel`.
-Add `--controller mock` if still running a mock controller. Without it controller
-provenance remains unavailable, not verified hardware. Do not automatically accept
+Use `--controller physical-serial` for the current deployed XIAO serial adapter,
+`--controller mock` for the mock, or leave the default `unavailable` when the
+controller is unknown. These are configured provenance labels, not independent
+physical verification. Do not automatically accept
 an unknown or changed SSH host key. No SSH credentials are stored in the dashboard.
 
 Physical acceptance requires Pi SSH details, mounted USB path/filesystem,

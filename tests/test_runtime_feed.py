@@ -93,6 +93,12 @@ def test_bridge_refuses_public_http_and_weak_credentials():
                     source='local-runtime', controller='mock')
 
 
+def test_bridge_accepts_explicit_physical_serial_label():
+    server = make_server(upstream='http://127.0.0.1:8080', token='t' * 32,
+                         source='ssh-tunnel', controller='physical-serial', port=0)
+    server.server_close()
+
+
 def test_lost_ledger_returns_unavailable_without_command(connected):
     runtime, esp, upstream, seed, read, _ = connected
     runtime.ledger.path.unlink()

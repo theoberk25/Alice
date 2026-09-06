@@ -29,7 +29,21 @@
 
 static const int LED_PIN = D0;  // D0 == GPIO1 on the XIAO ESP32-S3
 static const int LIGHT_PINS[] = {D0, D3, D5, D6, D10, D9, D8, D7};
-static bool light_states[8] = {};
+static bool light_states[8] = {};  // logical blink enable, not instantaneous level
+static bool light_phases[8] = {};
+static unsigned long light_ticks[8] = {};
+static const unsigned long BLINK_HALF_PERIOD_MS = 1000;
+
+static void update_blinks() {
+  const unsigned long now = millis();
+  for (int i = 0; i < 8; ++i) {
+    if (light_states[i] && (unsigned long)(now - light_ticks[i]) >= BLINK_HALF_PERIOD_MS) {
+      light_ticks[i] = now;
+      light_phases[i] = !light_phases[i];
+      digitalWrite(LIGHT_PINS[i], light_phases[i] ? HIGH : LOW);
+    }
+  }
+}
 static unsigned long reply_version = 1, reply_channel = 1;
 static const uint8_t PROTOCOL_VERSION = 1;
 static const size_t MAX_LINE = 256;
@@ -221,6 +235,8 @@ static void handle_line(const char *line) {
   /* Apply first, acknowledge second: an ack always follows a real write. */
   digitalWrite(LIGHT_PINS[index], want_on ? HIGH : LOW);
   light_states[index] = want_on;
+  light_phases[index] = want_on;
+  light_ticks[index] = millis();
   emit_ok(cmd.id, light_states[index]);
 }
 
@@ -245,7 +261,9 @@ void setup() {
 }
 
 void loop() {
+  update_blinks();
   while (Serial.available() > 0) {
+    update_blinks();
     int c = Serial.read();
     if (c < 0) { break; }
     if (c == '\n') {

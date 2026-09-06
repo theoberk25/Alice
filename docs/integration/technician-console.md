@@ -7,6 +7,14 @@ first-light runtime history and incremental display. USB is the user-confirmed
 offline database medium. Physical Pi/USB acceptance, enterprise snapshot
 publication and writable biometric response integration remain pending.
 
+For the current hardware integration, the React **web app** is the interim
+technician surface. Authenticated devices on the isolated local network can view
+the Pi's live request/event stream, but cannot approve or reject actions. Integrate
+the native desktop app when it is finished; that application remains the intended
+home for the local LLM, facial identity and bound human accept/reject workflow.
+See [live-dashboard.md](live-dashboard.md#interim-local-network-web-app) for the
+tested topology and launch settings.
+
 User-confirmed (2026-09-05): ML classification stays on the Pi; held-action accept
 or deny is decided on the local Mac after biometric verification. Merek's next
 session builds the backend data flow, enabling Alex to connect workstation scripts

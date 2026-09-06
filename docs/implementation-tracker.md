@@ -16,6 +16,9 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
+Slow-blink firmware deployed (1 second lit/dark); operator All lights off uses
+eight signed requests with per-light outcomes. Timing/cancellation tests pass.
+
 Eight-light production now includes v2 serial addressing, signed target validation,
 operator ON/OFF buttons, per-target provenance and opt-in all-light demo grants.
 Live: 16 signed commands, eight replays, 112 correlated USB events verified.
@@ -460,7 +463,7 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 066 | Export Raw Decision Data to Dashboard | Partial | Real first-light ledger history/increments now reach the existing dashboard through a validated authenticated bridge and remote transport. Numeric risk/full request fields remain unavailable instead of invented. [Mapping and local acceptance](integration/live-dashboard.md). Physical Pi and richer producers remain. |
+| 066 | Export Raw Decision Data to Dashboard | Partial | Real first-light ledger history/increments now reach the web dashboard through an authenticated loopback bridge, server-side session gate and remote transport. A live physical-Pi request appeared incrementally on an authenticated LAN browser. Numeric risk/full request fields remain unavailable instead of invented. [Mapping and local acceptance](integration/live-dashboard.md). |
 | 067 | Export Live Pi Status to Dashboard | Planned | The live display reports feed reachability/staleness and retained authority metadata honestly. Current Pi hardware/engine/cloud/SIEM readiness telemetry is still unavailable; no status fields are inferred from HTTP success. |
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | Target clarified: local Mac resolves held actions to accept/deny after biometric verification; Merek's backend must deliver that bound response to the Pi. No real receiver is connected; authentication, proof/currentness checks and receipts remain. |
@@ -481,7 +484,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 079 | Continue Local Policy Enforcement | Planned | OFFLINE authorized-permission enforcement remains unimplemented. ONLINE enterprise direct control is intentionally not replaced by a Pi policy gate. |
 | 080 | Continue Local Anomaly Scoring | Partial | [Local lab scoring][training] runs real Isolation Forest offline, alongside [feature checks][feature-tests]. Live Pi inference for OFFLINE governance and authority-mode orchestration remain unimplemented. |
 | 081 | Continue Local Context Push-Back | Planned | No real OFFLINE core context exchange runs. Console fixture automation does not establish agent routing, bounded retries or a single authoritative challenge loop. |
-| 082 | Continue Local Dashboard Output | Partial | Existing dashboard now loads runtime ledger history and polls incremental events automatically, with reconnect, duplicate/conflict and malformed-input handling. Local runtime/mock-ESP browser acceptance passed; physical Pi/USB and full DDIL authority lifecycle remain. [Live guide](integration/live-dashboard.md). |
+| 082 | Continue Local Dashboard Output | Partial | Existing dashboard loads runtime ledger history and polls incremental events with reconnect, duplicate/conflict and malformed-input handling. Authenticated LAN web access to the physical Pi/USB feed passed. This interim web surface is read-only; native LLM/face/accept-reject integration and the full DDIL authority lifecycle remain. [Live guide](integration/live-dashboard.md). |
 | 083 | Cache Unverified External Evidence Requests | Planned | No bounded persistent external-evidence request cache exists. |
 | 084 | Detect Cloud Reconnection | Planned | No direct Pi/enterprise reconnection detector or authenticated readiness check exists. |
 | 085 | Exit DDIL Mode | Planned | No fenced return to ONLINE enterprise execution exists; outstanding local commands/approvals must not remain valid after transfer. |

@@ -41,6 +41,13 @@ describe('runtime ledger mapping', () => {
     expect(Object.keys(state.requests)).toHaveLength(0);
     expect(JSON.stringify(state)).not.toMatch(/risk_score|VERIFIED_LOCAL|cloud_connected/);
   });
+  it('accepts the explicit physical serial controller provenance label', () => {
+    const state = mergeRuntimeFeed(emptyRuntime(), {
+      ...page([event()]),
+      source: { connection: 'ssh-tunnel', controller: 'physical-serial' },
+    });
+    expect(state.source?.controller).toBe('physical-serial');
+  });
 });
 
 afterEach(() => vi.useRealTimers());
