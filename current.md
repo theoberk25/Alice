@@ -6,8 +6,9 @@ Feature: `codex/dashboard-visual-overhaul` in `../alice-dashboard-visual-overhau
 ## Active objective
 
 Presentation-only redesign delivered and integrated into Alex's local main.
-Team [PR #6](https://github.com/theoberk25/Alice/pull/6) is open for review.
-Do not push local main, merge the remote PR, or deploy. Owners are unassigned.
+Team [PR #6](https://github.com/theoberk25/Alice/pull/6) was closed at the user's
+request while a teammate prepares changes. Keep the redesign locally; no further
+publication, local-main push, remote merge or deployment. Owners are unassigned.
 
 ## Current state
 
@@ -18,8 +19,8 @@ Do not push local main, merge the remote PR, or deploy. Owners are unassigned.
   to backend-evidence-driven biometric SVG presentation.
 - Existing handlers, enablement, camera lifecycle, state, contracts and security
   implementation are preserved. No intentional business/security behavior changes.
-- Feature was published to the verified team `upstream` remote. Team main did not
-  advance; no conflicts occurred. Local main was not pushed.
+- The previously published feature branch remains on the team remote, but PR #6
+  is closed and unmerged. Closing-status changes are local only. No main was pushed.
 - The Dock-linked original-checkout ALICE.app was rebuilt and reopened with the
   redesign. Its existing settings/enrollment are preserved. Worktree and branch remain.
 
@@ -36,8 +37,8 @@ Build emits a JS chunk-size advisory. Dialog closing is immediate for cleanup.
 
 ## Next steps
 
-1. Review [PR #6](https://github.com/theoberk25/Alice/pull/6); retain feature worktree through review.
-2. Human camera-to-Pi/hardware acceptance remains separate, requiring its own scope.
+1. Retain the local feature worktree and branch while the teammate finishes changes.
+2. Reconcile/publish again only when requested; physical acceptance remains separate.
 
 [Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
 [Previous checkpoint](docs/handoffs/2026-09-06-before-visual-overhaul.md) ·
