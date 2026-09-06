@@ -6,14 +6,14 @@ permissions, behavioral assessment, technician review and durable evidence so a
 local action can be understood, reviewed and eventually reconciled upstream.
 
 **Current delivery:** a first-light signed terminal request can run through the
-local runtime to a mock ESP, alongside assessment/audit components and a native
-technician console. The full product loop is still being integrated.
+USB-backed Pi runtime to a mock ESP, with automatic verified audit delivery to
+Wazuh and a native technician console. The full product loop is still being integrated.
 Moving code into the shared layout does not make the live system complete.
 
 The intended decision split is **Pi ML classification → local Mac held-action
-accept/deny after biometric verification → Pi validation/enforcement**. Backend
-and live workstation integration are the next workstream; see the
-[next-session handoff](docs/handoffs/2026-09-05-theo-architecture-alignment.md).
+accept/deny after biometric verification → Pi validation/enforcement**. Physical ESP integration and authenticated held-action responses are next; use the
+[ESP/technician handoff](docs/integration/esp-technician-handoff.md) and
+[automatic Wazuh runbook](docs/integration/wazuh-audit-sync.md).
 
 Start with [architecture.md](architecture.md) for the whole-system picture,
 [current.md](current.md) for the current checkpoint, and
@@ -44,7 +44,8 @@ sensor contracts, operating limits and hardware acceptance remain open.
 | Behavioral analysis | Schema validation, cyber features, contextual PRE/POST scoring, synthetic training and calibration experiments | Trusted live observations, persistent model export/load and Pi resource acceptance |
 | First-light runtime | Signed terminal envelope, verified demo release, exact grant resolver, fixture assessment, durable attempt/result audit, mock light transport and verified USB export | Physical Pi/ESP acceptance, real model/review, full permissions and authority lifecycle; [scope](docs/reports/2026-09-05-pi-backend-status.md) |
 | Pi assessment | `assess_for_technician` combines supplied permission findings and anomaly evidence into `alice-decision-assessment-v1` | Full permission semantics, real assessment integration, authenticated console transport and app response binding |
-| Decision Evidence Ledger | SQLite recorder, canonical event contracts, hash chains, Ed25519 checkpoints and durable outbox state | Real assessment/lifecycle producers, enterprise sender and production trust provisioning; first-light supplies a fixture-based producer |
+| Decision Evidence Ledger | SQLite recorder, canonical event contracts, hash chains, Ed25519 checkpoints and durable outbox state | Real assessment/lifecycle producers, semantic reconciliation and production trust provisioning; first-light supplies a fixture-based producer |
+| Enterprise audit delivery | Automatic in-process USB ledger uploader, verified TLS, exact read-back, persistent receipts and retry/backoff | Live outage/reboot acceptance, semantic reconciliation and cache downloads; [runbook](docs/integration/wazuh-audit-sync.md) |
 | Technician console | React/Vite UI, Tauri/Rust boundary, local storage, immutable reassessment lineage and approval guards | Real core transport and execution confirmation; remote mode fails closed |
 | Facial identity | FastAPI/ArcFace service, enrollment storage and native verification boundary | Live operator acceptance on each installation; liveness/deepfake detection is not implemented |
 | Enterprise simulation | Synthetic activity, permission releases, Wazuh configuration, baseline/training data and local console | Authenticated enterprise sync, production feeds, trusted cache activation and real hardware |
@@ -67,6 +68,8 @@ product task IDs. Its component statuses are not a product-readiness percentage.
 | `common/` | Shared JSON schemas and checkout-resource lookup |
 | `apps/desktop/` | Active technician UI and native Tauri application |
 | `packages/contracts/`, `packages/domain/`, `packages/ui/` | Console contracts, state/approval rules and shared UI |
+| `cloud/` | Wazuh delivery adapter/worker; other enterprise connector scaffolds remain |
+| `services/systemd/` | Pi deployment service configuration; adapt documented demo paths |
 | `services/biometrics/` | Local facial identity service |
 | `scripts/lab/` | Implemented ML, calibration, replay, enterprise simulation and first-light tools |
 | `scripts/console/`, `scripts/biometrics/` | Console launch/build helpers and model/identity tooling |
@@ -75,7 +78,7 @@ product task IDs. Its component statuses are not a product-readiness percentage.
 | `fixtures/`, `tests/fixtures/` | Console scenarios and core contract/feature fixtures |
 | `artifacts/` | Selected published synthetic evidence; generated/private outputs follow `.gitignore` |
 | `docs/` | All substantive guides, contracts, plans, handoffs and reference documentation |
-| `agent/`, `cloud/`, `protected_systems/`, `apps/dashboard/`, `services/backend/`, `services/face_verification/` | Preserved integration or legacy scaffolding; existence is not implementation evidence |
+| `agent/`, `protected_systems/`, `apps/dashboard/`, `services/backend/`, `services/face_verification/` | Preserved integration or legacy scaffolding; existence is not implementation evidence |
 
 Npm workspaces are declared explicitly so console packages do not absorb the
 unrelated permission/baseline packages. `workstation/` is no longer a tracked

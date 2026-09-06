@@ -66,6 +66,7 @@ class FirstLightRuntime:
     def __init__(self, *, release_dir, trusted_manifest_key: bytes, data_dir,
                  esp_base_url: str, usb_root=None, ledger_key_file=None, initialize_ledger=False,
                  release_snapshot=False):
+        self.sync_worker = None
         self.storage = None
         self.release_snapshot = release_snapshot
         if usb_root is not None:
@@ -219,7 +220,8 @@ class FirstLightRuntime:
         if self.storage:
             self.storage.check()
         while True:
-            page = self.ledger.read(after=after, limit=64)
+            with self._lock:
+                page = self.ledger.read(after=after, limit=64)
             if not page:
                 return
             yield from page
@@ -430,7 +432,21 @@ class FirstLightRuntime:
         finally:
             os.close(directory)
 
+    def start_wazuh_sync(self, config):
+        from cloud.wazuh_audit import WazuhAuditSink
+        from cloud.wazuh_worker import WazuhWorker
+        if self.sync_worker is not None:
+            raise StartupError("Sync already started")
+        if self.storage and Path(config).resolve().is_relative_to(self.storage.root.resolve()):
+            raise StartupError("Sync credentials must stay outside USB")
+        sink = WazuhAuditSink.from_config(config)
+        self.sync_worker = WazuhWorker(self.ledger, sink, self._lock,
+                                      check_storage=self.storage.check if self.storage else lambda: None)
+        self.sync_worker.start()
+
     def close(self):
+        if self.sync_worker:
+            self.sync_worker.close()
         self.ledger.close()
 
 
@@ -467,6 +483,9 @@ def make_server(runtime: FirstLightRuntime, host="0.0.0.0", port=8080):
         def do_GET(self):
             # Read-only technician feed; no approval verbs are exposed here.
             path, _, query = self.path.partition("?")
+            if path == "/sync-status":
+                return self._reply(200, runtime.sync_worker.status() if runtime.sync_worker
+                                   else {"state": "DISABLED"})
             if path != "/events":
                 return self._reply(404, {"error": "unknown path"})
             after = 0
@@ -503,6 +522,8 @@ def main():
                         help="Provisioned private key outside USB; required with --usb-root")
     parser.add_argument("--initialize-ledger", action="store_true",
                         help="Explicit first provisioning only; never substitutes for a missing SQL snapshot")
+    parser.add_argument("--wazuh-sync-config", type=Path,
+                        help="Private HTTPS credentials; enables automatic ledger delivery")
     parser.add_argument("--esp-url", required=True)
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
@@ -514,11 +535,16 @@ def main():
                                 data_dir=args.data_dir, esp_base_url=args.esp_url,
                                 usb_root=args.usb_root, ledger_key_file=args.ledger_key_file,
                                 initialize_ledger=args.initialize_ledger)
+    if args.wazuh_sync_config:
+        runtime.start_wazuh_sync(args.wazuh_sync_config)
     server = make_server(runtime, args.host, args.port)
     print(f"first-light runtime listening on {server.server_address}")
     try:
         server.serve_forever()
+    except KeyboardInterrupt:
+        pass
     finally:
+        server.server_close()
         runtime.close()
 
 

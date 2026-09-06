@@ -11,23 +11,27 @@ The current [parent PRD][prd], [architecture][architecture] and
 progress and remaining cross-system agreements are documented separately in the [console integration note][console-integration];
 it does not change core task status without a working cross-system connection.
 The current increment adds the [local Decision Evidence Ledger][audit-guide];
-two-mode admission, authority and live transport still need runtime integration.
+two-mode admission and authority transfer still need runtime integration; live
+read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
-Live dashboard slice published to `origin/main` as `44f4d73`; push confirmed,
-no deployment performed. [Configuration and field mapping](integration/live-dashboard.md).
-The real local first-light runtime now feeds the existing technician dashboard
-automatically through validated authenticated transport. USB-backed SQL storage
-and no-fallback mount guards implement the user-approved offline storage direction.
-Remote biometric actions, full enterprise snapshot synchronization, SIEM workers and
-physical Pi/USB acceptance remain pending. Verification is recorded in the
-[live handoff](handoffs/2026-09-06-live-dashboard.md). Task 082 becomes Partial;
-all task IDs and labels are preserved.
+Integrated locally from Jared's `origin/main` checkpoint `ef413b6` and the preserved
+SQL snapshot checkpoint `73dfa91`. [ESP/technician handoff](integration/esp-technician-handoff.md)
+and [Wazuh runbook](integration/wazuh-audit-sync.md) define the provisioned paths.
 
-The local [SQL input snapshot increment](handoffs/2026-09-06-release-snapshot.md)
-adds immutable signed first-light packaging and verified startup without replacing
-offline audit history. It is uncommitted; the published baseline remains above.
+Jared's [automatic USB proof](reports/2026-09-06-automatic-usb-wazuh-sync.md) reports
+seven new events delivered from physical ext4 USB, reaching 83 Wazuh records,
+with identical retry causing no extra mock-controller command. These are Jared's
+observations; this Mac's SSH connection currently times out. Live outage/reboot,
+physical actuator and semantic reconciliation acceptance remain pending.
+
+Our [signed SQL input snapshot](integration/release-snapshot.md), existing audit
+history and live dashboard are retained alongside the automatic owner-integrated
+Wazuh worker. General enterprise SQL synchronization, activation/freshness/rollback
+protection and remote biometric actions remain separate work. Task 086 is Partial;
+all task IDs and labels are preserved. Combined verification belongs in the
+[integration handoff](handoffs/2026-09-06-jared-main-integration.md).
 
 ### Historical checkpoints
 
@@ -111,8 +115,8 @@ this assessment is not silently substituted for `alice.decision`.
 - **Planned** — the requested behavior is not implemented in this checkout.
   A PRD proposal or empty skeleton is not completion evidence.
 
-Current totals: **12 Done component, 39 Partial,
-67 Planned**. These are task-status counts, not a percentage of product
+Current totals: **12 Done component, 40 Partial,
+66 Planned**. These are task-status counts, not a percentage of product
 readiness or an estimate of remaining effort.
 
 The current model increment is a [general contextual Isolation Forest][context-guide]
@@ -435,13 +439,13 @@ workflows run with explicit no-unintended-execution assertions.
 | 083 | Cache Unverified External Evidence Requests | Planned | No bounded persistent external-evidence request cache exists. |
 | 084 | Detect Cloud Reconnection | Planned | No direct Pi/enterprise reconnection detector or authenticated readiness check exists. |
 | 085 | Exit DDIL Mode | Planned | No fenced return to ONLINE enterprise execution exists; outstanding local commands/approvals must not remain valid after transfer. |
-| 086 | Reconnect to SIEM | Planned | The SIEM connector is empty; direct Pi/enterprise source authentication, replay/cursors and reconnection remain. |
+| 086 | Reconnect to SIEM | Partial | [Bounded Wazuh uploader](integration/wazuh-audit-sync.md) uses strict TLS, create-only delivery, exact read-back and existing ledger acknowledgements. 76 live Pi events delivered and replayed without duplicates. Owner-integrated automatic delivery now runs on ext4 USB (7 additional live events). Simulated outage/restart tests pass; live outage/reboot acceptance and semantic reconciliation remain. |
 | 087 | Reconnect to EDR | Planned | The EDR connector is empty; direct Pi/enterprise source authentication, replay/cursors and reconnection remain. |
 | 088 | Fetch Pending External Evidence | Planned | No direct Pi/enterprise pending-evidence fetch workflow exists; the technician is not the manual relay. |
 | 089 | Reconcile Local Evidence with Cloud Evidence | Planned | The core [reconciliation component][reconciliation] is empty. Direct Pi comparison/upload and append-only findings remain. |
 | 090 | Detect Evidence Discrepancies | Planned | No local/cloud evidence discrepancy detector exists. |
 | 091 | Append Reconciliation Results | Partial | [Ledger finding append][audit] and [outbox tests][audit-outbox-tests] require original ID/hash and source attribution; reconciliation marker requires original ACK plus linked finding. Actual evidence fetching/comparison and enterprise reconciliation remain absent. |
-| 092 | Preserve Original Decision History | Partial | Original audit events remain immutable through display/reconnect and explicit snapshot selection at restart. Snapshot tests preserve old event bytes, replay outcomes and queued delivery state while a changed release governs new requests. [Snapshot handoff](handoffs/2026-09-06-release-snapshot.md). SIEM delivery and full reassessment exchange remain. |
+| 092 | Preserve Original Decision History | Partial | Original audit events remain immutable through display/reconnect and explicit snapshot selection at restart; combined Wazuh/snapshot tests preserve exact records and restart replay. Snapshot tests preserve event bytes, replay outcomes and queued delivery state as new releases govern future requests. Wazuh delivery preserves originals and appends delivery bookkeeping. Full reassessment and semantic reconciliation remain. [Snapshot guide](integration/release-snapshot.md), [Wazuh runbook](integration/wazuh-audit-sync.md). |
 
 ## Package updates and connected recovery (093–107)
 

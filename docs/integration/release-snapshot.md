@@ -77,14 +77,16 @@ prohibitions, trusted time/freshness, generation rollback anchor and activation
 protocol before extending this first-light container. A valid signature alone does
 not prove currentness; this slice deliberately makes no rollback/expiry guarantee.
 The existing first-light exact-PERMIT semantics and fixture assessment remain.
-SIEM destination/authentication/receipt contracts are still needed for delivery.
+Jared's [Wazuh worker and receipt contract](wazuh-audit-sync.md) now provide
+automatic delivery alongside this slice; semantic reconciliation remains separate.
 
 Alex: existing runtime-feed event schema and read-only transport remain compatible;
 new snapshot provenance uses an existing artifact field. Missing scores, physical
 verification and remote biometric actions remain unavailable. No UI redesign.
 
 Theo/Jared/Xavi: verify reachability, filesystem, mount, private key provisioning,
-physical controller and power-loss/removal behavior. Hard-link publication support
-has not been established for USB UUID `6C1A-C6EA`; do not infer its filesystem.
+physical controller and power-loss/removal behavior. Jared reports ext4 USB UUID
+`0742aa3f-38fe-44aa-a382-9be9c4d9bb52`; snapshot publication has not yet been tested
+on that device. Do not replace its existing JSON release or running ledger for a test.
 
 [Implementation and verification handoff](../handoffs/2026-09-06-release-snapshot.md).

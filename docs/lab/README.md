@@ -61,3 +61,17 @@ review/authority protocols and physical Pi/ESP acceptance remain.
 
 The first-light `publish_snapshot` command packages an already signed release as
 a new immutable SQL input artifact. See [snapshot commands and limits](../integration/release-snapshot.md).
+
+## Wazuh maintenance
+
+`python -m lab.wazuh_sync` is implemented under `scripts/lab/`. It requires
+exclusive ledger ownership with `alice-runtime.service` stopped; use the
+[automatic runtime worker](../integration/wazuh-audit-sync.md) during normal operation.
+The generic `run.py` allowlist does not include this maintenance command.
+
+## Read-only deployed pipeline acceptance
+
+`python -m lab.first_light.check_pipeline` compares an existing request in the
+loopback runtime, read-only USB SQL and optional Wazuh GET. It never submits or
+uploads events and may run beside the runtime owner. Follow the
+[joint Pi/technician acceptance guide](../integration/pi-technician-acceptance.md).

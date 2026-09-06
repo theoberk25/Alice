@@ -4,14 +4,15 @@ Status: local runtime/browser slice, 2026-09-06 UTC (September 5 EDT).
 Follow [AGENTS.md](../../AGENTS.md). Built on architecture checkpoint `417b9de`
 and merged teammate updates through `7081b6a`, on local `codex/live-dashboard`.
 Published to `origin/main` as `44f4d73` with explicit user authorization.
-No deployment was performed; physical Pi/USB acceptance remains pending.
+That checkpoint performed no deployment. Jared subsequently provisioned USB/Wazuh;
+see the [ESP handoff](esp-technician-handoff.md) and [joint acceptance](pi-technician-acceptance.md).
 
 ## Local snapshot continuation
 
 The [first-light SQL snapshot slice](release-snapshot.md) now packages and loads
 the existing signed release from SQL while preserving the separate audit ledger.
-It is not general enterprise SQL synchronization, automatic activation or SIEM
-delivery. The earlier scope statements below describe the published live-feed slice.
+It is not general enterprise SQL synchronization or automatic activation. Jared's
+[Wazuh worker](wazuh-audit-sync.md) supplies audit delivery alongside it. The earlier scope statements below describe the published live-feed slice.
 
 ## Approved storage lifecycle
 
@@ -30,9 +31,11 @@ The desktop's existing local identity database is separate from the runtime ledg
 
 **Scope limit:** enterprise snapshot publishing/atomic activation, loading general
 enterprise policy data from SQL, whole-store rollback protection using independent
-anchors, automatic authority transfer, and SIEM upload/reconciliation workers are
-not implemented by this slice. First-light still loads its existing signed JSON
-permissions release. The USB SQL runtime configuration implements the offline
+anchors, automatic authority transfer, and semantic SIEM reconciliation are
+not implemented by this slice. Automatic upload is now implemented separately by
+the [Wazuh worker](wazuh-audit-sync.md). First-light can load the existing signed JSON
+release from its directory or the explicit signed SQL container; the deployed Pi
+continues using the JSON directory. The USB SQL runtime configuration implements the offline
 recording/display part of the approved lifecycle, not a completed snapshot service.
 
 For a real Pi, provision a locally mounted filesystem supporting SQLite locking,
@@ -197,14 +200,14 @@ and must produce only one mock-controller command.
 
 ## Physical Pi configuration
 
-User-supplied connection details: hostname `alice-pi-01`, SSH user `pi`, Ethernet
-`192.168.50.20`; device `/dev/sda`, partition `/dev/sda1`, current UUID `6C1A-C6EA`.
-The USB is **not mounted yet**; proposed mount `/mnt/alice-usb`. The read-only
-`ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=5 pi@192.168.50.20 lsblk -f`
-check timed out from this Mac. Filesystem type, mount and physical readiness are
-unverified. No mount, formatting, population or remote deployment was performed.
-Device names can change; verify UUID/device identity before mounting. The UUID
-alone does not establish filesystem type or SQLite durability.
+Pi `alice-pi-01`, SSH `pi@192.168.50.20`, now runs `alice-runtime.service`
+against ext4 USB `/mnt/alice-usb`, UUID `0742aa3f-38fe-44aa-a382-9be9c4d9bb52`.
+The real paths are `/mnt/alice-usb/pi-data` and `/mnt/alice-usb/release`; private
+signing key remains on Pi internal storage. The first new USB-backed action
+produced seven automatically delivered Wazuh records. Read the current
+[ESP/technician handoff](esp-technician-handoff.md) before configuring a client.
+Earlier local-only tests below remain historical; live outage, physical actuation
+and power-loss acceptance are not established. Do not start a second runtime.
 
 
 Use the actual mounted USB path, verified release and separately provisioned
@@ -239,8 +242,8 @@ an unknown or changed SSH host key. No SSH credentials are stored in the dashboa
 
 Physical acceptance requires Pi SSH details, mounted USB path/filesystem,
 provisioned release/key, actual controller interface, storage-removal/power-loss
-tests and a real device readback. The current local tests do not establish any of
-those. Real ML inference, held accept/deny proof delivery, enterprise snapshot
+tests and a real device readback. The physical USB/action-to-Wazuh test now establishes mounted storage and
+mock-controller delivery; removal/power-loss and real hardware remain unverified. Real ML inference, held accept/deny proof delivery, enterprise snapshot
 publication and SIEM reconciliation remain separate team integration work.
 
 ## Where to keep connection settings

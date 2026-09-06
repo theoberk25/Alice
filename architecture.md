@@ -212,7 +212,7 @@ need an explicit migration decision.
 | --- | --- | --- |
 | Internal representation | Frozen native records; package-versioned codebook indices; one deterministic CBOR codec at boundaries, JSON for human/console projection. | Current request/assessment/audit paths use JSON-compatible contracts and canonical JSON bytes. CBOR/codebooks are not implemented; preserve old hash/record decoding across any migration. Benchmark size/CPU before claiming the plan's estimates. |
 | Signed releases | ONLINE pull → verify signature/digests → stage → validate → atomic activate; OFFLINE uses accepted cached inputs. | First-light verifies a demo release at startup. Full activation, expiry, revocations and rollback handling remain. Evidence feeds cannot become permission authority. |
-| Storage isolation | Read-only signed-input partition; distinct writable output storage; secrets outside the signed-input medium. | User-confirmed correction: USB holds the latest synchronized SQL snapshot entering DDIL and the Pi writes new offline audit data onto that USB. The runtime now supports guarded USB SQLite/evidence paths, with the signing key outside USB and no local fallback. Reconciliation preserves original history. Enterprise snapshot publication and SIEM workers remain unimplemented; see the [live guide](docs/integration/live-dashboard.md). |
+| Storage isolation | Read-only signed-input partition; distinct writable output storage; secrets outside the signed-input medium. | User-confirmed correction: USB holds the latest synchronized SQL snapshot entering DDIL and the Pi writes new offline audit data onto that USB. The runtime now supports guarded USB SQLite/evidence paths, with the signing key outside USB and no local fallback. Reconciliation preserves original history. Automatic Wazuh delivery now runs through the existing ledger owner on ext4 USB. Enterprise snapshot publication and semantic reconciliation remain; see the [live guide](docs/integration/live-dashboard.md). |
 | Audit and outbox | Durable intent before execution; distinguish audit-capacity failure from upload backlog pressure. | Reuse the SQLite/hash-chain/Ed25519 ledger. Do not introduce a second CBOR logger/WAL by assumption. Theo's bounded delivery ring must not discard unacknowledged source history; gap markers are not permission to lose evidence. |
 | Signing library | The older plan proposes PyNaCl and rejects cryptography for its target image. | Existing audit and first-light signing use cryptography. No library replacement is approved here; assess compatibility and Pi packaging before changing trust code. |
 | Model deployment | Mac-exported, hash-verified forest arrays; pure-Python Pi traversal; no pickle/joblib model loading. | Models currently fit/score in Mac Python components. Export/load and parity are future work. Keep profile, model, calibration and PRE/POST observation bindings explicit. |
@@ -258,7 +258,7 @@ The earlier reference's “only anomaly implemented” statement no longer appli
 | Existing component | What it establishes | What it does not establish |
 | --- | --- | --- |
 | Anomaly and assessment libraries | Strict feature/context validation, fitted-model experiments, PRE/POST scoring and assessment bindings | Deployable forest artifact, real sensor baselines or the connected Mac held-action response path |
-| Durable ledger | USB-configurable SQLite canonical events, hash chain, Ed25519 checkpoints, evidence references and delivery bookkeeping | Complete runtime recovery, production trust provisioning or enterprise delivery |
+| Durable ledger | USB-configurable SQLite canonical events, hash chain, Ed25519 checkpoints, evidence references and delivery bookkeeping | Complete runtime recovery, production trust provisioning or semantic reconciliation |
 | First-light runtime | Signed terminal request, verified demo release, exact PERMIT grant, labelled fixture assessment, durable attempt, mock-light command/readback and USB export | Real scoring, general permissions, real authority transfer, hardware acceptance or workstation integration |
 | Technician workstation | React/Tauri UI, fixture transport, immutable lineage, native review guards, local ArcFace/Ollama boundaries | Connected Pi event stream, remote review proof or execution confirmation; remote transport fails closed |
 | Enterprise lab | Synthetic releases/activity, Wazuh configuration and development views | Production permissions service or trusted live synchronization |
@@ -284,7 +284,9 @@ Paths below describe the current layout. New files follow [AGENTS.md](AGENTS.md#
 | `scripts/lab/` | Implemented training, calibration, replays, enterprise generator/console and first-light release builder, fixture, mock ESP, terminal/view/export tools. |
 | `scripts/console/`, `scripts/biometrics/` | Launch/build/schema-generation and model/identity helpers; console launcher tests are intentionally colocated. |
 | `lab/` | `__init__.py` provides the public `lab.*` namespace pointing to `scripts/lab/`; four empty historical placeholders remain. No second implementation is loaded. |
-| `agent/`, `cloud/`, `protected_systems/` | Empty future agent, enterprise connector and protected-device scaffolds. |
+| `cloud/` | Implemented Wazuh HTTPS delivery adapter and in-process worker; other enterprise connector scaffolds remain. |
+| `services/systemd/` | Current demo Pi runtime service configuration; deployment paths are explicit and adaptable. |
+| `agent/`, `protected_systems/` | Preserved future agent and protected-device scaffolds. |
 | `apps/dashboard/`, `services/backend/`, `services/face_verification/` | Preserved empty legacy application/service scaffolds; use `apps/desktop/` and `services/biometrics/` for active console work. |
 | `packages/mission_policy/`, `packages/ops_baseline/`, `packages/tooling/` | Empty legacy release/tool scaffolds. New independent tools belong under `scripts/<area>/`; no empty replacement directories are needed. |
 | `tests/`, `tests/console/`, `tests/fixtures/` | Core tests, console unit/browser tests and core examples. Some original core test files remain empty. |
@@ -333,3 +335,7 @@ These are next steps, not implementation completed by this document. The
 [session handoff](docs/handoffs/2026-09-05-theo-architecture-alignment.md) records
 source differences, current owners and the next-session boundary. Detailed product
 tasks remain in the [tracker](docs/implementation-tracker.md).
+
+Current physical USB/Wazuh deployment and ESP/technician connection recommendations:
+[team handoff](docs/integration/esp-technician-handoff.md). Automatic audit delivery
+does not implement authority transfer or technician accept/prevent commands.
