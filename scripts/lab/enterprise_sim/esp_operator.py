@@ -1,4 +1,4 @@
-"""Sentinel ESP demo operator metadata, not a signed Pi permissions release."""
+"""Energy-infrastructure ESP operator metadata, not a signed Pi permissions release."""
 from copy import deepcopy
 
 USER_ID = 'ssgt.a.okafor'

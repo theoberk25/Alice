@@ -131,9 +131,13 @@ ESP handoff publication includes the verified mapping; real ML and remote human
 approval remain.
 
 
-Enterprise presentation now includes live alert metrics/search, endpoint evidence
-and actual Wazuh Pi audit records. Demo inventory and unavailable EDR responses are
-labelled explicitly; no permissions or task completion statuses changed.
+Enterprise presentation now models the DN-Hacks energy-infrastructure server room
+instead of Sentinel AFB. The Wazuh index received 434 deterministic, idempotent and
+internally labelled scenario records covering authentication, vulnerabilities,
+MITRE ATT&CK, configuration assessment, file integrity, malware, endpoint behavior
+and ALICE agent governance. New SOC views derive their counts from indexed records;
+actual Wazuh Pi audit records remain a separate stream. EDR response remains
+unavailable and no permissions or task completion statuses changed.
 [Existing runbook and research](integration/wazuh-audit-sync.md).
 
 Local enterprise-download follow-up: real generation 44 permissions now verified
@@ -141,7 +145,7 @@ and cached on USB by a 30-second systemd timer; rollback anchor stays internal.
 This is cache-only: first-light grants unchanged, full enterprise activation and
 normal-behavior/model synchronization remain. [Existing runbook](integration/wazuh-audit-sync.md).
 
-Sentinel operator: actual local indexer
+Legacy enterprise operator fixture: actual local indexer
 login `ssgt.a.okafor`, scoped read-only ALICE data role, and descriptive ESP profile
 provisioned. Authentication/read tests passed; security administration denied.
 No signed permissions, Pi grants, technician authority or task status changed.

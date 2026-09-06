@@ -1,4 +1,4 @@
-"""Fictional Air Force base org model for the ALICE enterprise simulation.
+"""Fictional energy-infrastructure org model for the ALICE enterprise simulation.
 
 Every identifier, person, unit, address and measurement here is invented for a
 demonstration. Nothing in this module is real base data, a real permissions
@@ -15,8 +15,8 @@ This module holds data only. It performs no evaluation, signing or I/O.
 
 SITE = {
     "site_id": "SEN",
-    "name": "Sentinel Air Force Base",
-    "note": "Fictional installation used for the ALICE / DCAMR demonstration.",
+    "name": "DN-Hacks Energy Infrastructure Testbed",
+    "note": "Fictional server-room energy environment used for the ALICE demonstration.",
     "networks": {
         "10.42.10.0/24": "ALICE and management enclave",
         "10.42.20.0/24": "OT / SCADA enclave (microgrid, feeders, metering)",

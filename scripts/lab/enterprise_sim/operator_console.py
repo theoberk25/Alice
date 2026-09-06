@@ -11,9 +11,9 @@ from urllib.error import HTTPError
 from lab.first_light.terminal_client import build_envelope, send
 from .console import server as enterprise
 
-PAGE = '''<!doctype html><meta charset="utf-8"><title>Sentinel operator</title>
+PAGE = '''<!doctype html><meta charset="utf-8"><title>Infrastructure operator</title>
 <style>body{background:#101820;color:#e7eef6;font:17px system-ui;max-width:1000px;margin:45px auto;padding:20px}button,a{padding:12px;margin:8px;color:#071b25;background:#66d9bc;border:0;border-radius:6px;font:inherit}pre{white-space:pre-wrap;background:#1d2a37;padding:18px;border-radius:8px}small{color:#afbfce}</style>
-<h1>Sentinel · SSgt A. Okafor</h1><p>Electrician · elec-agent-01 · Eight mapped lights</p>
+<h1>Energy Infrastructure · A. Okafor</h1><p>Facilities operator · elec-agent-01 · Eight mapped lights</p>
 <p>Signed action → enterprise receipt → Pi permissions check → USB audit → Wazuh upload</p>
 <p><strong>Controller: CONTROLLER_LABEL.</strong> ON enables slow blinking (1 second lit / 1 second dark). Feedback reports blink enabled, not instantaneous brightness.</p>
 <button onclick="allOff()">All lights off</button><pre id="bulk" hidden></pre>
@@ -62,7 +62,7 @@ def main():
     for f in (a.key_file,a.credentials):
         if f.is_symlink() or f.stat().st_mode & 0o077: p.error('Private files must be mode 0600')
     seed=bytes.fromhex(a.key_file.read_text().strip()); c=json.loads(a.credentials.read_text())
-    if c['username']!='ssgt.a.okafor':p.error('Expected selected Sentinel operator')
+    if c['username']!='ssgt.a.okafor':p.error('Expected selected infrastructure operator')
     enterprise.INDEXER_USER=c['username'];enterprise.INDEXER_PW=c['password']
     token=secrets.token_urlsafe(32); known={}; lock=threading.Lock()
     class Handler(BaseHTTPRequestHandler):

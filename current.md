@@ -1,7 +1,7 @@
 # Current
 Updated: 2026-09-06 EDT. Owners unassigned.
-Branch: `codex/main-redesign-integration`.
-Team baseline: `92c65dc749182196ee763b27f03830e9ab111160` (latest fetched main).
+Branch: `main`.
+Team baseline: `8a975850ed0d0620fa81bdd17f7a6f0c409b0d6f` (latest fetched main before this update).
 Initial integration checkpoint: `4b1f67e`, based on previous team main `4531277`.
 Preserved redesign: `db730710750787af9064b495c6a236e0b504b2fe`.
 
@@ -33,6 +33,10 @@ unchanged. [Team checkpoint](docs/handoffs/2026-09-06-before-pr-thermal-deployme
 Live readiness recheck: corrected the Pi MCP upstream to runtime port `8080` and
 poller clients to MCP port `8790`; authenticated MCP metrics now pass from the
 configured 90 F / 60% fan / 60% battery READY state.
+Enterprise presentation now uses the DN-Hacks energy-infrastructure scenario.
+The local Wazuh index contains 434 idempotent labelled scenario records spanning
+authentication, vulnerabilities, MITRE ATT&CK, configuration assessment, file
+integrity and ALICE agent governance; actual Pi ledger evidence remains separate.
 
 ## Evidence and blockers
 
@@ -55,6 +59,7 @@ The pre-merge checkpoints are preserved for both
 1. Sign in to the reopened live-runtime app to connect to the saved feed.
 2. Perform real-camera/native appearance and physical-Pi operator acceptance.
 3. User reviews/merges PR #7; keep the Dock app unchanged.
+4. Use the Wazuh-backed enterprise console for the connected-mode demo rehearsal.
 
 [Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
 [Design sources](docs/guides/console/visual-sources.md) ·

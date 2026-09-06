@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Enterprise SIEM — Sentinel AFB</title>
+<title>Enterprise SIEM — DN-Hacks Energy Infrastructure</title>
 <style>
   :root {
     --bg:#0e1116; --panel:#161b23; --panel2:#1c222c; --line:#2a323f;
@@ -113,8 +113,8 @@
 </head>
 <body>
 <header>
-  <h1><b>◈ SENTINEL</b> <span>Enterprise SIEM + EDR demo</span></h1>
-  <span class="tag">SIEM + ENDPOINT SECURITY · DEMO</span>
+  <h1><b>◈ ENERGY INFRASTRUCTURE SOC</b> <span>Enterprise SIEM + EDR</span></h1>
+  <span class="tag">WAZUH + ALICE · DN-HACKS</span>
   <div class="chips" id="chips"></div>
 </header>
 <nav id="nav"></nav>
@@ -123,6 +123,9 @@
   <section id="s-soc" class="on"></section>
   <section id="s-hunt"></section>
   <section id="s-endpoints"></section>
+  <section id="s-vulnerabilities"></section>
+  <section id="s-mitre"></section>
+  <section id="s-compliance"></section>
   <section id="s-ledger"></section>
   <section id="s-overview"></section>
   <section id="s-fleet"></section>
@@ -140,15 +143,10 @@ const TABS = [
   ["soc","Security overview",""],
   ["hunt","Threat hunting",""],
   ["endpoints","Endpoint security",""],
+  ["vulnerabilities","Vulnerability detection",""],
+  ["mitre","MITRE ATT&CK",""],
+  ["compliance","Configuration & compliance",""],
   ["ledger","Edge audit stream","↑"],
-  ["overview","Architecture & scenario",""],
-  ["fleet","Demo fleet scenario","↕"],
-  ["identity","Identity","↓"],
-  ["permissions","Published permissions","↓"],
-  ["activity","Scenario audit","↑"],
-  ["models","Behavior models","↓"],
-  ["telemetry","Demo inventory & alerts",""],
-  ["edge","Live edge (technician)","↑"],
 ];
 let S = null;
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -186,7 +184,7 @@ function banner(){
   $("banner").className = "banner" + (live?"":" warn");
   $("banner").innerHTML = live
     ? `Connected to Wazuh. This demonstration combines indexed detections, received
-       ALICE audit records and labelled Sentinel scenarios. Scenario views are not
+       ALICE audit records and labelled DN-Hacks infrastructure scenarios. Scenario views are not
        measurements of current endpoint enrollment or Pi enforcement state.`
     : `The indexer is not reachable, so this is the <b>generated release set and returned
        audit on disk</b>, not live enterprise data. Everything below is simulated.`;

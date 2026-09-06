@@ -1,4 +1,4 @@
-"""Wazuh-side configuration artifacts for the simulated Sentinel AFB network.
+"""Wazuh-side configuration artifacts for the DN-Hacks infrastructure demo.
 
 Everything here is text this module writes to disk for a human to review and
 apply. Nothing contacts a Wazuh manager, indexer or API. Endpoint paths and
@@ -15,54 +15,54 @@ from .scenario import AGENTS, SITE, SYSTEMS, USERS
 # --------------------------------------------------------------------------
 
 ENDPOINTS = [
-    {"id": "001", "name": "alice-pi-01", "ip": "10.42.10.11",
-     "os": "Debian GNU/Linux 12 (aarch64)", "groups": ["default", "alice-pi"],
+    {"id": "001", "name": "alice-pi-01", "ip": "192.168.50.20",
+     "os": "Raspberry Pi OS Lite (aarch64)", "groups": ["default", "alice-edge"],
      "role": "ALICE decision node (Raspberry Pi 4, 2 GB)"},
-    {"id": "002", "name": "agent-mac-01", "ip": "10.42.10.21",
-     "os": "macOS 15.4", "groups": ["default", "workstations"],
-     "role": "Agent Mac: proposes requests"},
-    {"id": "003", "name": "tech-mac-01", "ip": "10.42.10.22",
-     "os": "macOS 15.4", "groups": ["default", "workstations"],
-     "role": "Technician Mac: console, face verification, local LLM"},
-    {"id": "004", "name": "spiders-mgc-01", "ip": "10.42.20.10",
-     "os": "Ubuntu 22.04.5 LTS", "groups": ["default", "ot-controllers"],
-     "role": "SPIDERS microgrid controller"},
-    {"id": "005", "name": "spiders-relay-03", "ip": "10.42.20.11",
-     "os": "embedded (syslog only)", "groups": ["default", "ot-controllers"],
-     "role": "Protective relay bank; syslog forwarded, no agent installed"},
-    {"id": "006", "name": "bess-ctrl-02", "ip": "10.42.20.12",
-     "os": "Ubuntu 22.04.5 LTS", "groups": ["default", "ot-controllers"],
-     "role": "Battery energy storage controller"},
-    {"id": "007", "name": "scada-hmi-02", "ip": "10.42.20.32",
-     "os": "Windows 10 IoT Enterprise", "groups": ["default", "ot-workstations"],
-     "role": "SCADA HMI, IT/OT bridge"},
-    {"id": "008", "name": "feeder-a-rtu", "ip": "10.42.20.41",
-     "os": "ESP32 firmware 1.4.2", "groups": ["default", "esp-controllers"],
-     "role": "Feeder A RTU / ESP demo node"},
-    {"id": "009", "name": "feeder-b-rtu", "ip": "10.42.20.42",
-     "os": "ESP32 firmware 1.4.2", "groups": ["default", "esp-controllers"],
-     "role": "Feeder B RTU / ESP demo node"},
-    {"id": "010", "name": "meter-gw-01", "ip": "10.42.20.44",
-     "os": "OpenWrt 23.05", "groups": ["default", "ot-controllers"],
-     "role": "Metering and demand-response gateway"},
-    {"id": "011", "name": "tririga-app-01", "ip": "10.42.30.15",
-     "os": "Red Hat Enterprise Linux 9.4", "groups": ["default", "it-servers"],
-     "role": "TRIRIGA system of record"},
-    {"id": "012", "name": "builder-svc-01", "ip": "10.42.30.16",
-     "os": "Windows Server 2022", "groups": ["default", "it-servers"],
-     "role": "BUILDER / Piton condition assessment"},
-    {"id": "013", "name": "wo-api-01", "ip": "10.42.30.17",
-     "os": "Ubuntu 22.04.5 LTS", "groups": ["default", "it-servers"],
-     "role": "Work order and parts requisition API"},
+    {"id": "002", "name": "enterprise-siem-01", "ip": "192.168.50.50",
+     "os": "macOS / Wazuh single-node containers", "groups": ["default", "security-platform"],
+     "role": "Enterprise SIEM, EDR and release authority"},
+    {"id": "003", "name": "technician-console-01", "ip": "192.168.50.51",
+     "os": "macOS", "groups": ["default", "operations-workstations"],
+     "role": "Technician console with local LLM and face verification"},
+    {"id": "004", "name": "local-agent-01", "ip": "192.168.50.60",
+     "os": "macOS", "groups": ["default", "agent-runtimes"],
+     "role": "Local cooling and power-agent runtime"},
+    {"id": "005", "name": "cloud-agent-gcp-01", "ip": "external",
+     "os": "Google Cloud managed runtime", "groups": ["default", "cloud-workloads"],
+     "role": "Cloud cooling agent through enterprise ingress"},
+    {"id": "006", "name": "server-room-controller-01", "ip": "10.20.0.10",
+     "os": "Ubuntu Server 24.04 LTS", "groups": ["default", "protected-infrastructure"],
+     "role": "Protected server-room environmental controller"},
+    {"id": "007", "name": "cooling-fan-bank-01", "ip": "10.20.0.21",
+     "os": "Embedded controller (telemetry gateway)", "groups": ["default", "ot-telemetry"],
+     "role": "Variable-speed cooling fan bank"},
+    {"id": "008", "name": "ups-battery-01", "ip": "10.20.0.22",
+     "os": "Network management card", "groups": ["default", "ot-telemetry"],
+     "role": "Backup energy reserve and power telemetry"},
+    {"id": "009", "name": "esp-display-01", "ip": "serial-v3",
+     "os": "ESP32 firmware / USB serial", "groups": ["default", "display-telemetry"],
+     "role": "Eight-light physical telemetry display"},
+    {"id": "010", "name": "network-gateway-01", "ip": "192.168.50.1",
+     "os": "GL.iNet Opal", "groups": ["default", "network-infrastructure"],
+     "role": "Routed wireless uplink and DDIL boundary"},
+    {"id": "011", "name": "application-server-01", "ip": "10.20.0.31",
+     "os": "Debian GNU/Linux 12", "groups": ["default", "protected-infrastructure"],
+     "role": "Demonstration application workload"},
+    {"id": "012", "name": "identity-service-01", "ip": "10.10.0.15",
+     "os": "Red Hat Enterprise Linux 9", "groups": ["default", "security-platform"],
+     "role": "Enterprise identity and agent attribution service"},
 ]
 
 AGENT_GROUPS = {
-    "alice-pi": "The ALICE decision node. Reads its permissions release and ships audit.",
-    "esp-controllers": "ESP feeder nodes. Telemetry only; never a permissions source.",
-    "ot-controllers": "Microgrid, storage and metering controllers.",
-    "ot-workstations": "HMI and operator workstations bridging IT and OT.",
-    "it-servers": "TRIRIGA, BUILDER and work-order services.",
-    "workstations": "Agent and technician Macs.",
+    "alice-edge": "ALICE decision node, cache and audit transport.",
+    "security-platform": "Enterprise SIEM, identity and release services.",
+    "operations-workstations": "Technician operations surfaces.",
+    "agent-runtimes": "Authenticated local autonomous-agent processes.",
+    "cloud-workloads": "External cloud agents terminating at enterprise ingress.",
+    "protected-infrastructure": "Server-room controllers and protected workloads.",
+    "ot-telemetry": "Cooling, power and environmental telemetry adapters.",
+    "display-telemetry": "Physical demonstration indicators; no decision authority.",
+    "network-infrastructure": "Local network and DDIL boundary devices.",
 }
 
 # --------------------------------------------------------------------------
@@ -71,7 +71,7 @@ AGENT_GROUPS = {
 # --------------------------------------------------------------------------
 
 LOCAL_RULES = """<!--
-  ALICE custom rules for the Sentinel AFB simulation.
+  ALICE custom rules for the DN-Hacks energy and infrastructure simulation.
   Install as /var/ossec/etc/rules/local_rules.xml and restart wazuh-manager.
 
   Custom rule IDs must be >= 100000. The 100100-100199 block is reserved here

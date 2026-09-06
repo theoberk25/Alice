@@ -1,4 +1,4 @@
-"""Generate the Sentinel AFB simulation artifacts, then validate them.
+"""Generate the DN-Hacks energy-infrastructure simulation artifacts, then validate them.
 
     .venv/bin/python -m lab.enterprise_sim
 
@@ -397,7 +397,7 @@ def main() -> int:
         OUT = arguments.out
     OUT.mkdir(parents=True, exist_ok=True)
 
-    report: dict = {"site": "Sentinel Air Force Base (fictional)",
+    report: dict = {"site": "DN-Hacks Energy Infrastructure Testbed (fictional)",
                     "generator": "lab.enterprise_sim", "deterministic_seed": 1729}
 
     bundle = emit_permissions(report)

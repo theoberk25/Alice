@@ -1,4 +1,4 @@
-"""Fit the Sentinel voltage models on the generated data and score challenges.
+"""Fit the energy-infrastructure voltage models and score challenges.
 
     .venv/bin/python -m lab.enterprise_sim.fit
 

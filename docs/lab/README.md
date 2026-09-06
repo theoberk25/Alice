@@ -14,6 +14,7 @@ python3 -m lab.train_anomaly_model --output /tmp/alice-training-run
 python3 -m lab.enterprise_sim --out /tmp/alice-enterprise-run
 python3 -m lab.enterprise_sim.fit
 python3 -m lab.enterprise_sim.console
+python3 -m lab.enterprise_sim.soc_seed --apply
 ```
 
 From **any working directory**, use the single launcher (replace the checkout
@@ -34,6 +35,9 @@ output paths still mean relative to the caller's working directory.
 - [Training](../../scripts/lab/train_anomaly_model.py), [calibration comparison](../../scripts/lab/compare_anomaly_calibration.py)
 - [Contextual fitting](../../scripts/lab/contextual_training.py), [ledger replay](../../scripts/lab/replay_contextual_ledger.py)
 - [Enterprise generator](../../scripts/lab/enterprise_sim/__main__.py), [fit](../../scripts/lab/enterprise_sim/fit.py), [console](../../scripts/lab/enterprise_sim/console/server.py)
+- [Energy-infrastructure SOC seed](../../scripts/lab/enterprise_sim/soc_seed.py) writes
+  an idempotent, internally labelled DN-Hacks scenario to the configured local
+  Wazuh indexer. Omit `--apply` for a read-only count before loading it.
 - [Assessment API](../../dcamr/decision_model.py) and [contract](../contracts/decision-assessment.md)
 
 Use Python 3.12 and `requirements-anomaly-training.txt` plus `cryptography` for
