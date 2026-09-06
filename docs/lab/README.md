@@ -62,6 +62,22 @@ review/authority protocols and physical Pi/ESP acceptance remain.
 The first-light `publish_snapshot` command packages an already signed release as
 a new immutable SQL input artifact. See [snapshot commands and limits](../integration/release-snapshot.md).
 
+## Local native review rehearsal
+
+`python -m lab.first_light.native_review_demo --directory /absolute/new-private-dir
+--technician-id TECH-ID --launch-app` runs the existing first-light runtime, bridge
+and mock ESP locally. It generates an explicitly signed approval-required test
+release and two held requests. The native app still requires its configured real
+ArcFace service and existing enrollment; the helper does not alter private settings
+or install physical-Pi trust. See [operator steps](../guides/native-runtime-review.md).
+All synthetic ledger/keys remain in the new private directory; `stop` on stdin
+shuts down only this rehearsal and its launched app. No physical action is implied.
+
+`npm run demo:hold -- --session /absolute/new-private-dir/session.json` invokes
+`python -m lab.first_light.send_native_hold` to send another uniquely signed HOLD
+through that rehearsal's existing runtime. It requires the private local session
+and authenticated mock source; it neither approves nor commands the controller.
+
 ## Wazuh maintenance
 
 `python -m lab.wazuh_sync` is implemented under `scripts/lab/`. It requires

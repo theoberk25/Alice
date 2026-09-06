@@ -19,7 +19,9 @@ it does not prove a technician identity or grant protected-system authority.
 
 ## Final workstation role
 
-Integrate the native Tauri application when it is finished. Its source lives in
+The native Tauri application now shares the web viewing surface and adds locally
+validated signed review through the existing Pi runtime. Physical acceptance and
+explicit remote trust installation remain separate. Its source lives in
 `apps/desktop/`; shared schemas and state live in `packages/`; ArcFace and Ollama
 remain local workstation services. The 2 GB Raspberry Pi runs permissions,
 behavioral scoring, fusion, enforcement and authoritative audit work. It does not
@@ -64,8 +66,10 @@ app, then add richer decision payloads as producers become available:
 | Execution | Separate attempt, controller receipt, completion/failure/unknown and observed state |
 | System state | Mode, authority generation, cache readiness, connectivity and storage health |
 
-The current compact runtime feed omits full request parameters and numeric anomaly
-scores. Display those as unavailable until a versioned producer supplies them.
+The compact runtime feed omits full request parameters and numeric anomaly
+scores. Native `GET /review/<request_id>` now supplies retained canonical request
+parameters through the [review contract](../contracts/technician-runtime-review.md).
+Historical missing bytes and numeric scores remain unavailable.
 Never map fixture risk numbers into live model scores by assumption.
 
 ## Local LLM boundary
@@ -79,7 +83,11 @@ verification, approve an action, call protected tools or expose private reasonin
 If Ollama is unavailable, the console must retain the raw factors and human review
 controls. An explanation failure must not become ALLOW or DENY.
 
-## Anomalous fan-shutdown review
+## Planned anomalous fan-shutdown review
+
+This upstream target requires fan request/controller, live model and telemetry
+adapters. Current native execution parity is the first-light `set_light_state`
+contract; the local rehearsal uses fixture assessment.
 
 For the fan demonstration, show three completed `+10%` ALLOW requests followed by
 one current shutdown HOLD. The HOLD must retain the power agent, responsible user,
@@ -136,8 +144,10 @@ Historical decisions and late receipts remain visible under their original IDs.
 6. Never fall back to mock data when remote transport fails.
 
 The current Vite proxy implements only authenticated read-only `GET /events`.
-Do not extend it with approval writes. Connect writable review through the native
-boundary after the Pi endpoint and proof contract are agreed.
+Do not extend it with approval writes. Writable review uses the native
+boundary and the versioned [local review contract](../contracts/technician-runtime-review.md).
+The first-light runtime requires explicit console trust and fixed confirmed OFFLINE
+ALICE authority; this does not implement general enterprise ownership transfer.
 
 ## Acceptance gates
 
@@ -150,9 +160,11 @@ boundary after the Pi endpoint and proof contract are agreed.
   and separately reports receipt, execution result and observed state.
 - Tunnel loss retains history and recovers without simulation fallback.
 - Authority transfer invalidates incompatible pending approvals.
-- Three normal fan increments appear separately from the anomalous shutdown HOLD;
+- Planned fan acceptance: three normal increments appear separately from the anomalous shutdown HOLD;
   rejecting shutdown produces no command and preserves the last approved fan state.
 
-Current web viewing has passed against the physical Pi. Native remote response,
-live facial approval, real LLM explanation against Pi model factors and full
-authority-transfer acceptance remain pending.
+Historical web viewing passed against the physical Pi. Current native response
+checks use real signatures, temporary runtime/bridge/ledger and mock controllers.
+See [local validation](../reports/2026-09-06-native-live-backend-validation.md).
+Real camera to physical-Pi review, real LLM explanation against live model factors
+and full authority-transfer acceptance remain pending.

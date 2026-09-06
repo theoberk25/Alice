@@ -4,7 +4,7 @@ This is the console's executable-contract reference, subordinate to the main [ar
 
 ```text
 ALICE upstream/core (agent/, dcamr/, cloud/, common/)
-        ↕ structured contracts — real authenticated transport pending
+        ↕ structured contracts — authenticated read feed + native signed review
 apps/desktop + packages/contracts + packages/domain (console transport boundary)
         ↕
 ALICE Technician Console (apps/desktop/, services/biometrics/)
@@ -12,7 +12,7 @@ ALICE Technician Console (apps/desktop/, services/biometrics/)
 
 ## Current product authority and legacy compatibility
 
-ONLINE means enterprise systems control execution directly. OFFLINE means local ALICE authority after controlled transfer and readiness checks. Reconnection is a workflow; the Pi synchronizes directly with enterprise systems. Existing console DDIL/CONNECTED/DEGRADED fields, mock/remote transport and mock/arcface identity are separate concepts, not an authority handshake. Current schemas do not define authenticated ownership/generation, transfer, or treatment of pending approvals. Preserve legacy payloads and require an agreed versioned protocol before connecting real control.
+ONLINE means enterprise systems control execution directly. OFFLINE means local ALICE authority after controlled transfer and readiness checks. Reconnection is a workflow; the Pi synchronizes directly with enterprise systems. Existing console DDIL/CONNECTED/DEGRADED fields, mock/remote transport and mock/arcface identity are separate concepts, not an authority handshake. The current first-light runtime declares a fixed confirmed OFFLINE authority interval; it does not implement general ownership transfer or endpoint fencing. The [native review contract](../contracts/technician-runtime-review.md) binds pending approvals to that exact interval, release, immutable decision and request. Preserve legacy payloads; ONLINE/unknown ownership cannot use local review.
 
 ## Inbound events
 
@@ -92,12 +92,16 @@ Receipt status may be ACCEPTED, PENDING, or REJECTED. ACCEPTED acknowledges the 
 see the [integrated demo mapping/configuration](../guides/demo-runbook.md). The rich fixture decision
 contract remains unchanged. A separate `alice-runtime-feed-v1` display contract
 retains audit events and request groups without fabricated fields. Remote
-clarification and technician actions still fail explicitly unavailable.
+clarification remains explicitly unavailable. Native approve/reject now uses the
+separate strict runtime-review contract; generic fixture action commands remain
+unavailable for remote transport.
 
 The read-only slice adds Rust `read_runtime_events` plus a same-origin Vite
 development proxy. Credentials remain outside the renderer. The following
-requirements concern the **future writable review boundary**, not a claim that
-it is implemented:
+requirements remain the cross-system integration reference. The implemented
+first-light native review path and its explicit limits are described in the
+[review contract](../contracts/technician-runtime-review.md); generalized rich
+`alice.*` remote context/reassessment exchange remains unimplemented:
 
 1. Authenticate the edge/console connection. Agree TLS or mutually authenticated local-channel details and enrollment of console trust.
 2. WebSocket inbound messages must validate and populate the native authoritative cache, then emit normalized events to the renderer. The current `cache_decision` command is mock-only by design.
@@ -112,15 +116,15 @@ it is implemented:
 | ------------------------------------------------------ | -------------------------------------------------------------------------------- |
 | Legacy/native validation and normalization             | Implemented and tested                                                           |
 | Dashboard / DDIL / history / evidence / reconciliation | Implemented with rich synthetic edge fixtures                                    |
-| HOLD state machine / auto context / technician actions | Implemented; edge routing and acknowledgment simulated                           |
+| HOLD state machine / auto context / technician actions | Rich context exchange remains simulated; native first-light approve/reject now uses independently verified signed proofs and existing execution/audit |
 | Native session and admin password verification         | Implemented with Argon2id, expiry, failed-attempt cooldown                       |
 | Technician metadata and enrollment                     | Implemented; operator supplies their camera and identity                         |
 | ArcFace detection / enrollment / identity comparison   | Implemented; real inference smoke tested on a public test image                  |
-| One-use fresh approval grant                           | Implemented in native memory; remote attestation protocol still to agree         |
-| Liveness / deepfake protection                         | Not implemented; explicitly shown as not configured                              |
+| One-use fresh approval grant                           | Native grant consumed before signed review submission; exact request/decision/release/authority, cancellation, expiry and Pi replay guards |
+| Capture / pose / presentation checks                    | Native camera, MediaPipe and MiniFAS checks retained; deepfake detection excluded |
 | Ollama semantic gateway                                | Implemented, model configurable, structured fallback on outage                   |
 | Native SQLite and local audit export                   | Implemented; upstream audit remains authoritative                                |
-| Real WebSocket/REST transport                          | Skeleton; not connected to team infrastructure                                   |
+| Real REST transport                                    | Shared authenticated request/audit reads; native signed first-light review via existing bridge. Web remains read-only |
 | Protected-system execution                             | Deliberately absent; upstream responsibility                                     |
 | macOS bundle                                           | Configured; services provisioned separately; distribution signing not configured |
 
@@ -149,7 +153,9 @@ The optional `DecisionSchema.reassessment` object contains `previous_decision_id
 
 Parents must arrive before children during live ingestion. The current implementation rejects unknown parents and competing branches; it does not buffer them or invent their meaning. Persistence may return unordered records because hydration reconstructs and validates the whole chain. The team still needs to confirm this linear ordering rule and agree missing-event replay, compatibility negotiation and retry semantics before real transport is implemented. Do not invent WebSocket URLs, HTTP endpoints, authentication or ACK behavior.
 
-Once DEC-185 is accepted, every new technician action uses DEC-185 / REQ-88291. A DEC-184 biometric grant is revoked locally and cannot authorize DEC-185. A modal or capture already in progress for DEC-184 is invalidated; a fresh DEC-185 capture is required when its biometric flag is true. The future upstream must independently enforce currentness and binding through the agreed attestation protocol. No remote attestation or protected execution is implemented here.
+Once DEC-185 is accepted, every new technician action uses DEC-185 / REQ-88291. A DEC-184 biometric grant is revoked locally and cannot authorize DEC-185. A modal or capture already in progress for DEC-184 is invalidated; a fresh DEC-185 capture is required when its biometric flag is true. The future upstream must independently enforce currentness and binding through the agreed attestation protocol. This rich reassessment exchange remains unconnected. Native first-light HOLD review
+uses its separate strict proof contract and existing Pi execution path; it does
+not promote these fixture lineage commands into production control.
 
 Local audit records preserve REASSESSMENT_PENDING, REASSESSMENT_RECEIVED, DECISION_SUPERSEDED and CURRENT_ASSESSMENT_UPDATED with decision/request correlation. Old decisions, evidence-at-assessment facts, actions and reconciliation annotations remain historical records. A late receipt for an action accepted before supersession remains attached to that historical assessment.
 
@@ -162,8 +168,10 @@ and biometric-specific Zod contracts supplement the team's existing contracts.
 The five controls exclude deepfake detection. See the
 [delivery report](../reports/2026-09-06-live-face-main-integration.md).
 
-The live Pi feed and its read-only action boundary are unchanged. This branch has
-no live HOLD review endpoint, proof delivery or device-output controls. Unfinished
-review work is preserved on local `codex/live-runtime-review-wip`, outside this PR.
-Theodore's newer dashboard, runtime, MCP services, agent and network behavior remain
-its authoritative base; no common/core contract is promoted by this face upgrade.
+The biometric delivery merged in PR #4. The follow-up native backend branch now
+adds signed HOLD review locally, selectively adapted from preserved
+`codex/live-runtime-review-wip`. See [parity inventory](../plans/native-live-backend-parity.md),
+[review contract](../contracts/technician-runtime-review.md) and
+[validation](../reports/2026-09-06-native-live-backend-validation.md). Device-output
+adjustments remain deferred. Theodore's newer dashboard, runtime, MCP services,
+agent and network work are preserved. No console contract was promoted to common/.

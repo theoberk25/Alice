@@ -46,6 +46,7 @@ embeddings/
 *.safetensors
 *.gguf
 *.key
+*.seed
 *.pem
 *.p12
 *.pfx

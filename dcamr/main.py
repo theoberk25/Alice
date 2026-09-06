@@ -27,9 +27,9 @@ import uuid
 from jsonschema import Draft202012Validator, FormatChecker
 
 from dcamr.audit.audit_log import AuditLog, MAX_ATTEMPTS  # noqa: F401 (export for tools)
-from dcamr.audit.audit_log import StorageError, SealingError
+from dcamr.audit.audit_log import StorageError, SealingError, IdempotencyConflict
 from dcamr.audit.event_contract import (MAX_EVENT_BYTES, canonical_bytes,
-                                        contextual_projection)
+                                        contextual_projection, parse_json, LedgerInputError)
 from dcamr.audit.signing import Ed25519Signer, Ed25519Verifier, TrustStore, TrustError
 from dcamr.decision_model import decide
 from dcamr.usb_storage import UsbStorage, StorageUnavailable
@@ -81,8 +81,32 @@ class FirstLightRuntime:
     def __init__(self, *, release_dir, trusted_manifest_key: bytes, data_dir,
                  esp_base_url: str = None, usb_root=None, ledger_key_file=None,
                  initialize_ledger=False, release_snapshot=False, esp_serial: str = None,
-                 serial_baud: int = 115200, serial_timeout: float = 2.0):
+                 serial_baud: int = 115200, serial_timeout: float = 2.0,
+                 console_trust_file=None):
         self.sync_worker = None
+        self.controller = None
+        self.ledger = None
+        self._owner = None
+        try:
+            self._initialize(release_dir=release_dir, trusted_manifest_key=trusted_manifest_key,
+                             data_dir=data_dir, esp_base_url=esp_base_url, usb_root=usb_root,
+                             ledger_key_file=ledger_key_file, initialize_ledger=initialize_ledger,
+                             release_snapshot=release_snapshot, esp_serial=esp_serial,
+                             serial_baud=serial_baud, serial_timeout=serial_timeout,
+                             console_trust_file=console_trust_file)
+        except Exception:
+            self.close()
+            raise
+
+    def _initialize(self, *, release_dir, trusted_manifest_key, data_dir,
+                    esp_base_url, usb_root, ledger_key_file, initialize_ledger,
+                    release_snapshot, esp_serial, serial_baud, serial_timeout,
+                    console_trust_file):
+        from dcamr.technician_review import ReviewAuthority, ReviewError, RuntimeOwner, load_trust
+        try:
+            console_trust = load_trust(console_trust_file)
+        except ReviewError as exc:
+            raise StartupError(str(exc)) from exc
         self.storage = None
         self.release_snapshot = release_snapshot
         if usb_root is not None:
@@ -111,6 +135,10 @@ class FirstLightRuntime:
             raise StartupError("An existing USB ledger is required; explicit initialization is for first provisioning only")
         (data_dir / "evidence").mkdir(parents=True, exist_ok=True)
         self._evidence_dir = data_dir / "evidence"
+        try:
+            self._owner = RuntimeOwner(data_dir)
+        except ReviewError as exc:
+            raise StartupError(str(exc)) from exc
         self._boot_id = "boot-" + uuid.uuid4().hex[:12]
         self._lock = threading.Lock()
         self.controller = _make_controller(esp_base_url, esp_serial,
@@ -143,6 +171,31 @@ class FirstLightRuntime:
             raise StartupError("audit ledger not ready; refusing admission")
         self._outcomes = {}
         self._rebuild_outcomes()
+        self.reviews = ReviewAuthority(self, console_trust)
+
+    def current_authority(self):
+        # Existing first-light OFFLINE authority only. Connectivity does not
+        # implement ownership transfer; no enterprise actions enter this path.
+        return dict(AUTHORITY)
+
+    def review(self, request_id=None, envelope=None):
+        from dcamr.technician_review import ReviewError
+        with self._lock:
+            try:
+                self._owner.check()
+                if self.storage:
+                    self.storage.check()
+                result = self.reviews.view(request_id) if envelope is None else self.reviews.submit(envelope)
+                canonical_bytes(result)
+                return 200, result
+            except ReviewError as exc:
+                return 409, {"error": str(exc)}
+            except (LedgerInputError, IdempotencyConflict, TypeError, KeyError):
+                return 409, {"error": "INVALID_REVIEW_DATA"}
+            except (StorageUnavailable, StorageError, SealingError, OSError):
+                if self.storage:
+                    self.storage.failed = True
+                return 503, {"error": "STORAGE_UNAVAILABLE_OUTCOME_REQUIRES_RECONCILIATION"}
 
     # ------------------------------------------------------------------ clock
     def clock(self):
@@ -193,11 +246,12 @@ class FirstLightRuntime:
 
     def _append(self, event_id, event_type, *, correlation, attribution, detail,
                 evidence=()):
+        self._owner.check()
         if self.storage:
             self.storage.check()
         value = {"event_id": event_id, "event_type": event_type,
                  "correlation": correlation, "attribution": attribution,
-                 "authority": dict(AUTHORITY), "provenance": self._provenance(evidence),
+                 "authority": self.current_authority(), "provenance": self._provenance(evidence),
                  "detail": detail}
         result = self.ledger.append(value)
         if not result.persisted:
@@ -255,6 +309,7 @@ class FirstLightRuntime:
     def handle_request(self, envelope: dict):
         with self._lock:
             try:
+                self._owner.check()
                 if self.storage:
                     self.storage.check()
                 return self._handle_request(envelope)
@@ -310,6 +365,9 @@ class FirstLightRuntime:
 
         correlation = self._correlation(request_id, request_sha256)
         attribution = self._attribution(agent_id)
+
+        # Retain exact authenticated bytes for native request review.
+        self._write_evidence(self._evidence_dir / f"{request_id}.request.json", request_bytes)
 
         # 3. REQUEST
         self._append(f"{request_id}.request", "REQUEST", correlation=correlation,
@@ -369,12 +427,16 @@ class FirstLightRuntime:
         if decision.outcome != "ALLOW":
             self._record_outcome(request_id, request_sha256, response)
             self.ledger.seal()
-            return 403, response
+            return (202 if decision.outcome == "CHALLENGE" else 403), response
 
+        return self._execute_request(request, request_sha256, response, correlation, attribution)
+
+    def _execute_request(self, request, request_sha256, response, correlation, attribution):
+        request_id = request["request_id"]
         # 7. EXECUTION_ATTEMPT must be durably committed before commanding the
         # ESP (AuditLog append is a committed synchronous SQLite write).
         command_bytes = canonical_bytes({"target": request["target"], "state": request["parameters"]["state"]})
-        execution_correlation = dict(correlation, action_id=f"{request_id}.action",
+        execution_correlation = dict(correlation, action_id=correlation.get("action_id") or f"{request_id}.action",
                                      execution_id=f"{request_id}.exec")
         self._append(f"{request_id}.attempt", "EXECUTION_ATTEMPT",
                      correlation=execution_correlation, attribution=attribution,
@@ -383,6 +445,7 @@ class FirstLightRuntime:
                              "outcome": "ATTEMPTED", "reason_codes": []})
         if self.storage:
             self.storage.check()
+        self._owner.check()
         try:
             if hasattr(self.controller, "execute_target"):
                 receipt = self.controller.execute_target(request["target"], request["parameters"])
@@ -448,12 +511,26 @@ class FirstLightRuntime:
         return 200, response
 
     def _write_evidence(self, path, data):
+        self._owner.check()
         if self.storage:
             self.storage.check()
-        with path.open('wb') as output:
-            output.write(data)
-            output.flush()
-            os.fsync(output.fileno())
+        try:
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        except FileExistsError:
+            # A crash can leave evidence before its event. Never replace original
+            # bytes with a different request/proof on retry or follow symlinks.
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+            with os.fdopen(fd, 'rb') as original:
+                if original.read(len(data) + 1) != data:
+                    raise StorageError('Evidence identity conflict; reconciliation required')
+                # The earlier attempt may have failed its fsync after writing
+                # these bytes. Matching contents alone are not durable evidence.
+                os.fsync(original.fileno())
+        else:
+            with os.fdopen(fd, 'wb') as output:
+                output.write(data)
+                output.flush()
+                os.fsync(output.fileno())
         directory = os.open(path.parent, os.O_RDONLY)
         try:
             os.fsync(directory)
@@ -476,12 +553,19 @@ class FirstLightRuntime:
         try:
             if self.sync_worker:
                 self.sync_worker.close()
-            self.ledger.close()
+                self.sync_worker = None
+            if self.ledger is not None:
+                self.ledger.close()
         finally:
-            # The HTTP controller has no port to release; the serial one does.
-            closer = getattr(self.controller, "close", None)
-            if closer is not None:
-                closer()
+            try:
+                # The HTTP controller has no port to release; the serial one does.
+                closer = getattr(self.controller, "close", None)
+                if closer is not None:
+                    closer()
+                self.controller = None
+            finally:
+                if self._owner is not None:
+                    self._owner.close()
 
 
 # ------------------------------------------------------------------- server
@@ -497,26 +581,35 @@ def make_server(runtime: FirstLightRuntime, host="0.0.0.0", port=8080):
             self.send_header("Content-Length", str(len(body)))
             # The events feed is a read-only projection; allow browser-based
             # technician displays on the LAN to poll it directly.
-            self.send_header("Access-Control-Allow-Origin", "*")
+            if self.path.partition("?")[0] == "/events":
+                self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
             self.end_headers()
             self.wfile.write(body)
 
         def do_POST(self):
-            if self.path != "/request":
+            if self.path not in ("/request", "/review"):
                 return self._reply(404, {"error": "unknown path"})
             try:
                 length = int(self.headers.get("Content-Length", "0"))
-                if length > 64 * 1024:
+                if not 0 < length <= (16 * 1024 if self.path == "/review" else 64 * 1024):
                     raise ValueError
-                envelope = json.loads(self.rfile.read(length).decode("utf-8"))
-            except ValueError:
+                raw = self.rfile.read(length)
+                if len(raw) != length:
+                    raise ValueError
+                envelope = parse_json(raw) if self.path == "/review" else json.loads(raw.decode("utf-8"))
+            except (ValueError, UnicodeError, RecursionError):
                 return self._reply(400, {"error": "invalid body"})
-            code, payload = runtime.handle_request(envelope)
+            code, payload = runtime.review(envelope=envelope) if self.path == "/review" else runtime.handle_request(envelope)
             self._reply(code, payload)
 
         def do_GET(self):
-            # Read-only technician feed; no approval verbs are exposed here.
+            # Read-only projections; review writes require independent native proof.
             path, _, query = self.path.partition("?")
+            if path.startswith("/review/") and not query:
+                code, payload = runtime.review(request_id=path[len("/review/"):])
+                return self._reply(code, payload)
             if path == "/sync-status":
                 return self._reply(200, runtime.sync_worker.status() if runtime.sync_worker
                                    else {"state": "DISABLED"})
@@ -558,6 +651,8 @@ def main():
                         help="Explicit first provisioning only; never substitutes for a missing SQL snapshot")
     parser.add_argument("--wazuh-sync-config", type=Path,
                         help="Private HTTPS credentials; enables automatic ledger delivery")
+    parser.add_argument("--console-trust-file", type=Path,
+                        help="Explicit console public keys and allowed technician IDs; absent disables review")
     transport = parser.add_mutually_exclusive_group(required=True)
     transport.add_argument("--esp-url", help="HTTP light node base URL")
     transport.add_argument("--esp-serial",
@@ -576,7 +671,7 @@ def main():
                                 usb_root=args.usb_root, ledger_key_file=args.ledger_key_file,
                                 initialize_ledger=args.initialize_ledger,
                                 esp_serial=args.esp_serial, serial_baud=args.serial_baud,
-                                serial_timeout=args.serial_timeout)
+                                serial_timeout=args.serial_timeout, console_trust_file=args.console_trust_file)
     if args.wazuh_sync_config:
         runtime.start_wazuh_sync(args.wazuh_sync_config)
     server = make_server(runtime, args.host, args.port)

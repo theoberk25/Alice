@@ -45,8 +45,13 @@ export function WebAccessGate({ children }: PropsWithChildren) {
     }
   }
 
+  if (!enabled) return children;
   if (authenticated === null)
-    return <main className="web-login"><p>Checking technician dashboard access…</p></main>;
+    return (
+      <main className="web-login">
+        <p>Checking technician dashboard access…</p>
+      </main>
+    );
   if (!authenticated)
     return (
       <main className="web-login">
@@ -54,16 +59,30 @@ export function WebAccessGate({ children }: PropsWithChildren) {
           <span className="eyebrow">ALICE LOCAL NETWORK</span>
           <h1>Technician dashboard</h1>
           <p>Sign in to view the Pi’s live, read-only decision stream.</p>
-          <label>Username<input name="username" autoComplete="username" required /></label>
-          <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>
-          {error && <p role="alert" className="tone-danger">{error}</p>}
-          <button className="primary-button" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+          <label>
+            Username
+            <input name="username" autoComplete="username" required />
+          </label>
+          <label>
+            Password
+            <input name="password" type="password" autoComplete="current-password" required />
+          </label>
+          {error && (
+            <p role="alert" className="tone-danger">
+              {error}
+            </p>
+          )}
+          <button className="primary-button" disabled={busy}>
+            {busy ? 'Signing in…' : 'Sign in'}
+          </button>
         </form>
       </main>
     );
   return (
     <>
-      <button className="web-logout" onClick={logout} disabled={busy}>Log out</button>
+      <button className="web-logout" onClick={logout} disabled={busy}>
+        Log out
+      </button>
       {children}
     </>
   );

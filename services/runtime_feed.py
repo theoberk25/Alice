@@ -1,8 +1,8 @@
-"""Authenticated, read-only workstation bridge to the existing Pi /events feed.
+"""Authenticated workstation bridge to fixed Pi event/review endpoints.
 
 Run with python -m services.runtime_feed. Deployment and boundaries: AGENTS.md
-and docs/integration/live-dashboard.md. This service owns no database and never
-accepts commands. Remote access is through a separately authenticated SSH tunnel.
+and docs/integration/live-dashboard.md. This service owns no database or execution path. Review envelopes require the
+Pi's independent native signature verification. Remote access is through a separately authenticated SSH tunnel.
 """
 import argparse
 import copy
@@ -10,10 +10,12 @@ import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
+import re
 from urllib.parse import urlsplit, parse_qs
-from urllib.request import build_opener, HTTPRedirectHandler, ProxyHandler
+from urllib.request import build_opener, HTTPRedirectHandler, ProxyHandler, Request
+from urllib.error import HTTPError
 
-from dcamr.audit.event_contract import validate_event
+from dcamr.audit.event_contract import MAX_EVENT_BYTES, parse_json, validate_event
 
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
 MAX_SAFE_INTEGER = 2**53 - 1
@@ -100,11 +102,47 @@ def make_server(*, upstream, token, source, controller, port=8787):
             self.end_headers()
             self.wfile.write(body)
 
+        def forward_review(self, path, body=None):
+            try:
+                request = Request(upstream + path, data=body,
+                                  headers={'Content-Type': 'application/json'})
+                try:
+                    response = opener.open(request, timeout=10)
+                except HTTPError as exc:
+                    response = exc
+                with response:
+                    data = response.read(MAX_EVENT_BYTES + 1)
+                    code = response.code
+                payload = parse_json(data)
+                return self.reply(code, payload)
+            except (ValueError, OSError):
+                return self.reply(502, {'error': 'Review unavailable; refresh the ledger before retrying'})
+
+        def do_POST(self):
+            if not hmac.compare_digest(self.headers.get('Authorization', '').encode('utf-8'), f'Bearer {token}'.encode('ascii')):
+                return self.reply(401, {'error': 'Feed authentication required'})
+            if self.path != '/review':
+                return self.reply(404, {'error': 'Unknown endpoint'})
+            try:
+                length = int(self.headers.get('Content-Length', '0'))
+                if not 0 < length <= 16384:
+                    raise ValueError
+                body = self.rfile.read(length)
+                if len(body) != length:
+                    raise ValueError
+                parse_json(body)
+            except ValueError:
+                return self.reply(400, {'error': 'Invalid review body'})
+            # Pi independently checks the signed proof; feed credentials confer no execution authority.
+            return self.forward_review('/review', body)
+
         def do_GET(self):
-            if not hmac.compare_digest(self.headers.get('Authorization', ''), f'Bearer {token}'):
+            if not hmac.compare_digest(self.headers.get('Authorization', '').encode('utf-8'), f'Bearer {token}'.encode('ascii')):
                 return self.reply(401, {'error': 'Feed authentication required'})
             parsed = urlsplit(self.path)
             query = parse_qs(parsed.query, keep_blank_values=True)
+            if re.fullmatch(r'/review/[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}', parsed.path) and not parsed.query:
+                return self.forward_review(parsed.path)
             if parsed.path != '/events':
                 return self.reply(404, {'error': 'Read-only events endpoint only'})
             try:
@@ -143,7 +181,7 @@ def main():
     args = parser.parse_args()
     server = make_server(upstream=args.upstream, token=os.environ.get('ALICE_FEED_TOKEN', ''),
                          source=args.source, controller=args.controller, port=args.port)
-    print(f'Read-only feed bridge listening on {server.server_address}; {args.source}, controller={args.controller}', flush=True)
+    print(f'Event/review bridge listening on {server.server_address}; {args.source}, controller={args.controller}', flush=True)
     try:
         server.serve_forever()
     finally:

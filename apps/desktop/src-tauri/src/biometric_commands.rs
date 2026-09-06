@@ -46,7 +46,7 @@ fn active_generation(s: &Inner, id: &str) -> Result<String, String> {
         .unwrap_or_else(|| "none".into()))
 }
 
-fn eligible(s: &Inner, attempt: &Attempt) -> Result<(), String> {
+pub(crate) fn eligible(s: &Inner, attempt: &Attempt) -> Result<(), String> {
     require_no_removal(&s.db, &attempt.technician_id)?;
     let tech = technician(s, &attempt.technician_id)?;
     let pending: Option<(String, String)> = s.db.query_row(
@@ -86,6 +86,9 @@ fn eligible(s: &Inner, attempt: &Attempt) -> Result<(), String> {
                 return Err("TECHNICIAN_SESSION_CHANGED".into());
             }
             let scope = attempt.scope.as_ref().ok_or("MISSING_APPROVAL_SCOPE")?;
+            if scope.get("runtime_review").is_some() {
+                return crate::runtime_review::eligible(s, scope);
+            }
             let id = scope["decision_id"].as_str().ok_or("MISSING_DECISION")?;
             let current = load_decision(s, id)?;
             require_current_assessment(s, &current)?;
@@ -139,6 +142,10 @@ pub fn begin_biometric_session(
         if s.config.biometric_mode != "arcface" {
             return Err("LIVE_CAPTURE_REQUIRES_REAL_BIOMETRIC_MODE".into());
         }
+        if intent.purpose != Purpose::Approval && intent.runtime_action.is_some() {
+            return Err("INVALID_RUNTIME_REVIEW_INTENT".into());
+        }
+        let mut runtime_signer = None;
         let (id, scope) = match intent.purpose {
             Purpose::Enrollment => {
                 require_admin(&s)?;
@@ -179,12 +186,25 @@ pub fn begin_biometric_session(
                 if intent.technician_id.as_ref() != Some(&id) {
                     return Err("TECHNICIAN_MISMATCH".into());
                 }
-                let decision = load_decision(&s, &intent.decision_id.ok_or("DECISION_REQUIRED")?)?;
-                if decision["request"]["request_id"].as_str() != intent.request_id.as_deref() {
-                    return Err("REQUEST_MISMATCH".into());
+                let decision_id = intent.decision_id.ok_or("DECISION_REQUIRED")?;
+                if let Some(action) = intent.runtime_action {
+                    runtime_signer = Some(crate::runtime_review::prepare_signer(&s)?);
+                    let scope = crate::runtime_review::scope(
+                        &s,
+                        intent.request_id.as_deref().ok_or("REQUEST_REQUIRED")?,
+                        &decision_id,
+                        &action,
+                    )?;
+                    throttled(&s, &id)?;
+                    (id, Some(scope))
+                } else {
+                    let decision = load_decision(&s, &decision_id)?;
+                    if decision["request"]["request_id"].as_str() != intent.request_id.as_deref() {
+                        return Err("REQUEST_MISMATCH".into());
+                    }
+                    throttled(&s, &id)?;
+                    (id, Some(decision))
                 }
-                throttled(&s, &id)?;
-                (id, Some(decision))
             }
         };
         let tech = technician(&s, &id)?;
@@ -200,6 +220,9 @@ pub fn begin_biometric_session(
             return Err("MULTI_POSE_V2_REQUIRED: ask an administrator to re-enroll; prior enrollment is preserved".into());
         }
         let view = s.biometrics.begin(intent.purpose, id, generation, scope)?;
+        if let Some(signer) = runtime_signer {
+            s.runtime_review.bind_signer(signer);
+        }
         current(&mut s, &view.session_id)?;
         view
     };
@@ -282,10 +305,20 @@ pub fn read_biometric_preview(
 
 #[tauri::command]
 pub fn cancel_biometric_session(state: State<AppState>, session_id: String) -> Result<(), String> {
-    lock(&state)?
-        .biometrics
-        .get(&session_id)?
-        .finish("CANCELLED", "OPERATOR_OR_NAVIGATION_CANCELLED");
+    let mut s = lock(&state)?;
+    let attempt = s.biometrics.get(&session_id)?;
+    if attempt.authority_consumed {
+        return Err("REVIEW_ALREADY_SUBMITTED_RECONCILE_LEDGER".into());
+    }
+    let grant_id = attempt
+        .view
+        .verification
+        .as_ref()
+        .map(|g| g.verification_id.clone());
+    attempt.revoke("OPERATOR_OR_NAVIGATION_CANCELLED");
+    if let Some(id) = grant_id {
+        s.grants.remove(&id);
+    }
     Ok(())
 }
 
@@ -635,6 +668,16 @@ fn complete(
             )?;
             s.failures.remove(&format!("login:{}", t.username));
             s.grants.clear();
+            s.runtime_review.invalidate();
+            // A second successful login is a new session even for the same ID.
+            // In-flight reads from the previous session cannot populate its cache.
+            let epoch = uuid::Uuid::new_v4().to_string();
+            s.biometrics.authority_epoch = epoch.clone();
+            s.biometrics
+                .current
+                .as_mut()
+                .ok_or("SESSION_MISSING")?
+                .authority_epoch = epoch;
             s.technician = Some(Session {
                 id: tech.clone(),
                 expires_at: Utc::now().timestamp() + 28_800,
@@ -650,15 +693,19 @@ fn complete(
                 .scope
                 .clone()
                 .ok_or("MISSING_SCOPE")?;
-            let grant = issue_grant(
-                &mut s,
-                scope["decision_id"].as_str().ok_or("DECISION_MISSING")?,
-                scope["request"]["request_id"]
-                    .as_str()
-                    .ok_or("REQUEST_MISSING")?,
-                "PASS",
-                "arcface",
-            )?;
+            let grant = if scope.get("runtime_review").is_some() {
+                crate::runtime_review::grant(&s, &scope)?
+            } else {
+                issue_grant(
+                    &mut s,
+                    scope["decision_id"].as_str().ok_or("DECISION_MISSING")?,
+                    scope["request"]["request_id"]
+                        .as_str()
+                        .ok_or("REQUEST_MISSING")?,
+                    "PASS",
+                    "arcface",
+                )?
+            };
             s.failures.remove(&tech);
             s.biometrics.get(id)?.view.verification = Some(grant);
         }

@@ -48,7 +48,7 @@ def _identity(agent_id: str) -> dict:
                       "responsible_user": USER_ID, "delegator": USER_ID}}
 
 
-def build_grants_payload(agent_ids, *, all_lights=False) -> dict:
+def build_grants_payload(agent_ids, *, all_lights=False, approval_required=False) -> dict:
     return {
         "schema_version": "alice-permissions-grants-v1",
         "site_id": "first-light-lab",
@@ -59,7 +59,7 @@ def build_grants_payload(agent_ids, *, all_lights=False) -> dict:
             "actions": ["set_light_state"],
             "targets": [f"ESP-LIGHT-{i:02d}" for i in range(1,9)] if all_lights else ["ESP-LIGHT-01"],
             "effect": "PERMIT",
-            "approval_required": False,
+            "approval_required": approval_required,
             "parameter_bounds": {"state": {"one_of": ["on", "off"]}},
         }],
     }
@@ -90,7 +90,8 @@ def _public_hex(private: Ed25519PrivateKey) -> str:
     return private.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw).hex()
 
 
-def build(out_dir: Path, agent_ids=(AGENT_ID,), grant_agent_ids=None, *, all_lights=False) -> Path:
+def build(out_dir: Path, agent_ids=(AGENT_ID,), grant_agent_ids=None, *, all_lights=False,
+          approval_required=False) -> Path:
     """grant_agent_ids limits who the PERMIT grant covers; every agent in
     agent_ids still gets a registered key, so the others authenticate but
     resolve to NO_PERMISSION (default deny)."""
@@ -113,7 +114,8 @@ def build(out_dir: Path, agent_ids=(AGENT_ID,), grant_agent_ids=None, *, all_lig
                         "ed25519_public_hex": _public_hex(terminal_key)}
 
     payloads = {
-        "grants.json": build_grants_payload(grant_agent_ids, all_lights=all_lights),
+        "grants.json": build_grants_payload(grant_agent_ids, all_lights=all_lights,
+                                            approval_required=approval_required),
         "subjects.json": build_subjects_payload(agent_ids),
         "terminal_keys.json": {"schema_version": "alice-terminal-keys-v1", "keys": keys},
     }

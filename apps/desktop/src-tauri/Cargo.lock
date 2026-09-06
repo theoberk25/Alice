@@ -34,9 +34,12 @@ name = "alice-technician-console"
 version = "0.1.0"
 dependencies = [
  "argon2",
+ "base64 0.22.1",
  "chrono",
+ "libc",
  "rand_core 0.6.4",
  "reqwest 0.12.28",
+ "ring",
  "rusqlite",
  "serde",
  "serde_json",

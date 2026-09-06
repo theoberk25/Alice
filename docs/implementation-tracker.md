@@ -16,7 +16,23 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
-September 6 biometric delivery: `codex/live-face-upstream-integration` starts from
+September 6 native backend continuation: biometric PR #4 is merged in Theodore's
+`upstream/main` at `d57c660`. Root checkout now uses `codex/native-live-backend`;
+original dirty work, WIP and retired trees are [verified preserved](handoffs/2026-09-06-native-live-backend-workspace.md).
+Native request visibility and signed review are locally implemented with exact
+bindings, durable one-use admission and reconciliation. [Parity](plans/native-live-backend-parity.md)
+and [current validation](reports/2026-09-06-native-live-backend-validation.md) distinguish
+local automated evidence from unperformed real camera/physical-Pi acceptance.
+Dock/Finder launch follow-up: existing private settings now select the same remote
+rehearsal as the tested launch; original settings are backed up and direct launch
+was verified. This does not provision a physical Pi or change execution authority.
+Publication: the user authorized updating `Adaoud03/Alice:main` and submitting
+[upstream PR #5](https://github.com/theoberk25/Alice/pull/5). Latest upstream pitch
+deliverables at `966632e` are included unchanged; tested runtime/native/frontend
+sources are unchanged by that rebase. Upstream merge and physical acceptance remain pending.
+
+
+Historical September 6 biometric delivery: `codex/live-face-upstream-integration` starts from
 Theodore's `upstream/main` `f79cd8e` and ports the completed native live facial
 upgrade only. Automatic multi-pose enrollment, passive gallery login, encrypted
 generations, native session protections and fresh local fixture approval are
@@ -25,7 +41,8 @@ for tests/build and the remaining operator acceptance. Original branch/worktree
 preserved. Unfinished live HOLD review is saved on local
 `codex/live-runtime-review-wip` (`aa5bae8`), excluded from delivery. No live Pi
 control, output adjustments or full-network packet visibility is claimed.
-All 118 task IDs and existing core statuses remain unchanged.
+That delivery preserved all 118 task IDs and existing core statuses; the current
+native increment updates the affected rows below without changing their IDs.
 
 
 Current transition instructions are consolidated in `docs/guides/demo-runbook.md`.
@@ -194,8 +211,8 @@ this assessment is not silently substituted for `alice.decision`.
 - **Planned** — the requested behavior is not implemented in this checkout.
   A PRD proposal or empty skeleton is not completion evidence.
 
-Current totals: **12 Done component, 40 Partial,
-66 Planned**. These are task-status counts, not a percentage of product
+Current totals: **12 Done component, 45 Partial,
+61 Planned**. These are task-status counts, not a percentage of product
 readiness or an estimate of remaining effort.
 
 The current model increment is a [general contextual Isolation Forest][context-guide]
@@ -386,7 +403,8 @@ a saved, authenticated model artifact for deployment.
 **Fixtures are component evidence.** A timeout record does not supervise a worker;
 a skipped-denial record does not evaluate policy; a high result does not hold an
 action; and socket-blocked feature replay does not demonstrate the whole DDIL
-flow. All 11 end-to-end acceptance tasks remain planned until their actual
+flow. The native review task now has local automated evidence; all remaining
+end-to-end acceptance claims require their actual
 workflows run with explicit no-unintended-execution assertions.
 
 ## Shared contracts (001–009)
@@ -426,7 +444,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 021 | Check Agent Permissions | Partial | The [policy engine][policy] now resolves exact agent/action/target/parameter matches against a verified release's PERMIT grants (default deny, approval-required maps to REVIEW_REQUIRED), feeding the shared PermissionFinding type, with [unit and end-to-end coverage][first-light-tests]. Prohibitions, conditions, generations and the full admission/fusion path remain. |
 | 022 | Check Mission Scope | Planned | Behavioral profile matching is not policy mission authorization; [policy engine][policy] remains a skeleton. |
 | 023 | Check Hard Deny Rules | Planned | Hard-deny precedence is documented but [policy evaluation][policy] is not implemented. |
-| 024 | Check Approval-Required Rules | Planned | Mandatory-review requirements are documented but [policy evaluation][policy] is not implemented. |
+| 024 | Check Approval-Required Rules | Partial | Exact verified first-light grants export approval_required; usable assessment plus REVIEW_REQUIRED now becomes immutable CHALLENGE pending native review. General mandatory-review policy catalog remains broader work. [Review contract](contracts/technician-runtime-review.md). |
 
 ## Behavioral features (025–036)
 
@@ -493,13 +511,13 @@ workflows run with explicit no-unintended-execution assertions.
 
 | ID | Task | Status | Evidence and remaining work |
 | --- | --- | --- | --- |
-| 066 | Export Raw Decision Data to Dashboard | Partial | Real first-light ledger history/increments now reach the web dashboard through an authenticated loopback bridge, server-side session gate and remote transport. A live physical-Pi request appeared incrementally on an authenticated LAN browser. Numeric risk/full request fields remain unavailable instead of invented. [Integrated runbook](guides/demo-runbook.md). |
+| 066 | Export Raw Decision Data to Dashboard | Partial | Native and web share authenticated request/audit history, incremental updates, evidence and explicit source/freshness. Native now reads retained canonical request/action/target/parameters through the existing bridge. Missing historical fields and packet-wide visibility remain unavailable. [Parity](plans/native-live-backend-parity.md). |
 | 067 | Export Live Pi Status to Dashboard | Planned | The live display must distinguish enterprise reachability, last contact/staleness, synchronization and confirmed execution owner. The target enterprise UI shows ALICE EDGE OFFLINE when its Pi link is lost without claiming authority transfer. Current Pi hardware/engine/cloud/SIEM readiness telemetry is still unavailable. |
-| 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
-| 069 | Receive Technician Decision | Planned | Target clarified: the local Mac rejects the current anomalous fan-off HOLD; the Pi records a request-bound rejection, emits no controller command and preserves the last approved fan setting. No real receiver is connected; authentication, currentness checks and receipts remain. |
-| 070 | Require Technician Authentication for Approval | Planned | Native live v3 multi-pose enrollment, automatic ArcFace gallery login and fresh local approval grants are integrated; [delivery evidence](reports/2026-09-06-live-face-main-integration.md). Target held-action accept/deny choice is biometric-gated on the Mac; both response paths and Pi-verifiable proof bound to current request/assessment/authority need agreement and acceptance. |
-| 071 | Execute Approved Action | Partial | HTTP light adapter and XIAO USB-serial adapter share existing receipt/observation contracts. Serial, snapshot, Wazuh and replay integration tests pass. Pi serial deployment and eight-light operator control passed with visual confirmation; crash-window physical acceptance remains. [Hardware runbook](guides/first-light-hardware.md). |
-| 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
+| 068 | Export Available Technician Actions | Partial | Pi review snapshots now export current eligible approve/reject for exact first-light HOLD/request/release/authority bindings; absent trust, missing bytes, DENY and ONLINE/unconfirmed ownership fail closed. General rich action catalog remains unavailable. [Contract](contracts/technician-runtime-review.md). |
+| 069 | Receive Technician Decision | Partial | Existing Pi runtime receives native Ed25519 review proofs via the existing fixed-path bridge, verifies scoped console/technician trust, freshness and current bindings, and acknowledges durable consent. Rust→Python local mock-controller integration passed; physical-Pi trust/deployment/acceptance remain. The upstream fan-shutdown target additionally needs its fan contract/model/controller integration; rejection must preserve the last approved fan state. [Validation](reports/2026-09-06-native-live-backend-validation.md). |
+| 070 | Require Technician Authentication for Approval | Partial | Both native first-light approve and reject require fresh action-bound ArcFace sessions; cancellation, expiry, changed enrollment/identity/snapshot and consumed grants cannot submit. Exact signed proof lifetime is checked independently by the Pi. Automated synthetic-session evidence is separate from real camera/Pi acceptance. [Validation](reports/2026-09-06-native-live-backend-validation.md). |
+| 071 | Execute Approved Action | Partial | Existing HTTP/serial execution path is reused after durable technician admission. Thread/process exclusion, replay/restart and crash-window tests enforce at-most-once local mock-controller execution; rejection never executes. Prior physical serial/light evidence is historical; fresh camera→physical-Pi review remains untested. [Review contract](contracts/technician-runtime-review.md). |
+| 072 | Record Technician Decision | Partial | Pi durably appends TECHNICIAN_ACTION plus immutable signed-envelope/public-key evidence before execution; original machine decisions remain unchanged. Native existing SQLite stores submission identity and GET reconciliation separately from execution/observation. Physical integrated acceptance remains. [Validation](reports/2026-09-06-native-live-backend-validation.md). |
 | 073 | Record Action Execution Result | Partial | Runtime records controller receipt, execution result and observed state separately; live dashboard updates these after the immutable decision. Real local runtime/mock-controller browser acceptance passed; physical serial light-on receipt and visual LED acceptance now passed; independent sensor acceptance remains. [Integrated runbook](guides/demo-runbook.md). |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |
 | 075 | Compare Expected vs Actual Result | Planned | No expected-versus-observed execution-outcome comparison exists. |
@@ -524,7 +542,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 089 | Reconcile Local Evidence with Cloud Evidence | Planned | The core [reconciliation component][reconciliation] is empty. Direct Pi comparison/upload and append-only findings remain. |
 | 090 | Detect Evidence Discrepancies | Planned | No local/cloud evidence discrepancy detector exists. |
 | 091 | Append Reconciliation Results | Partial | [Ledger finding append][audit] and [outbox tests][audit-outbox-tests] require original ID/hash and source attribution; reconciliation marker requires original ACK plus linked finding. Actual evidence fetching/comparison and enterprise reconciliation remain absent. |
-| 092 | Preserve Original Decision History | Partial | Original audit events remain immutable through display/reconnect and explicit snapshot selection at restart; combined Wazuh/snapshot tests preserve exact records and restart replay. Snapshot tests preserve event bytes, replay outcomes and queued delivery state as new releases govern future requests. Wazuh delivery preserves originals and appends delivery bookkeeping. Full reassessment and semantic reconciliation remain. [Snapshot guide](integration/release-snapshot.md), [Wazuh runbook](integration/wazuh-audit-sync.md). |
+| 092 | Preserve Original Decision History | Partial | Original audit decisions remain immutable through native/web reconnect and review. Late acknowledgment and restart reconciliation bind exact request/decision/action; reused IDs cannot inherit another request receipt. Existing Wazuh/snapshot history is preserved. Full reassessment and enterprise semantic reconciliation remain. [Review contract](contracts/technician-runtime-review.md). |
 
 ## Package updates and connected recovery (093–107)
 
@@ -555,7 +573,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 110 | Run Slight-Anomaly Push-Back Test | Planned | An elevated mock result exists; no actual slight-anomaly push-back exchange is tested. |
 | 111 | Run Hard Policy Denial Test | Planned | A skipped-denial fixture validates result shape; no policy evaluation, zero-model-call assertion or enforcement denial is tested end to end. |
 | 112 | Run High-Anomaly Hold Test | Planned | Actual lab model outputs and a high mock result exist; no integrated model/fusion hold or no-execution acceptance test exists. |
-| 113 | Run Technician Approval Test | Planned | No real console-proof/core-approval/controller-execution acceptance test exists. Reported live facial login is not approval step-up or execution evidence. |
+| 113 | Run Technician Approval Test | Partial | Automated Rust native snapshot/consume/sign/HTTP→real Python bridge/runtime/temporary ledger test approves once, rejects and replays with exactly one mock command. Cross-language vectors, cancellation, concurrency and uncertain/restart tests pass. Real camera→physical Pi→hardware acceptance remains unperformed. [Validation](reports/2026-09-06-native-live-backend-validation.md). |
 | 114 | Run DDIL Decision Test | Planned | Socket-blocked feature replay proves that component is local, not a complete DDIL decision flow. |
 | 115 | Run Cloud Reconnection Test | Planned | No endpoint handover plus direct Pi/enterprise reconnect, audit delivery and cache refresh integration test exists. |
 | 116 | Run Evidence Reconciliation Test | Planned | No evidence reconciliation workflow or integration test exists. |
@@ -564,20 +582,20 @@ workflows run with explicit no-unintended-execution assertions.
 
 ## Supplemental planned requirements from the two-mode revision
 
-These requirements supplement the unchanged original list. **Every item below is
-Planned**, and none is included in the 118-task totals or represents implementation
-progress. The [architecture][architecture] and [console integration note][console-integration]
-describe the required boundaries; protocol details still need agreement.
+These requirements supplement the unchanged original list and are excluded from
+the 118-task totals. The entries distinguish available component evidence from
+remaining integrated acceptance. The [architecture][architecture] and
+[console integration note][console-integration] describe the required boundaries.
 
 | Supplemental ID | Planned requirement | Required acceptance boundary |
 | --- | --- | --- |
 | SUP-01 | Endpoint-enforced single-authority handover | Demonstrate exactly one current controller across ONLINE/OFFLINE transfer; reject competing authority, stale commands and outstanding approvals. Select and implement the authenticated fence/recovery protocol rather than treating network state as authority. |
-| SUP-02 | ONLINE activity-feed coverage and cursors | Ingest attributed enterprise requests, execution attempts and downstream results without forcing actions through ALICE; authenticate sources, define IDs/coverage/cursors/order and surface gaps or unknown state explicitly. |
+| SUP-02 | ONLINE activity-feed coverage and cursors | Existing collected ALICE request/audit feed is shared natively with honest freshness and bounded replay. No enterprise-wide producer or packet capture was added; attributed ONLINE source/cursor/coverage integration remains unavailable. [Parity](plans/native-live-backend-parity.md). |
 | SUP-03 | Bounded trusted cache synchronization | Bound permissions, normal behavior and relevant SIEM/EDR/mission caches; verify issuer/signature/version/validity and complete coverage, preserve usable active data, and activate compatible replacements atomically. |
-| SUP-04 | Console/core executable schema adapter and native transport | Exchange actual schemas/fixtures and version mappings; implement authenticated native event ingestion and command delivery, preserve null/unknown and reassessment semantics, and keep one core challenge authority. |
-| SUP-05 | Remote approval proof bound to current authority | Independently validate technician identity and short-lived one-use proof against exact action parameters/digest, request, current assessment and current execution authority; reject forged/replayed/expired/superseded proof. Complete real camera approval acceptance separately. |
-| SUP-06 | Durable context/action outboxes and receipt recovery | Persist stable idempotency/correlation IDs, bounded retries, grant consumption and acknowledgements transactionally; recover across timeout/restart without issuing duplicate unrelated authorizations. |
-| SUP-07 | Independent execution attempt and result records | Separate submitted/accepted/pending/rejected receipts from protected-controller execution and measured state; bind each event to authority/request/user/agent and preserve failed or unknown results. |
+| SUP-04 | Console/core executable schema adapter and native transport | Native compact audit ingestion and exact signed review use the existing bridge/runtime. Null/unknown and original decisions are preserved. Rich decision/reassessment producers and general cross-system adapters remain unavailable. [Parity](plans/native-live-backend-parity.md). |
+| SUP-05 | Remote approval proof bound to current authority | Implemented locally for the first-light runtime: exact signed request/decision/release/authority/epoch/nonce/action and fresh session, with replay/concurrency/uncertain-delivery tests. General enterprise authority transfer and real camera/physical-Pi acceptance remain. [Contract](contracts/technician-runtime-review.md). |
+| SUP-06 | Durable context/action outboxes and receipt recovery | Native review persists the exact signed submission before transmission, consumes grants once and reconciles via GET after timeout/restart. Automatic retransmission is absent. General context outboxes and enterprise recovery remain. [Contract](contracts/technician-runtime-review.md). |
+| SUP-07 | Independent execution attempt and result records | First-light native review separates action acknowledgment, controller receipt, execution result and observed state with authority/request/action bindings. Real hardware and broader controller/domain acceptance remain. [Validation](reports/2026-09-06-native-live-backend-validation.md). |
 | SUP-08 | Direct Pi reconnection audit and reconciliation | Publish every DDIL request/decision/attempt/result directly upstream with durable upload IDs/cursors and acknowledgements, flag risks, append later findings, preserve original history and refresh verified caches without technician relay. |
 | SUP-09 | Trusted agent-to-user accountability | Establish authoritative user/agent/mission mappings and revocation/expiry behavior for ONLINE feeds and OFFLINE requests; agent-supplied identity claims cannot establish their own permissions. |
 | SUP-10 | Contextual fan-sequence escalation | Train on bounded synthetic small-step fan behavior; classify the later abrupt shutdown from sequence plus fresh telemetry, require review for an eligible `ELEVATED`/`HIGH` result, and prove technician rejection sends no command. |

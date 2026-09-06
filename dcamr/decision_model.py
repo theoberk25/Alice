@@ -87,17 +87,17 @@ class PermissionFinding:
 
 @dataclass(frozen=True, slots=True)
 class Decision:
-    """First-light terminal decision: ALLOW or DENY, emitted once per request.
+    """Immutable machine decision: ALLOW, DENY or CHALLENGE, once per request.
 
     Additive slice for the first integration test (see AGENTS.md working
     agreements); it reuses PermissionFinding above and does not alter the
-    technician assessment boundary. No HOLD/REQUEST_CONTEXT states here.
+    technician assessment boundary. CHALLENGE awaits authenticated native review.
     """
     outcome: str
     reason_code: str
 
     def __post_init__(self):
-        if self.outcome not in ('ALLOW', 'DENY'):
+        if self.outcome not in ('ALLOW', 'DENY', 'CHALLENGE'):
             raise ValueError('invalid decision outcome')
         _check(self.reason_code, _ID)
 
@@ -108,6 +108,8 @@ def decide(auth_ok: bool, finding: PermissionFinding, assessment_status: str) ->
         raise ValueError('trusted typed inputs required')
     if not auth_ok:
         return Decision('DENY', 'IDENTITY_UNVERIFIED')
+    if finding.outcome == 'REVIEW_REQUIRED' and assessment_status == 'OK':
+        return Decision('CHALLENGE', 'PERMISSION_REVIEW_REQUIRED')
     if finding.outcome != 'PERMITTED':
         return Decision('DENY', 'PERMISSION_' + finding.outcome)
     if assessment_status != 'OK':

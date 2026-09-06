@@ -27,6 +27,12 @@ pub fn open(config: &Config) -> Result<Connection, String> {
       CREATE TABLE IF NOT EXISTS technician_actions(action_id TEXT PRIMARY KEY,decision_id TEXT NOT NULL,payload TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS local_audit_events(id TEXT PRIMARY KEY,timestamp TEXT NOT NULL,event_type TEXT NOT NULL,payload TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);").map_err(|e|e.to_string())?;
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS runtime_review_submissions(
+        action_id TEXT PRIMARY KEY,request_id TEXT UNIQUE NOT NULL,
+        technician_id TEXT NOT NULL,payload TEXT NOT NULL,envelope TEXT NOT NULL);",
+    )
+    .map_err(|e| e.to_string())?;
     // Metadata-only V1 migration: preserve every legacy enrollment row.
     let columns = {
         let mut q = conn

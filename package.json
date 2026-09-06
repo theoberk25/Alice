@@ -28,7 +28,8 @@
     "contracts:generate": "node scripts/console/generate-contracts.mjs",
     "test:scripts": "node --test scripts/console/tests/*.test.mjs",
     "demo:live": "node scripts/console/live-demo.mjs",
-    "test:e2e:runtime": "playwright test --config playwright.runtime.config.ts"
+    "test:e2e:runtime": "playwright test --config playwright.runtime.config.ts",
+    "demo:hold": ".venv/bin/python -m lab.first_light.send_native_hold"
   },
   "dependencies": {
     "@fontsource/barlow-condensed": "^5.2.6",

@@ -1,53 +1,57 @@
 # Current
-
 Updated: 2026-09-06 EDT.
-Integration baseline: `origin/main` `d57c660`.
-Objective: deliver the online cloud/SIEM view and offline anomalous fan-shutdown
-demo across the Opal, enterprise Mac, wired agents, Pi and technician application.
+Baseline: freshly fetched Theodore Berk `upstream/main` at `966632e`.
+Everyday checkout: `/Users/alexdaoud/Documents/Alice`; branch `codex/native-live-backend`.
 
-## Implemented and observed
+## Active objective
 
-- Main includes the Light-Control and Decision-Brief MCP services, cloud-agent
-  scaffolding and build documentation. Their actual deployment remains separate.
-- Native live biometrics now includes automatic camera capture, multi-pose
-  enrollment, ArcFace gallery login, presentation checks, encrypted generations
-  and stale/replay guards. Live HOLD delivery to the Pi remains unfinished.
-- The signed first-light runtime uses ext4 USB storage, physical eight-light serial
-  execution and automatic Wazuh audit delivery. Existing records and backups remain.
-- GL.iNet Opal `192.168.50.1` supplies DHCP `.100-.199`; Pi `eth0` now routes
-  through it. Pi direct venue Wi-Fi is disconnected with autoconnect disabled.
-  Wireless-to-wired SSH, Pi-to-router, external IP, DNS, runtime and sync checks pass.
-- Wazuh `https://wazuh.indexer:9200` resolves to Jared's Mac at `.50`; index
-  `alice-ledger-v1`, service account `alice_ledger_sync`. USB is mounted at
-  `/mnt/alice-usb`; Pi data is `pi-data` and the signed release is `release`.
-- Target demo is documented: ONLINE simulated cloud activity; Opal/enterprise
-  removal; three normal `+10%` fan requests; one permission-eligible shutdown
-  classified `ELEVATED`/`HIGH`; workstation HOLD explanation; human REJECT; no
-  fan-off command; durable reconciliation after enterprise returns.
+Native backend integration is the active major project. Locally implemented: collected request
+and audit visibility, exact supplied details, immutable decisions, fresh-face
+approve/reject of eligible OFFLINE ALICE-owned HOLDs, and separate acknowledgment,
+execution and observation. No deepfake work or device-output adjustments.
+
+## Current state
+
+- Root is the sole registered worktree. Original biometric/WIP and verified source
+  snapshots remain on named backup branches; private settings/models are preserved.
+- Biometric PR #4 merged at `d57c660`; local commits now include the subsequent
+  upstream wireless/fan roadmap and pitch deliverables. No duplicate biometric commits.
+- Published to `Adaoud03/Alice:main` at the user's request; upstream [PR #5](https://github.com/theoberk25/Alice/pull/5)
+  contains the implementation, evidence and limitations. Upstream merge is pending.
+- Native/web share collected history, evidence and explicit freshness. Native adds
+  exact retained requests and signed fresh-face approve/reject through the existing
+  bridge, Pi ledger and execution path, with durable uncertain-delivery reconciliation.
+- The built app is open for a local personal rehearsal with the existing enrollment;
+  real facial service is ready. Controller/assessment are labeled mock/fixture.
+  Dock/Finder launches now use the same saved remote settings; sign-in starts the feed.
+  `npm run demo:hold -- --session /private/tmp/alice-native-personal-20260906-01/session.json`
+  sends another signed, unexecuted test HOLD; final helper checks: 12 passed.
+- Working scope is first-light `set_light_state`, fixed OFFLINE ALICE authority.
+  Enterprise handover/reads, live brief/model factors and fan adapters remain upstream
+  integration work. Device adjustments stay deferred. Owners are unassigned.
 
 ## Evidence and limits
 
-Latest main delivery reports 117 frontend, 8 script, 166 biometric-service and
-44 native Rust tests passing; one live Ollama test is intentionally ignored.
-Core reports 362 passed plus 266 subtests and one optional serial check initially
-skipped; follow-up scope is in the delivery report. Five console E2E tests and one
-real mock-runtime feed E2E passed. Typecheck, lint, web build and macOS app build pass.
-
-Physical light control and Pi/USB/Wazuh delivery have separate live evidence.
-No integrated human camera acceptance, cloud gateway deployment, real Pi forest,
-fan/sensor adapter, automatic control transfer, native HOLD response or complete
-router-loss/reconciliation acceptance is claimed. Synthetic examples are not
-production normal behavior or electrical safety limits.
+Core: 435 passed and 266 subtests. Biometrics: 166 passed. Rust: 60 passed plus
+one opt-in real Rust→Python bridge/runtime test; approve/reject/replay produced one
+mock command. Frontend: 134 tests plus eight script checks; eight UI E2E and one
+real web/runtime E2E passed. Typecheck, lint, web/native builds passed.
+Cross-language proofs, cancellation, replay, restart, concurrency and uncertainty
+have automated evidence. No human camera→Pi/hardware acceptance or live Ollama test.
+Telemetry covers collected ALICE request/audit traffic, not every network packet.
+Verified preservation includes the concurrent Desktop auto-stash recovery; tracked
+source is committed and published to the fork. No upstream merge, deployment,
+remote trust provisioning or hardware operation was performed.
 
 ## Next steps
 
-1. Give enterprise, technician and local-agent machines stable static DDIL addresses.
-2. Provision cloud, cooling and power-agent identities and deploy the gateway/MCP path.
-3. Generate fan training/calibration/evaluation data and deploy the selected forest.
-4. Connect enterprise offline status and native LLM/face-gated HOLD rejection to Pi.
-5. Run online, router-power-loss, fan-shutdown and reconciliation acceptance.
+1. Personally test fresh login, approve, reject and cancellation in the local rehearsal.
+2. After separate authorization, configure reviewed Pi trust and record physical acceptance.
+3. Coordinate enterprise authority/feed, real model/context and fan contracts before
+   implementing the broader [upstream demo](docs/guides/demo-runbook.md).
 
-[Demo runbook](docs/guides/demo-runbook.md) ·
-[Biometric delivery](docs/reports/2026-09-06-live-face-main-integration.md) ·
-[Technician integration](docs/integration/technician-console.md) ·
-[Tracker](docs/implementation-tracker.md) · [Rules](AGENTS.md)
+[Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
+[Workspace recovery](docs/handoffs/2026-09-06-native-live-backend-workspace.md) ·
+[Ready handoff](docs/handoffs/2026-09-06-native-live-backend-ready.md) ·
+[Parity](docs/plans/native-live-backend-parity.md) ·
+[Validation](docs/reports/2026-09-06-native-live-backend-validation.md)
