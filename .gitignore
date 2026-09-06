@@ -56,3 +56,7 @@ embeddings/
 
 # Arduino CLI generated firmware output (retain source sketches).
 firmware/**/build/
+
+# Machine-metrics MCP runtime state and per-agent poller snapshots (services/light_mcp/)
+services/light_mcp/machine_state.json
+services/light_mcp/poller_*_latest.json
