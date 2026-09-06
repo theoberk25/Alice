@@ -90,9 +90,14 @@ def _public_hex(private: Ed25519PrivateKey) -> str:
     return private.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw).hex()
 
 
-def build(out_dir: Path, agent_ids=(AGENT_ID,)) -> Path:
+def build(out_dir: Path, agent_ids=(AGENT_ID,), grant_agent_ids=None) -> Path:
+    """grant_agent_ids limits who the PERMIT grant covers; every agent in
+    agent_ids still gets a registered key, so the others authenticate but
+    resolve to NO_PERMISSION (default deny)."""
     if isinstance(agent_ids, str):
         agent_ids = (agent_ids,)
+    if grant_agent_ids is None:
+        grant_agent_ids = agent_ids
     release = out_dir / "release"
     trust = out_dir / "trust"
     client = out_dir / "client"
@@ -108,7 +113,7 @@ def build(out_dir: Path, agent_ids=(AGENT_ID,)) -> Path:
                         "ed25519_public_hex": _public_hex(terminal_key)}
 
     payloads = {
-        "grants.json": build_grants_payload(agent_ids),
+        "grants.json": build_grants_payload(grant_agent_ids),
         "subjects.json": build_subjects_payload(agent_ids),
         "terminal_keys.json": {"schema_version": "alice-terminal-keys-v1", "keys": keys},
     }
@@ -137,8 +142,12 @@ def main():
     parser.add_argument("--agent", action="append", default=None,
                         help="agent id (repeatable); enterprise-sim SIEM agents "
                              "resolve their responsible user/delegator from the scenario")
+    parser.add_argument("--ungranted-agent", action="append", default=None,
+                        help="agent id given a registered key but no grant "
+                             "(authenticates, then NO_PERMISSION)")
     args = parser.parse_args()
-    release = build(args.out_dir, tuple(args.agent or (AGENT_ID,)))
+    granted = tuple(args.agent or (AGENT_ID,))
+    release = build(args.out_dir, granted + tuple(args.ungranted_agent or ()), granted)
     print(f"release written: {release}")
     print("WARNING: demonstration trust only; do not provision these keys in production.")
 
