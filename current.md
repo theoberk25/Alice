@@ -1,57 +1,35 @@
 # Current
-Updated: 2026-09-06 EDT.
-Baseline: freshly fetched Theodore Berk `upstream/main` at `966632e`.
-Everyday checkout: `/Users/alexdaoud/Documents/Alice`; branch `codex/native-live-backend`.
+Updated: 2026-09-06.
+Branch: `codex/led-display`; environmental delivery `40ae904`, merged main `237c307`.
 
 ## Active objective
 
-Native backend integration is the active major project. Locally implemented: collected request
-and audit visibility, exact supplied details, immutable decisions, fresh-face
-approve/reject of eligible OFFLINE ALICE-owned HOLDs, and separate acknowledgment,
-execution and observation. No deepfake work or device-output adjustments.
+Reconcile the teammate's machine-metrics MCP with the environmental demo,
+preserving their public interface and the shared ALICE fan authority.
 
 ## Current state
 
-- Root is the sole registered worktree. Original biometric/WIP and verified source
-  snapshots remain on named backup branches; private settings/models are preserved.
-- Biometric PR #4 merged at `d57c660`; local commits now include the subsequent
-  upstream wireless/fan roadmap and pitch deliverables. No duplicate biometric commits.
-- Published to `Adaoud03/Alice:main` at the user's request; upstream [PR #5](https://github.com/theoberk25/Alice/pull/5)
-  contains the implementation, evidence and limitations. Upstream merge is pending.
-- Native/web share collected history, evidence and explicit freshness. Native adds
-  exact retained requests and signed fresh-face approve/reject through the existing
-  bridge, Pi ledger and execution path, with durable uncertain-delivery reconciliation.
-- The built app is open for a local personal rehearsal with the existing enrollment;
-  real facial service is ready. Controller/assessment are labeled mock/fixture.
-  Dock/Finder launches now use the same saved remote settings; sign-in starts the feed.
-  `npm run demo:hold -- --session /private/tmp/alice-native-personal-20260906-01/session.json`
-  sends another signed, unexecuted test HOLD; final helper checks: 12 passed.
-- Working scope is first-light `set_light_state`, fixed OFFLINE ALICE authority.
-  Enterprise handover/reads, live brief/model factors and fan adapters remain upstream
-  integration work. Device adjustments stay deferred. Owners are unassigned.
+- Main merged cleanly; MCP retains `get_metrics` and percent `set_fan_speed` on 8790.
+- Default MCP reads the shared thermal plant and submits governed fan proposals.
+- Per-agent credentials, exact retry bindings and authenticated pollers integrated.
+- Cloud prompt and read-only smoke script use the current metrics tools.
+- Thermal backend moved to 8795, preserving the teammate's console port 8792.
+- Independent file state requires explicit standalone test mode.
+- No console, native, camera or firmware changes in this reconciliation.
 
 ## Evidence and limits
 
-Core: 435 passed and 266 subtests. Biometrics: 166 passed. Rust: 60 passed plus
-one opt-in real Rust→Python bridge/runtime test; approve/reject/replay produced one
-mock command. Frontend: 134 tests plus eight script checks; eight UI E2E and one
-real web/runtime E2E passed. Typecheck, lint, web/native builds passed.
-Cross-language proofs, cancellation, replay, restart, concurrency and uncertainty
-have automated evidence. No human camera→Pi/hardware acceptance or live Ollama test.
-Telemetry covers collected ALICE request/audit traffic, not every network packet.
-Verified preservation includes the concurrent Desktop auto-stash recovery; tracked
-source is committed and published to the fork. No upstream merge, deployment,
-remote trust provisioning or hardware operation was performed.
+Python regression: 467 passed, 30 skipped, 246 subtests, including eight new
+real HTTP/MCP integration tests. Compilation and diff checks passed.
+See [reconciliation](docs/reports/2026-09-06-metrics-reconciliation.md).
+Earlier console/firmware validation and native SDK limits remain in the
+[environmental report](docs/reports/2026-09-06-environmental-demo-validation.md).
+No live Gemini calls, deployment, flashing or physical acceptance performed.
 
 ## Next steps
 
-1. Personally test fresh login, approve, reject and cancellation in the local rehearsal.
-2. After separate authorization, configure reviewed Pi trust and record physical acceptance.
-3. Coordinate enterprise authority/feed, real model/context and fan contracts before
-   implementing the broader [upstream demo](docs/guides/demo-runbook.md).
+1. Configure matching private agent tokens and thermal URL for a separate deployment.
+2. Teammate completes the operator page against the shared environmental contract.
+3. Verify physical Pi/XIAO operation and resolve native SDK compatibility separately.
 
-[Rules](AGENTS.md) · [Tracker](docs/implementation-tracker.md) ·
-[Workspace recovery](docs/handoffs/2026-09-06-native-live-backend-workspace.md) ·
-[Ready handoff](docs/handoffs/2026-09-06-native-live-backend-ready.md) ·
-[Parity](docs/plans/native-live-backend-parity.md) ·
-[Validation](docs/reports/2026-09-06-native-live-backend-validation.md)
+[Metrics run guide](docs/guides/machine-metrics-integration.md) · [Tracker](docs/implementation-tracker.md)

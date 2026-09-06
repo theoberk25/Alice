@@ -263,20 +263,30 @@ impl Snapshot {
         }
         // Validate retained request evidence for all outcomes, not just eligible HOLDs.
         if let Some(request) = &self.request {
-            let parsed: Request =
-                serde_json::from_value(request.clone()).map_err(|_| "INVALID_REVIEW_REQUEST")?;
-            if parsed.schema_version != "1.0"
-                || parsed.request_id != request_id
-                || parsed.request_id.len() > 64
-                || parsed.agent_id.len() > 64
-                || !id(&parsed.agent_id)
-                || parsed.action != "set_light_state"
-                || !(1..=8).any(|n| parsed.target == format!("ESP-LIGHT-0{n}"))
-                || !["on", "off"].contains(&parsed.parameters.state.as_str())
-                || !parsed.issued_at.ends_with('Z')
-                || chrono::DateTime::parse_from_rfc3339(&parsed.issued_at).is_err()
-                || digest(&canonical(request)?) != self.request_sha256
-            {
+            let valid = if request.get("schema_version").and_then(Value::as_str) == Some("alice-demo-fan-v1") {
+                let parsed: DemoFanRequest = serde_json::from_value(request.clone())
+                    .map_err(|_| "INVALID_REVIEW_REQUEST")?;
+                parsed.schema_version == "alice-demo-fan-v1"
+                    && parsed.request_id == request_id && hash(&parsed.request_id)
+                    && parsed.client_request_id.len() <= 64 && !parsed.client_request_id.is_empty()
+                    && parsed.client_request_id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+                    && parsed.run_id.len() == 32 && parsed.run_id.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+                    && parsed.expected_revision <= 9_007_199_254_740_991
+                    && parsed.agent_id.len() <= 64 && id(&parsed.agent_id)
+                    && parsed.action == "set_demo_fan_pct" && parsed.target == "DEMO-SERVER-01"
+                    && parsed.parameters.fan_basis_points <= 10000
+            } else {
+                let parsed: Request = serde_json::from_value(request.clone())
+                    .map_err(|_| "INVALID_REVIEW_REQUEST")?;
+                parsed.schema_version == "1.0" && parsed.request_id == request_id
+                    && parsed.request_id.len() <= 64 && parsed.agent_id.len() <= 64
+                    && id(&parsed.agent_id) && parsed.action == "set_light_state"
+                    && (1..=8).any(|n| parsed.target == format!("ESP-LIGHT-0{n}"))
+                    && ["on", "off"].contains(&parsed.parameters.state.as_str())
+                    && parsed.issued_at.ends_with('Z')
+                    && chrono::DateTime::parse_from_rfc3339(&parsed.issued_at).is_ok()
+            };
+            if !valid || digest(&canonical(request)?) != self.request_sha256 {
                 return Err("REVIEW_REQUEST_BINDING_INVALID".into());
             }
         }
@@ -310,6 +320,24 @@ struct Request {
 #[serde(deny_unknown_fields)]
 struct Parameters {
     state: String,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DemoFanRequest {
+    schema_version: String,
+    request_id: String,
+    client_request_id: String,
+    run_id: String,
+    expected_revision: u64,
+    agent_id: String,
+    action: String,
+    target: String,
+    parameters: DemoFanParameters,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DemoFanParameters {
+    fan_basis_points: u32,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]

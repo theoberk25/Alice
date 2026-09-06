@@ -126,7 +126,7 @@ class FirstLightRuntime:
                 self.release = load_snapshot(release_dir, trusted_manifest_key)
             else:
                 self.release = load_release(release_dir, trusted_manifest_key)
-            self._validator = _request_validator()
+            self._validator = self.request_validator()
         except Exception as exc:
             raise StartupError(f"release verification failed: {exc}") from exc
 
@@ -141,7 +141,7 @@ class FirstLightRuntime:
             raise StartupError(str(exc)) from exc
         self._boot_id = "boot-" + uuid.uuid4().hex[:12]
         self._lock = threading.Lock()
-        self.controller = _make_controller(esp_base_url, esp_serial,
+        self.controller = self.make_controller(esp_base_url, esp_serial,
                                            serial_baud, serial_timeout)
 
         seed_path = Path(ledger_key_file) if ledger_key_file else data_dir / "ledger_key.seed"
@@ -172,6 +172,18 @@ class FirstLightRuntime:
         self._outcomes = {}
         self._rebuild_outcomes()
         self.reviews = ReviewAuthority(self, console_trust)
+
+    @staticmethod
+    def request_validator():
+        return _request_validator()
+
+    @staticmethod
+    def make_controller(esp_base_url, esp_serial, serial_baud, serial_timeout):
+        return _make_controller(esp_base_url, esp_serial, serial_baud, serial_timeout)
+
+    def request_is_current(self, request):
+        """Subsystem execution precondition; legacy light requests have no run."""
+        return True
 
     def current_authority(self):
         # Existing first-light OFFLINE authority only. Connectivity does not
@@ -389,7 +401,29 @@ class FirstLightRuntime:
             self.ledger.seal()
             return 403, response
 
-        # 5. Fixture ASSESSMENT via contextual_projection; the exact bytes are
+        detail, assessment_correlation = self.assess_request(
+            request, request_sha256, correlation, attribution)
+
+        # 6. DECISION (emitted once per request_id)
+        decision = decide(True, finding, detail["status"])
+        reason_codes = {decision.reason_code}
+        reason_codes.update("GRANT_" + rule.replace("-", "_").upper() for rule in finding.rule_ids)
+        self._append(f"{request_id}.decision", "DECISION",
+                     correlation=assessment_correlation, attribution=attribution,
+                     detail={"outcome": decision.outcome, "reason_codes": sorted(reason_codes)})
+        response = {"request_id": request_id, "decision": decision.outcome,
+                    "reason_code": decision.reason_code, "execution": None,
+                    "observed_state": None}
+        if decision.outcome != "ALLOW":
+            self._record_outcome(request_id, request_sha256, response)
+            self.ledger.seal()
+            return (202 if decision.outcome == "CHALLENGE" else 403), response
+
+        return self._execute_request(request, request_sha256, response, correlation, attribution)
+
+    def assess_request(self, request, request_sha256, correlation, attribution):
+        request_id = request['request_id']
+        # Fixture ASSESSMENT via contextual_projection; the exact bytes are
         # retained as evidence and their sha256 is the evidence binding.
         assessment_bytes = build_assessment(
             request_id=request_id, input_sha256=request_sha256,
@@ -414,22 +448,7 @@ class FirstLightRuntime:
                                 "source": self._source("first-light-fixture",
                                                        f"{request_id}.obs")}])
 
-        # 6. DECISION (emitted once per request_id)
-        decision = decide(True, finding, detail["status"])
-        reason_codes = {decision.reason_code}
-        reason_codes.update("GRANT_" + rule.replace("-", "_").upper() for rule in finding.rule_ids)
-        self._append(f"{request_id}.decision", "DECISION",
-                     correlation=assessment_correlation, attribution=attribution,
-                     detail={"outcome": decision.outcome, "reason_codes": sorted(reason_codes)})
-        response = {"request_id": request_id, "decision": decision.outcome,
-                    "reason_code": decision.reason_code, "execution": None,
-                    "observed_state": None}
-        if decision.outcome != "ALLOW":
-            self._record_outcome(request_id, request_sha256, response)
-            self.ledger.seal()
-            return (202 if decision.outcome == "CHALLENGE" else 403), response
-
-        return self._execute_request(request, request_sha256, response, correlation, attribution)
+        return detail, assessment_correlation
 
     def _execute_request(self, request, request_sha256, response, correlation, attribution):
         request_id = request["request_id"]

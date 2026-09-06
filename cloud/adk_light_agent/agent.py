@@ -1,6 +1,6 @@
 """Google ADK cloud agent for the Light-Control MCP server.
 
-``root_agent`` is an ``LlmAgent`` (Gemini) whose tools are the four Light MCP
+``root_agent`` is an ``LlmAgent`` (Gemini) whose tools are the two machine-metrics MCP
 tools, reached over **Streamable HTTP** at the canonical, fixed URL
 ``http://127.0.0.1:8790/mcp`` (build 03). This is one of two clients of that
 shared MCP tool layer — the other is the Goose local harness (build 02).
@@ -11,7 +11,7 @@ The Vertex/Agent-Engine path is deliberately NOT wired here — it is gated behi
 the human checkpoint in docs/agent-build/01-cloud-agent.md.
 
 Run it (from this directory's parent, ``cloud/``, with the venv active and the
-Light MCP server up in mock mode):
+metrics MCP server configured for the governed demo):
 
     adk web        # http://localhost:8000 -> pick machine_ops_cloud, watch Trace tab
 """
@@ -42,15 +42,20 @@ LIGHT_MCP_URL = "http://127.0.0.1:8790/mcp"
 MODEL = os.getenv("ADK_MODEL", "gemini-flash-latest")
 
 _INSTRUCTION = (
-    "You operate base/plant machines through the light_control tools "
-    "(list_machines, get_status, set_machine, blink). "
-    "Query status before acting, only use each machine's allowed_states, "
-    "and confirm state changes back to the user. If a tool returns ok:false, "
-    "report the error instead of retrying blindly. "
-    "For a GOVERNED action that must go through enterprise review (a signed "
-    "set_light_state on an ESP light), call submit_governed_request when it is "
-    "available; report the enterprise receipt and the decision (a CHALLENGE is "
-    "a HOLD awaiting a technician) and never resubmit the same request."
+    "Use only get_metrics and set_fan_speed(value) through the shared metrics MCP. "
+    "Read metrics before proposing a fan change. fan_speed is actual percent; "
+    "fan_target_speed is the authorized target. server_temperature is Fahrenheit "
+    "and power_consumption is watts in the governed thermal demo. "
+    "You may propose fan percent only; never write temperature/power or control LEDs. "
+    "ALICE governs every change. Report decision, review and application separately. "
+    "HOLD/CHALLENGE, DENY and UNKNOWN do not mean the fan changed. "
+    "If ok:false, inspect get_metrics and report the outcome; do not blindly retry. "
+    "An uncertain retry must use the exact returned request_id, run_id and expected_revision. "
+    "Do not claim actual fan speed instantly reaches its target or that simulated readings are real hardware. "
+    "For a GOVERNED action that must go through enterprise review, call "
+    "submit_governed_request when it is available; report the enterprise receipt and "
+    "the decision (a CHALLENGE is a HOLD awaiting a technician) and never resubmit the "
+    "same request."
 )
 
 # Enterprise-first ingress is OPT-IN: only when ALICE_ENTERPRISE_INGRESS_URL is
@@ -83,6 +88,7 @@ def submit_governed_request(state: str, target: str = "ESP-LIGHT-01") -> dict:
     }
 
 
+
 def build_agent(model: str = MODEL) -> LlmAgent:
     """Construct the cloud machine-ops agent bound to the Light MCP.
 
@@ -92,7 +98,9 @@ def build_agent(model: str = MODEL) -> LlmAgent:
     """
     tools = [
         McpToolset(
-            connection_params=StreamableHTTPConnectionParams(url=LIGHT_MCP_URL),
+            connection_params=StreamableHTTPConnectionParams(url=LIGHT_MCP_URL, headers=(
+                {"Authorization": "Bearer " + os.environ["LIGHT_MCP_TOKEN"]}
+                if os.environ.get("LIGHT_MCP_TOKEN") else None)),
         )
     ]
     if ENTERPRISE_INGRESS_URL:
@@ -100,7 +108,7 @@ def build_agent(model: str = MODEL) -> LlmAgent:
     return LlmAgent(
         model=model,
         name="machine_ops_cloud",
-        description="Cloud operations agent that controls base/plant machine lights via the Light MCP.",
+        description="Cloud agent that observes machine metrics and proposes governed fan changes.",
         instruction=_INSTRUCTION,
         tools=tools,
     )

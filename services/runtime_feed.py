@@ -80,12 +80,16 @@ def validate_page(payload, after):
     return wire
 
 
-def make_server(*, upstream, token, source, controller, port=8787):
+def make_server(*, upstream, token, source, controller, port=8787, upstream_token=None):
     upstream = loopback_url(upstream)
     if len(token) < 32 or not token.isascii() or any(c.isspace() for c in token):
         raise ValueError('ALICE_FEED_TOKEN must contain at least 32 non-whitespace ASCII characters')
     if source not in ('local-runtime', 'ssh-tunnel') or controller not in ('mock', 'physical-serial', 'unavailable'):
         raise ValueError('Explicit supported source/controller labels required')
+    if upstream_token is not None and (not upstream_token or not upstream_token.isascii()
+                                       or any(c.isspace() for c in upstream_token)):
+        raise ValueError('Invalid upstream bearer credential')
+    upstream_headers = {'Authorization': 'Bearer ' + upstream_token} if upstream_token else {}
     opener = build_opener(ProxyHandler({}), NoRedirect())
 
     class Handler(BaseHTTPRequestHandler):
@@ -105,7 +109,7 @@ def make_server(*, upstream, token, source, controller, port=8787):
         def forward_review(self, path, body=None):
             try:
                 request = Request(upstream + path, data=body,
-                                  headers={'Content-Type': 'application/json'})
+                                  headers={'Content-Type': 'application/json', **upstream_headers})
                 try:
                     response = opener.open(request, timeout=10)
                 except HTTPError as exc:
@@ -154,7 +158,7 @@ def make_server(*, upstream, token, source, controller, port=8787):
             except ValueError:
                 return self.reply(400, {'error': 'Invalid after cursor'})
             try:
-                with opener.open(f'{upstream}/events?after={max(0, after - 1)}', timeout=5) as response:
+                with opener.open(Request(f'{upstream}/events?after={max(0, after - 1)}', headers=upstream_headers), timeout=5) as response:
                     data = response.read(MAX_RESPONSE_BYTES + 1)
                 if len(data) > MAX_RESPONSE_BYTES:
                     raise ValueError('Feed response exceeds supported size')
@@ -180,7 +184,8 @@ def main():
     parser.add_argument('--port', type=int, default=8787)
     args = parser.parse_args()
     server = make_server(upstream=args.upstream, token=os.environ.get('ALICE_FEED_TOKEN', ''),
-                         source=args.source, controller=args.controller, port=args.port)
+                         source=args.source, controller=args.controller, port=args.port,
+                         upstream_token=os.environ.get('ALICE_UPSTREAM_TOKEN'))
     print(f'Event/review bridge listening on {server.server_address}; {args.source}, controller={args.controller}', flush=True)
     try:
         server.serve_forever()

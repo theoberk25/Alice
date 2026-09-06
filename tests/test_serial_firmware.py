@@ -64,3 +64,13 @@ class SerialFirmwareTests(unittest.TestCase):
 
     def test_blink_timing_and_off_cancellation(self):
         subprocess.run([str(self.binary), '--blink'],check=True,capture_output=True)
+
+    def test_patterns_phase_pairs_watchdog_and_rollover(self):
+        subprocess.run([str(self.binary), '--patterns'], check=True, capture_output=True)
+
+    def test_v3_invalid_patterns_do_not_write(self):
+        valid = {'v':3, 'id':'p', 'channel':1, 'op':'pattern', 'mode':'blink', 'mhz':5000}
+        for change in ({'mhz':499}, {'mhz':5001}, {'mhz':True}, {'mode':'solid'},
+                       {'channel':9}, {'op':'get'}, {'state':'on'}, {'v':2}):
+            writes, _ = self.run_frames(json.dumps({**valid, **change}).encode()+b'\n')
+            self.assertEqual(writes, 0)
