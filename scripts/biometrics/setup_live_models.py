@@ -37,7 +37,7 @@ def provision():
             finally:
                 temporary.unlink()
         print(f"{kind}: {name} SHA256={expected}")
-    print("Forged media: NONE_QUALIFIED. Full protected policy remains blocked.")
+    print("Pose and presentation models provisioned. Check /live/readiness before capture.")
 
 if __name__ == "__main__":
     provision()

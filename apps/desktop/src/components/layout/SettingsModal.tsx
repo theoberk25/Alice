@@ -82,8 +82,8 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         <div className="settings-boundary">
           <h3>Face identity</h3>
           <p>
-            Live face recognition uses your Mac camera, guided head movements and the local
-            biometric service. Face data stays on this computer.
+            Live face recognition uses your Mac camera and the local biometric service. Enrollment
+            collects multiple angles; later sign-in is automatic. Face data stays on this computer.
           </p>
         </div>
       </div>

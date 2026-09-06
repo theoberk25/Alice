@@ -15,10 +15,6 @@ vi.mock('../../apps/desktop/src/features/biometrics/verify', () => ({
   cancelBiometricSession: vi.fn(),
   recoverBiometricEnrollment: vi.fn(),
 }));
-vi.mock('motion/react', async () => {
-  const actual = await vi.importActual<typeof import('motion/react')>('motion/react');
-  return { ...actual, useReducedMotion: () => true };
-});
 const id = '86b5ab92-7eb7-4a34-9e7c-72ea008a6f67';
 function session(overrides: Partial<LiveBiometricSession> = {}): LiveBiometricSession {
   return {

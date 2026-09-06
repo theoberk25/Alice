@@ -323,7 +323,7 @@ export function CameraCapture({
         <div className="biometric-placeholder" aria-hidden="true">
           {complete ? (
             // Circle/check geometry and 400ms reveal adapted from pqoqubbw/icons (MIT),
-            // commit 072c38b1b04ea738d90a084485ccaad4b890ddca. See apps/desktop/src-tauri/third-party-notices.md.
+            // commit 072c38b1b04ea738d90a084485ccaad4b890ddca. See docs/guides/live-face-third-party-notices.md.
             <svg
               className="biometric-success-mark"
               viewBox="0 0 24 24"

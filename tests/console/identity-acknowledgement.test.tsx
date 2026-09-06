@@ -3,6 +3,8 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { LiveBiometricSession } from '@alice/contracts';
 import { IdentityPanel } from '../../apps/desktop/src/components/technicians/IdentityPanel';
 import { useConsole } from '../../apps/desktop/src/state/console';
+import { emptyRuntime } from '../../packages/domain/src/runtime-feed';
+import { event, page } from './runtime-fixtures';
 import * as api from '../../apps/desktop/src/features/biometrics/verify';
 vi.mock('../../apps/desktop/src/features/biometrics/verify', () => ({
   beginBiometricSession: vi.fn(),
@@ -88,5 +90,39 @@ it.each([200, 480])(
     expect(close).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Continue to facial login' })).toBeInTheDocument();
     expect(api.beginBiometricSession).toHaveBeenCalledTimes(1);
+  },
+);
+
+// Main's live Pi feed is a separate read-only authority boundary. Login must
+// preserve its state, and failed biometric attempts must not unlock it.
+it.each(['SUCCEEDED', 'FAILED', 'CANCELLED'] as const)(
+  'preserves the latest remote feed and read-only action boundary after %s login',
+  async (state) => {
+    useConsole.setState({
+      mode: 'remote',
+      runtime: emptyRuntime(),
+      selectedRuntimeId: '',
+      decisions: {},
+    });
+    useConsole
+      .getState()
+      .ingest({ ...page([event(), event(2, 'DECISION')]), event_type: 'alice.runtime_feed' });
+    const before = useConsole.getState().runtime;
+    vi.mocked(api.beginBiometricSession).mockResolvedValue({
+      ...success,
+      state,
+      technician: state === 'SUCCEEDED' ? technician : null,
+      reason: state === 'SUCCEEDED' ? '' : 'OPERATOR_OR_NATIVE_REJECTED',
+    });
+    await signIn(vi.fn());
+    expect(useConsole.getState().technician).toEqual(
+      state === 'SUCCEEDED' ? technician : undefined,
+    );
+    expect(useConsole.getState().runtime).toEqual(before);
+    expect(useConsole.getState().decisions).toEqual({});
+    await expect(useConsole.getState().act('APPROVE_ONCE')).rejects.toThrow(
+      'Remote technician actions are unavailable',
+    );
+    expect(useConsole.getState().runtime).toEqual(before);
   },
 );

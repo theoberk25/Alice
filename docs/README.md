@@ -25,6 +25,7 @@ and evidence. Read only the detailed documents relevant to the task.
 | Core runtime | [DCAMR index](dcamr/README.md) |
 | Lab and simulation | [Lab guide](lab/README.md) |
 | Test fixture explanations | [Anomaly](tests/fixtures/anomaly.md), [features](tests/fixtures/features.md) |
+| Live facial delivery | [Integration report](reports/2026-09-06-live-face-main-integration.md), [setup](guides/console/facial-verification-quickstart.md) |
 | Biometric service | [Service API](guides/biometrics-service.md) |
 | Developer tools | [Script catalog](scripts/README.md) |
 

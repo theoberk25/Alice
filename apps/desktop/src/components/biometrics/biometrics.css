@@ -42,7 +42,7 @@
   opacity: 0.35;
 }
 /* CSS adaptation of pqoqubbw/icons circle-check's 400ms path / 100ms opacity reveal.
-   MIT, commit 072c38b1b04ea738d90a084485ccaad4b890ddca; see apps/desktop/src-tauri/third-party-notices.md. */
+   MIT, commit 072c38b1b04ea738d90a084485ccaad4b890ddca; see docs/guides/live-face-third-party-notices.md. */
 .biometric-session .biometric-success-mark path {
   stroke-dasharray: 1;
   stroke-dashoffset: 0;

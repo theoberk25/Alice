@@ -74,7 +74,7 @@ final class Camera: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         session.addInput(input)
         // Adapted from FaceGate-Mac CameraManager.swift (MIT, Dweep Desai),
         // be3fe1dde73cfc4a7f6a0f79cd1be7656dbca2eb. Select the preset only
-        // after attaching the actual device. See third-party-notices.md.
+        // after attaching the actual device. See docs/guides/live-face-third-party-notices.md.
         // Keep the sensor's wide view; inference output is still bounded below.
         if device.supportsSessionPreset(.hd1280x720) && session.canSetSessionPreset(.hd1280x720) {
             session.sessionPreset = .hd1280x720

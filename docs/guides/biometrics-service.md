@@ -1,15 +1,33 @@
-# ALICE face identity service
+# ALICE live face identity service
 
-Run from the Alice repository root with `npm run biometrics` after installing the Python 3.11 environment and provisioning the model as described in the [facial verification setup](console/facial-verification-quickstart.md). The service binds to the loopback host/port in `ALICE_BIOMETRIC_SERVICE_URL` (default `http://127.0.0.1:8765`); native Rust uses the same setting. Choose another loopback port if the default is occupied; the same configured URL must reach the service from the native app. The historical standalone port choice does not configure this checkout. Set the same random `ALICE_BIOMETRIC_TOKEN` in both process environments. A missing/short token makes requests fail safely.
+Run from the repository root with `npm run biometrics` after following the
+[live facial setup](console/facial-verification-quickstart.md). The loopback
+`ALICE_BIOMETRIC_SERVICE_URL` and private `ALICE_BIOMETRIC_TOKEN` must match the
+native app. No permissive browser CORS or model download runs during authentication.
 
-| Route | Body / response |
-|---|---|
-| GET `/health` | READY or UNAVAILABLE, model error, liveness NOT_CONFIGURED |
-| GET `/model-info` | Model name, readiness, configured threshold |
-| POST `/enroll` | `technician_id`, five to ten distinct base64 JPEG `frames`; returns usable sample count |
-| POST `/verify` | `technician_id`, one to ten frames; returns PASS/FAIL, cosine similarity, threshold, provider |
-| POST `/remove` | `technician_id`; removes encrypted reference |
+The native Swift camera owns acquisition; Rust owns operation intent, session IDs,
+nonces, epochs, cancellation and final authority. Preview frames are display-only.
+The Python service performs ArcFace identity, quality, MediaPipe pose and MiniFAS
+presentation checks under `alice.live-face.v3`. No deepfake detector is included.
 
-All routes require `Authorization: Bearer <local-service-token>`. These are not public browser endpoints; there is no permissive CORS. `technician_id` accepts only letters, digits, underscore, and hyphen. Requests are size-bounded and extra schema fields are rejected. Image errors return explicit operational codes.
+| Route | Purpose |
+| --- | --- |
+| GET `/live/readiness` | Policy, epoch, model readiness for live capture |
+| POST `/live/begin` | Exact native operation/generation binding |
+| POST `/live/observe` | Bounded native frame with matching session/nonce/epoch/sequence |
+| POST `/live/cancel` | Release the service session |
+| POST `/generation/activate` | Compare-and-swap activation of an encrypted staged generation |
+| POST `/generation/remove` | Idempotent generation-bound removal and recovery |
+| GET `/health`, `/model-info` | Service and identity-model diagnostics |
+| POST `/enroll`, `/verify`, `/remove` | Legacy service compatibility/inference tests; no native login or grant authority |
 
-Modules separate configuration, schemas, image preprocessing/quality, detector/embedding inference, and encrypted persistence. Tests inject a deterministic engine for error/security paths. `scripts/biometrics/smoke_arcface.py` separately checks actual CPU inference on a public sample. The app never persists raw face frames. This is identity matching only: liveness and anti-spoof are not implemented.
+All routes require bearer authentication. Unknown fields, invalid bindings, oversized
+bodies, concurrent inference, stale/replayed sessions and unusable models fail closed.
+Only embeddings/metadata persist in encrypted, versioned enrollment generations;
+raw camera images are not retained. V1 data remains intact until explicit migration
+or removal; compatible V2/V3 multi-pose galleries persist across service restarts.
+
+Enrollment uses seven pose regions after brief neutral calibration. Later login and
+local fresh approval use a short automatic gallery match, without repeating head
+rotations. Native approval grants do not deliver live Pi decisions in this release.
+Automated fixtures establish behavior, not live PAD accuracy or physical acceptance.
