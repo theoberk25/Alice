@@ -52,6 +52,11 @@ _INSTRUCTION = (
     "If ok:false, inspect get_metrics and report the outcome; do not blindly retry. "
     "An uncertain retry must use the exact returned request_id, run_id and expected_revision. "
     "Do not claim actual fan speed instantly reaches its target or that simulated readings are real hardware. "
+    "For a GOVERNED fan change, call submit_governed_fan_request when it is available: "
+    "first call get_metrics, then pass its run_id and revision as run_id and "
+    "expected_revision along with the requested fan percent. Report the decision and "
+    "application (ALLOW/applied, or a CHALLENGE that is a HOLD awaiting a technician) "
+    "and never resubmit the same request. "
     "For a GOVERNED action that must go through enterprise review, call "
     "submit_governed_request when it is available; report the enterprise receipt and "
     "the decision (a CHALLENGE is a HOLD awaiting a technician) and never resubmit the "
@@ -62,6 +67,40 @@ _INSTRUCTION = (
 # set do we add the governed-submission tool, so default `adk web` behaviour
 # (MCP tools only) is unchanged. See docs/integration/cloud-agent-enterprise-ingress.md.
 ENTERPRISE_INGRESS_URL = os.getenv("ALICE_ENTERPRISE_INGRESS_URL")
+
+# Thermal governed path is OPT-IN too: only when ALICE_THERMAL_REQUEST_URL is set
+# do we add the signed fan-request tool. This is the contract the LIVE Pi accepts
+# (alice-demo-fan-v1 -> ThermalRuntime.submit_envelope), unlike the first-light
+# lights contract of the enterprise ingress tool above. See
+# docs/plans/2026-09-06-demo-part1-cloud-governed-ingress.md.
+THERMAL_REQUEST_URL = os.getenv("ALICE_THERMAL_REQUEST_URL")
+
+
+def submit_governed_fan_request(fan_pct: float, run_id: str, expected_revision: int) -> dict:
+    """Submit one signed, governed fan change to the ALICE thermal runtime.
+
+    Call get_metrics FIRST and pass its current run_id and revision here as
+    run_id and expected_revision (the runtime rejects a stale run). The action is
+    signed with this agent's provisioned fan-permitted key (ALICE_AGENT_ID /
+    ALICE_AGENT_KEY_FILE) and POSTed to ALICE_THERMAL_REQUEST_URL/request, where
+    ALICE decides. Returns the request_id, decision, application and raw response.
+    Never resubmit; on an uncertain outcome, read get_metrics and report it.
+    Args:
+        fan_pct: requested fan percent, 0..100.
+        run_id: the current plant run_id from get_metrics.
+        expected_revision: the current plant revision from get_metrics.
+    """
+    from cloud.thermal_governed_client import submit_governed_fan_request as _submit
+
+    result = _submit(fan_pct=fan_pct, run_id=run_id, expected_revision=expected_revision)
+    return {
+        "request_id": result.request_id,
+        "client_request_id": result.client_request_id,
+        "decision": result.decision,
+        "demo_application": result.demo_application,
+        "http_status": result.http_status,
+        "response": result.response,
+    }
 
 
 def submit_governed_request(state: str, target: str = "ESP-LIGHT-01") -> dict:
@@ -105,6 +144,8 @@ def build_agent(model: str = MODEL) -> LlmAgent:
     ]
     if ENTERPRISE_INGRESS_URL:
         tools.append(FunctionTool(submit_governed_request))
+    if THERMAL_REQUEST_URL:
+        tools.append(FunctionTool(submit_governed_fan_request))
     return LlmAgent(
         model=model,
         name="machine_ops_cloud",
