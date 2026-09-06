@@ -16,6 +16,12 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
+September 6 native backend continuation: biometric PR #4 is merged in Theodore's
+`upstream/main` at `d57c660`. Root checkout now uses `codex/native-live-backend`;
+original dirty work, WIP and retired trees are [verified preserved](handoffs/2026-09-06-native-live-backend-workspace.md).
+Native review implementation and validation are active; no new acceptance is claimed.
+
+
 September 6 biometric delivery: `codex/live-face-upstream-integration` starts from
 Theodore's `upstream/main` `f79cd8e` and ports the completed native live facial
 upgrade only. Automatic multi-pose enrollment, passive gallery login, encrypted
