@@ -16,6 +16,10 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
+Xavier's `290699b` USB-serial light transport is integrated locally with the preserved
+snapshot/Wazuh/dashboard work. Hardware testing was reported on his development Mac;
+Pi serial deployment and joint acceptance remain pending. [Integration evidence](handoffs/2026-09-06-xavier-serial-integration.md).
+
 Integrated locally from Jared's `origin/main` checkpoint `ef413b6` and the preserved
 SQL snapshot checkpoint `73dfa91`. [ESP/technician handoff](integration/esp-technician-handoff.md)
 and [Wazuh runbook](integration/wazuh-audit-sync.md) define the provisioned paths.
@@ -419,7 +423,7 @@ workflows run with explicit no-unintended-execution assertions.
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
 | 069 | Receive Technician Decision | Planned | Target clarified: local Mac resolves held actions to accept/deny after biometric verification; Merek's backend must deliver that bound response to the Pi. No real receiver is connected; authentication, proof/currentness checks and receipts remain. |
 | 070 | Require Technician Authentication for Approval | Planned | Local ArcFace enrollment/login and native approval grants exist. Target held-action accept/deny choice is biometric-gated on the Mac; both response paths and Pi-verifiable proof bound to current request/assessment/authority need agreement and acceptance. |
-| 071 | Execute Approved Action | Partial | The [enforcement gateway][enforcement] now commands the first-light ESP light over HTTP (receipt and state readback separated; idempotency owned by the runtime), verified against a mock ESP in [tests][first-light-tests]. The real ESP firmware contract, endpoint fence and general action execution remain; ONLINE enterprise control remains direct. |
+| 071 | Execute Approved Action | Partial | HTTP light adapter and XIAO USB-serial adapter share existing receipt/observation contracts. Serial, snapshot, Wazuh and replay integration tests pass; Xavier reports development-Mac LED tests. Pi serial deployment, updated firmware flashing and crash-window physical acceptance remain. [Integration handoff](handoffs/2026-09-06-xavier-serial-integration.md). |
 | 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
 | 073 | Record Action Execution Result | Partial | Runtime records controller receipt, execution result and observed state separately; live dashboard updates these after the immutable decision. Real local runtime/mock-controller browser acceptance passed; physical endpoint and sensor acceptance remain. [Live handoff](handoffs/2026-09-06-live-dashboard.md). |
 | 074 | Monitor Resulting Physical/System State | Planned | No post-execution physical/system-state monitor exists. |

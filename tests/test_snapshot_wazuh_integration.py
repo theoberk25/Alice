@@ -124,3 +124,32 @@ class SnapshotWazuhIntegrationTests(unittest.TestCase):
         self.assertEqual(list(self.runtime.iter_events()), before)
         self.assertTrue(self.runtime.handle_request(first)[1]['idempotent_replay'])
         self.assertEqual(self.esp.commands, 2)
+
+    def test_serial_selection_keeps_snapshot_feed_wazuh_and_restart_replay(self):
+        from lab.first_light.mock_esp_serial import make_loopback
+        from dcamr.enforcement.serial_light_controller import SerialLightController
+        self.runtime.close()
+        options = dict(self.options, esp_base_url=None, esp_serial='test-serial-port')
+        self.runtime = FirstLightRuntime(**options)
+        self.assertIsInstance(self.runtime.controller, SerialLightController)
+        transport, serial_node = make_loopback()
+        envelope = build_envelope(self.seed, state='on')
+        with patch.object(self.runtime.controller, '_open', return_value=transport):
+            self.assertEqual(self.runtime.handle_request(envelope)[1]['execution'], 'COMPLETED')
+        events = list(self.runtime.iter_events())
+        validate_page({'events': events}, 0)
+        self.assertEqual(len(events), 7)
+        self.assertTrue(all(e['provenance']['snapshot']['sha256'] for e in events))
+        self.assertEqual(events[-1]['detail']['origin'], 'ACTUATOR_FEEDBACK')
+        sink = MemorySink()
+        worker = WazuhWorker(self.runtime.ledger, sink, self.runtime._lock)
+        for _ in events: worker.step()
+        self.assertEqual(self.runtime.ledger.pending(), [])
+        for event in events:
+            self.assertEqual(sink.docs[document_id(event)]['event'], event)
+        self.runtime.close()
+        self.runtime = FirstLightRuntime(**options)
+        self.assertTrue(self.runtime.handle_request(envelope)[1]['idempotent_replay'])
+        self.assertEqual(list(self.runtime.iter_events()), events)
+        self.assertEqual(serial_node.commands, 1)
+        self.assertEqual(self.esp.commands, 0)  # HTTP never substituted for serial.

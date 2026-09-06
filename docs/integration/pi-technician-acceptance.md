@@ -21,6 +21,23 @@ A direct cable to the Pi is not mandatory. Merek's inspected Mac was on
 No network settings were changed. Have Theo provision the Mac's SSH public key,
 and verify the fingerprint in Jared's handoff. Do not bypass host-key checking.
 
+## Physical controller selection
+
+Xavier's `290699b` adds the XIAO ESP32-S3 over **USB serial**, with no ESP network
+address. His development-Mac hardware test is reported in the [hardware guide](../guides/first-light-hardware.md);
+the same deployment on the Pi remains to verify. Do not assume the existing
+systemd unit has switched from its HTTP mock. In a coordinated stop/restart,
+Jared/Xavier select `--esp-serial /dev/serial/by-id/<actual-device>` in place of
+`--esp-url`, retaining every storage, trust, signing-key and Wazuh argument.
+Never run a serial monitor beside the runtime or launch another ledger writer.
+The merge also hardens firmware parsing; Xavier must compile/flash and reverify
+that updated firmware separately. No board was flashed by this integration.
+
+Keep the bridge's `--controller mock` for the HTTP mock. With confirmed physical
+serial deployment, omit that flag; controller verification stays unavailable, and
+`ACTUATOR_FEEDBACK` is the output reported by the board, not measured illumination.
+No dashboard/contract redesign is required for the serial receipt or observation.
+
 ## Jared: verify existing data first, without a new action
 
 After the integration is published, preserve local changes and private state before

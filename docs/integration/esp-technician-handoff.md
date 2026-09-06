@@ -12,7 +12,7 @@ recommendations below are not claims that remote approval or grid control exists
 | Pi runtime | Port 8080; `/request`, `/events`, `/sync-status` | Signed first-light requests and read-only history/status |
 | USB | `/mnt/alice-usb/pi-data/ledger.sqlite`, sibling `evidence/` | Real new events stored and automatically uploaded |
 | Signed release | `/mnt/alice-usb/release/` | Existing first-light JSON grants, not general enterprise SQL permissions |
-| Current controller | Pi loopback `http://127.0.0.1:8090` | Mock ESP; real ESP address/port must be supplied by hardware owner |
+| Available physical controller | XIAO ESP32-S3 via `--esp-serial` | Xavier reports real LED/readback on a development Mac. Pi deployment remains pending per the [hardware runbook](../guides/first-light-hardware.md); the last reported Pi service still used the HTTP mock |
 | Wazuh indexer | Jared Mac `192.168.50.50:9200`, TLS name `wazuh.indexer` | 83 records at last observed test, including seven from USB |
 | Technician | Theo's Mac; use the SSH tunnel below | Dashboard transport setup is separate from Wazuh credentials |
 
@@ -42,33 +42,42 @@ ssh pi@192.168.50.20 'curl -fsS http://127.0.0.1:8080/sync-status'
 
 ## Connect the ESP owner
 
-The current adapter is [LightController](../../dcamr/enforcement/enforcement_gateway.py).
-For the first physical light test the firmware must implement:
+**The physical light node is USB-serial, not a network endpoint.** It has no
+Wi-Fi, no Ethernet and no IP address, and serves no HTTP. Do not assign it a LAN
+address, do not attach a USB-to-Ethernet adapter, and do not expect `curl` to
+reach it. The adapter is
+[SerialLightController](../../dcamr/enforcement/serial_light_controller.py);
+[LightController](../../dcamr/enforcement/enforcement_gateway.py) is retained
+unchanged for the mock and any future networked node.
 
-| Method | Path | Body / response |
-| --- | --- | --- |
-| POST | `/light` | Request `{"state":"on"}` or `{"state":"off"}`; successful HTTP response with a JSON object, e.g. `{"ok":true,"state":"on"}` |
-| GET | `/light` | Response `{"state":"on"}` or `{"state":"off"}` representing observed state |
+Hardware: a Seeed XIAO ESP32-S3 on a USB data cable to the Pi, LED on D0 (GPIO1)
+through a 270 ohm resistor to the anode, cathode to GND, active HIGH. Firmware,
+wiring and the full bring-up are in the
+[hardware runbook](../guides/first-light-hardware.md); the wire format is the
+[serial protocol](../contracts/esp-serial-protocol.md).
 
-A successful POST is only a transport receipt. GET readback is recorded separately;
-it must not invent a physical observation. The mock's `/stats` command counter is
-only a test aid, not a required physical-device API.
-
-1. Hardware owner supplies the actual ESP LAN IP, port and the agreed low-voltage
-   demonstration wiring. No ESP IP or feeder voltage range is assumed here.
-2. Confirm read-only `GET /light` from the Pi before replacing the mock endpoint.
-3. In a coordinated pause, update only `--esp-url` in the deployed
+1. Hardware owner flashes the board once with
+   `arduino-cli upload -p <PORT> --fqbn esp32:esp32:XIAO_ESP32S3 firmware/xiao_first_light`.
+   Firmware persists, so the board can then be moved to the Pi.
+2. On the Pi, install the optional serial tier (`pip install -r requirements-hardware.txt`),
+   add the runtime user to `dialout`, and identify the node with
+   `ls -l /dev/serial/by-id/`. Close any serial monitor first: the port is exclusive.
+3. In a coordinated pause, replace `--esp-url <URL>` with
+   `--esp-serial /dev/serial/by-id/<node>` in the deployed
    `/etc/systemd/system/alice-runtime.service` (retain its other arguments), then
    `sudo systemctl daemon-reload` and `sudo systemctl restart alice-runtime`.
-   The checked-in [demo unit](../../services/systemd/alice-runtime.service) still
-   points at the mock and must be adapted for the physical ESP.
+   The two flags are mutually exclusive and one is required, so a mistake fails
+   closed at startup instead of silently commanding the wrong endpoint. The
+   checked-in [demo unit](../../services/systemd/alice-runtime.service) still
+   points at the mock and must be adapted.
 4. Submit the signed request below through ALICE and verify one physical state
    change, matching USB events, dashboard observation and Wazuh delivery.
 
-The existing transport is plain HTTP without device authentication. Recommend a
-restricted demo LAN/endpoint access limited to the Pi until authenticated controller
-commands and device-side idempotency are implemented. Do not let the agent or
-technician browser directly call `/light` to bypass ALICE during governance tests.
+The serial link carries no device authentication: a command id is correlation
+only, and the node trusts whichever host owns its USB port. That is a narrower
+exposure than the previous LAN plan, since the cable is the only path in, but it
+is no protection against a compromised Pi. Do not let the agent or technician
+browser drive the node directly and bypass ALICE during governance tests.
 
 **Power-grid extension:** currently only `set_light_state` targeting `ESP-LIGHT-01`
 is accepted by this release/adapter. Voltage readings, feeders, relays and setpoints

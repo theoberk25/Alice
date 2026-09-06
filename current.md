@@ -1,14 +1,14 @@
 # Current
 
 Updated: 2026-09-06 UTC (September 5 EDT).
-Fetched Jared's `origin/main` at `ef413b6`. Local branch: `codex/live-dashboard`.
-Our snapshot work is preserved in `73dfa91`; Jared integration is verified locally.
+Fetched Xavier's `origin/main` at `290699b`. Local branch: `codex/live-dashboard`.
+Our snapshot/Wazuh work is preserved in `8d8bdcc`; serial integration is verified locally.
 No push, remote deployment, Pi service or network configuration changes this session.
 
 ## Active objective
 
-Integrate Jared's automatic USB → Wazuh worker with our signed SQL snapshot and
-live technician feed. Prepare scripts for Jared to run on the configured Pi.
+Integrate Xavier's USB-serial light node without losing SQL snapshot, Wazuh or
+live technician feed behavior. Prepare the combined code for the user's push.
 [Joint acceptance](docs/integration/pi-technician-acceptance.md) ·
 [ESP/technician handoff](docs/integration/esp-technician-handoff.md).
 
@@ -24,6 +24,8 @@ live technician feed. Prepare scripts for Jared to run on the configured Pi.
   and reconnect recovery. Missing facts stay unknown; fixture/mock labels remain.
 - Read-only check_pipeline script compares an existing request across runtime, USB
   SQL and optional Wazuh GET. It never commands hardware or creates another writer.
+- Optional XIAO serial adapter and firmware added; HTTP controller remains available.
+  Xavier reports real development-Mac LED testing; Pi serial deployment is pending.
 - Pi classifies; Mac resolves held accept/deny after biometrics; Pi validates execution
   prerequisites. Remote biometric response path and real scoring remain incomplete.
 
@@ -40,13 +42,14 @@ No live outage, reboot/unplug, physical actuator or new Pi acceptance claimed he
 
 ## Evidence and next steps
 
-Fresh merged checks: **312 Python tests/237 subtests**, **73 frontend tests**, five
+Fresh combined checks: **344 Python tests/261 subtests**, **73 frontend tests**, five
 script tests, typecheck/lint/build and one live local browser test passed.
-[Review fixes and evidence](docs/handoffs/2026-09-06-jared-main-integration.md).
+[Serial review fixes and evidence](docs/handoffs/2026-09-06-xavier-serial-integration.md).
 Rust remains unverified without Cargo; physical joint acceptance remains for Jared.
 
-1. User publishes the reviewed integration; Jared pulls while preserving private state.
-2. Jared runs read-only acceptance on the current Pi, then a signed request/retry.
+1. User publishes merged code; Jared/Xavier pull while preserving private state.
+2. Xavier rebuilds/flashes updated firmware; Jared coordinates serial selection
+   without replacing USB history, keys or Wazuh config; run the request/retry check.
 3. Technician Mac joins demo network and connects tunnel/bridge; verify automatic
    appearance of the same request alongside matching USB/Wazuh records.
 4. Coordinate controlled outage/restart/storage-loss and real ESP acceptance.
