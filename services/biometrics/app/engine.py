@@ -42,16 +42,30 @@ class ArcFaceEngine:
         if not self.ready or self.app is None:
             raise CaptureError(self.error)
         image = decode_frame(encoded)
-        faces = self.app.get(image)
-        if len(faces) == 0:
-            raise CaptureError("NO_FACE_DETECTED")
-        if len(faces) != 1:
-            raise CaptureError("MULTIPLE_FACES_DETECTED")
-        face = faces[0]
-        check_face_quality(image, face.bbox, float(face.det_score))
-        # InsightFace recognition performs landmark alignment before ArcFace inference.
-        return unit(face.embedding)
+        vector, _ = self.observe(image)
+        return vector
 
-class AuthenticityVerifier(Protocol):
-    """Future anti-spoof adapter; never infer liveness from cosine similarity."""
-    def verify_authenticity(self, frames: list[str]) -> str: ...
+    def observe(self, image: np.ndarray):
+        vector, bbox, _ = self.observe_with_landmarks(image)
+        return vector, bbox
+
+    def observe_with_landmarks(self, image: np.ndarray):
+        if not self.ready or self.app is None:
+            raise CaptureError(self.error)
+        # FaceAnalysis.get embeds every detected face before returning. Reject
+        # missing/multiple/low-quality faces before paying for ArcFace, using
+        # the same detector, full-image scan and upstream landmark alignment.
+        bboxes, landmarks = self.app.det_model.detect(image, max_num=0, metric="default")
+        if len(bboxes) == 0:
+            raise CaptureError("NO_FACE_DETECTED")
+        if len(bboxes) != 1:
+            raise CaptureError("MULTIPLE_FACES_DETECTED")
+        bbox, score = bboxes[0, :4], float(bboxes[0, 4])
+        check_face_quality(image, bbox, score)
+        if landmarks is None or np.asarray(landmarks).shape != (1, 5, 2) or not np.isfinite(landmarks).all():
+            raise CaptureError("FACE_FEATURES_NOT_VISIBLE")
+        from insightface.app.common import Face
+        face = Face(bbox=bbox, kps=landmarks[0], det_score=score)
+        # InsightFace recognition performs landmark alignment before ArcFace inference.
+        self.app.models["recognition"].get(image, face)
+        return unit(face.embedding), np.asarray(face.bbox), np.asarray(face.kps, dtype=np.float32)
