@@ -1,14 +1,14 @@
 # Current
 Updated: 2026-09-06 EDT. Owners unassigned.
 Branch: `codex/local-agent-model-setup`.
-Baseline: upstream main `2aa5c343a51eba63de86726490ed61a8cba0989f`.
-Integration merge: `3dd14ee33443777e600bad0dea481a719dd1351b`.
+Baseline: upstream main `33c982999f20b91a701c99d1e61cdf153fedd2b8`.
+Integration merge: `4224a014314033e249f1457cdef01dc689aa7af5`.
 
 ## Active objective
 
 Publish the preserved local agent setup after integrating the latest main.
 The merge is conflict-free; implementation and dependency files from main remain
-intact. User authorized branch publication and pull-request creation.
+intact. [PR #8](https://github.com/theoberk25/Alice/pull/8) is open against main.
 [Integration evidence](docs/reports/2026-09-06-local-agent-main-integration.md).
 
 ## Preserved setup

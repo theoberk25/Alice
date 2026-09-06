@@ -3,6 +3,8 @@
 Follow [AGENTS.md](../../AGENTS.md). The user authorized fetching the main GitHub
 repository, preserving the local setup, merging and opening a pull request.
 
+Published as [PR #8](https://github.com/theoberk25/Alice/pull/8) against main.
+
 ## Integration
 
 - Main repository: `theoberk25/Alice`; publication fork: `Adaoud03/Alice`.
@@ -63,3 +65,16 @@ metadata has the intentional provider exception described above. No new dependen
 regression was observed. Full physical camera/technician/actuation acceptance,
 Pi deployment, native bundle rebuild and browser end-to-end tests were not run.
 The local merge does not update the running Pi or installed desktop bundle.
+
+## Final upstream update
+
+While PR #8 was opening, main advanced to `33c982999f20b91a701c99d1e61cdf153fedd2b8`
+(paginated feed recovery). Merged without conflicts as `4224a0`. Only the remote
+transport and its console tests changed, so Python evidence above remains applicable.
+The shared checkout independently switched to main; final work continued in an
+isolated worktree at `/tmp/alice-local-agent-pr8`, leaving that checkout untouched.
+An initial test run with linked node_modules failed the repository ownership check
+because dependencies resolved outside the worktree. Replaced only that temporary
+link with a local filesystem clone of the existing dependencies and reran checks.
+Final `npm run check` passes: 213 frontend tests, 8 script tests, typecheck, lint
+and production build. No dependency manifests or lockfiles changed.
