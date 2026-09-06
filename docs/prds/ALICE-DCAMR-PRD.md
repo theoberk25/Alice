@@ -1,5 +1,12 @@
 # ALICE — Product Requirements Document
 
+Current implementation update: main at `d6e7e55` adds the
+[first-light slice](../reports/2026-09-05-pi-backend-status.md): signed terminal request,
+verified demo release, exact grant resolver, fixture assessment, durable ledger
+producer and mock ESP HTTP execution. Full permission semantics, real scoring/review,
+authority transfer and physical acceptance remain. Requirements below describe
+the full product; use the [current source map](../../architecture.md) for implemented scope.
+
 **Status:** Updated product direction; implementation and integration remain incremental
 
 **Updated:** September 5, 2026

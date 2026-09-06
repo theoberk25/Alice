@@ -42,3 +42,19 @@ See [training](../guides/anomaly-training.md) and
 [enterprise setup](../handoffs/enterprise-sim-handoff.md). Generated
 artifacts, datasets, keys and existing environments remain in their original
 locations. This migration does not regenerate or activate them.
+
+## First-light integration tools
+
+`first_light/` now contains the demo release builder, labelled assessment fixture,
+mock ESP, signed terminal client, read-only technician view and verified USB export.
+Run these as `python -m lab.first_light.<module>` from the repository root; the
+existing `scripts/lab/run.py` command allowlist does not include them. The runtime
+is `python -m dcamr.main`; its verifier, exact permissions and light HTTP client
+stay in `dcamr/`. The runtime's dependency on the lab assessment fixture is an
+explicit test-slice exception, not a production scoring adapter.
+
+Use temporary or ignored local-state directories for generated release/private-key,
+ledger and export outputs. See the [first-light handoff](../handoffs/2026-09-05-first-light-test.md)
+and [backend scope](../reports/2026-09-05-pi-backend-status.md). The console feed is
+read-only, authority is hard-coded and device behavior is mocked; real scoring,
+review/authority protocols and physical Pi/ESP acceptance remain.

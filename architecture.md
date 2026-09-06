@@ -5,9 +5,10 @@ accountable agent operations during enterprise connectivity loss. It combines
 permission findings, behavioral assessment, technician review and durable evidence.
 DCAMR is the retained name of the Python edge package, not a separate product.
 
-**Current delivery:** tested components, a native technician console and synthetic
-lab workflows. There is no connected agent-to-Pi-to-device execution service yet.
-This map describes the shared layout integrated at `3330a07`; [current.md](current.md)
+**Current delivery:** a first-light terminal-to-runtime-to-mock-ESP path, tested
+assessment/audit components and a native technician console. The first-light path
+uses a fixture assessment and demo trust; it is not the complete product or a
+physical Pi/ESP acceptance result. This map includes main at `d6e7e55`; [current.md](current.md)
 tracks the working checkpoint. The [product architecture specification](docs/prds/ALICE-DCAMR-Architecture.md)
 defines target requirements; source links below identify implemented boundaries.
 
@@ -53,10 +54,10 @@ flowchart LR
 | Role | Responsibility | Current boundary |
 | --- | --- | --- |
 | Enterprise | Authoritative permissions, direct online control, relevant context and audit ingestion | Synthetic releases, activity and Wazuh configuration exist. The lab console can query a configured indexer; trusted Pi synchronization and production feed adapters remain. |
-| ALICE Pi | Bounded local assessment, accepted cache use, durable audit and offline enforcement coordination | Assessment and ledger libraries run locally. The Pi service, permissions resolver, controller integration and deployment remain. |
-| Agent host | Propose attributable actions and answer bounded context requests | `agent/` is empty scaffolding. Actor/user claims need authenticated mappings. |
+| ALICE Pi | Bounded local assessment, accepted cache use, durable audit and offline enforcement coordination | A first-light HTTP runtime authenticates signed terminal requests, resolves exact grants, records audit and commands a mock light. Full service orchestration and physical deployment remain. |
+| Agent host | Propose attributable actions and answer bounded context requests | `agent/` is empty scaffolding; a lab terminal client submits signed first-light requests. General agent/delegation integration remains. |
 | Technician Mac | Display evidence, explain assessments, authenticate reviewers and submit scoped responses | React/Tauri console, local identity and review controls exist. Live assessment transport and response binding remain. |
-| Protected endpoint | Enforce one current controller, execute once and report actual outcomes | `protected_systems/` is scaffolding. No accepted hardware/control protocol or live executor exists. |
+| Protected endpoint | Enforce one current controller, execute once and report actual outcomes | `protected_systems/` is scaffolding; a runtime HTTP light client and lab mock ESP exist. Firmware agreement, endpoint fencing and physical acceptance remain. |
 | Development Mac | Generate synthetic data, fit/calibrate models and replay components | Implemented in `scripts/lab/`. Generated outputs do not automatically become trusted Pi releases. |
 
 The edge target is a Raspberry Pi 4 Model B with 2 GB RAM and OS Lite. Numerical
@@ -76,18 +77,20 @@ product authority.
 | --- | --- | --- |
 | ONLINE | Enterprise controls actions directly. Pi synchronizes trusted context, observes authenticated activity and uploads audit/findings. | Enterprise examples and recorder components exist; live lifecycle orchestration remains. |
 | Transfer to OFFLINE | Confirm endpoint-enforced ALICE authority, invalidate stale commands/approvals and check cache/model/audit readiness. Ambiguous ownership blocks execution. | Protocol, readiness gate and fencing remain. A network outage alone cannot grant authority. |
-| OFFLINE / DDIL | Assess supported local requests using accepted inputs; require review as appropriate; record requests, attempts, results and observations. | Assessment, local review and audit slices exist independently; the complete path remains. |
-| Reconnection | Reauthenticate enterprise services, resume audit delivery, append reconciliation, validate cache updates and transfer control back. | Recorder delivery bookkeeping and simulated inputs exist; sender, reconciliation and transfer remain. This is a workflow, not a third mode. |
+| OFFLINE / DDIL | Assess supported local requests using accepted inputs; require review as appropriate; record requests, attempts, results and observations. | First-light wires a signed request, exact grant, fixture assessment, ledger and mock light. Real scoring, review and full product governance remain. |
+| Reconnection | Reauthenticate enterprise services, resume audit delivery, append reconciliation, validate cache updates and transfer control back. | Recorder delivery bookkeeping and verified first-light USB export exist; enterprise sender, reconciliation and transfer remain. This is a workflow, not a third mode. |
 
 ### One offline request
 
-The sequence below is the intended integration order, with existing code called out.
+The sequence below describes the full product integration. The narrower first-light
+implementation is documented separately under implemented components.
 
 1. **Authenticate and bind.** A future coordinator attributes the agent to a trusted
    user/delegation and normalizes action parameters. It captures request, permission,
    observation and profile bindings. Agent text and self-reported trust flags are claims.
-2. **Resolve permissions.** A future resolver supplies categorical findings plus
-   package/rule provenance from accepted releases. Model scores do not supply permission.
+2. **Resolve permissions.** The first-light resolver supplies exact-match PERMIT findings from a
+   signed demo release. The full resolver must also enforce prohibitions, revocations,
+   conditions and release validity with package/rule provenance. Model scores do not supply permission.
 3. **Assess behavior.** The implemented
    [`assess_for_technician`](dcamr/decision_model.py) validates supplied bindings and
    invokes the contextual scorer. Its `alice-decision-assessment-v1` packet has
@@ -112,8 +115,10 @@ remain. See the [HOLD workflow](docs/architecture/hold-workflow.md).
 
 ## Implemented components
 
-These are **local code paths**, not one integrated runtime. Solid arrows describe
-existing dependencies or a synthetic replay. Native services need local provisioning.
+These are **local code paths**. The first-light runtime is integrated with a mock
+controller; the real assessment wrapper and technician console are not connected
+to that flow. Solid arrows describe dependencies or a synthetic replay. Native
+services need local provisioning.
 
 ```mermaid
 flowchart TB
@@ -134,6 +139,48 @@ flowchart TB
         Native --> LLM["Local Ollama"]
     end
 ```
+
+### First-light request-to-device slice
+
+[`FirstLightRuntime`](dcamr/main.py) serves one test-scoped action,
+`set_light_state → ESP-LIGHT-01`. It verifies a signed terminal envelope against
+release key/agent bindings, resolves exact PERMIT grants and invokes the additive
+`decide()` function. That function allows only verified identity, PERMITTED and an
+OK assessment status; all other cases are denied. It is separate from
+`assess_for_technician`, which still emits no final decision or authorization.
+
+```mermaid
+flowchart LR
+    Terminal["lab.first_light.terminal_client"] --> Runtime["dcamr.main: signed request and exact grant"]
+    Release["Verified demo release"] --> Runtime
+    Fixture["Labelled fixture assessment"] --> Runtime
+    Runtime --> LedgerFL["AuditLog: attempt before command; seal per request"]
+    Runtime --> HTTP["LightController: POST /light and GET /light"]
+    HTTP --> Mock["lab.first_light.mock_esp"]
+    Runtime --> Feed["Read-only GET /events; CLI technician view"]
+    LedgerFL --> USB["Verified ledger NDJSON USB export"]
+```
+
+The happy path records REQUEST, ASSESSMENT, DECISION, EXECUTION_ATTEMPT,
+CONTROLLER_RECEIPT, EXECUTION_RESULT and OBSERVED_STATE. Exact fixture bytes are
+retained as evidence. Admission checks ledger headroom, and EXECUTION_ATTEMPT is
+persisted before dispatch. Completed duplicate requests replay a recorded outcome;
+conflicting reuse is rejected. This is test-scale retry evidence, not acceptance
+of every crash window or device-enforced exactly-once execution.
+
+The fixture is imported from `lab.first_light` into the runtime and labelled in
+retained assessment context. This is an intentional test-slice dependency, not a
+production model adapter to copy elsewhere. Authority is hard-coded OFFLINE and
+confirmed; there is no real transfer/fence. The HTTP surface lacks production
+transport hardening. Human-approval-required grants are denied in this auto-only
+slice; no HOLD or technician approval ingestion is implemented.
+
+The light client reads controller state separately from the command receipt.
+Mock readback is not independent physical sensor evidence. USB export verifies
+ledger event hashes then updates delivery bookkeeping; it is not the enterprise
+simulator's audit chain or a live enterprise acknowledgement. See the
+[first-light status](docs/reports/2026-09-05-pi-backend-status.md) and
+[acceptance tests](tests/test_first_light.py).
 
 ### Assessment and behavioral evidence
 
@@ -189,7 +236,8 @@ chains, Ed25519 checkpoints, idempotency checks, retained evidence and durable
 outbox bookkeeping. It validates an existing store before use. The
 [contextual replay](scripts/lab/replay_contextual_ledger.py) exercises scoring,
 compact projection, evidence retention, sealing, anchored restart and duplicate retry.
-It does not wire the technician assessment wrapper to a production audit producer.
+The first-light runtime now produces ledger events using its labelled fixture.
+Neither path wires the real technician assessment wrapper to a production producer.
 
 The [enterprise lab](docs/lab/README.md) generates synthetic permission releases,
 Wazuh configuration, activity, baseline data and observations. Its local console
@@ -201,11 +249,11 @@ mission-audit delivery. See the [enterprise simulation record](docs/handoffs/ent
 
 | Boundary | Existing contract/source | Required distinction |
 | --- | --- | --- |
-| Cyber input/result | [Common JSON schemas](common/schemas/anomaly_result.json), [feature contract](docs/contracts/anomaly-features.md) | Valid structure and digest binding do not authenticate the upstream producer. Several generic schemas alongside these are still empty scaffolds. |
+| Cyber input/result | [Common JSON schemas](common/schemas/anomaly_result.json), [feature contract](docs/contracts/anomaly-features.md) | Valid structure and digest binding do not authenticate the upstream producer. The action-request schema now pins first-light action/target fields; other generic schemas remain empty scaffolds. |
 | Contextual assessment | [Pi assessment](docs/contracts/decision-assessment.md) and [context profiles](docs/architecture/contextual-behavior-model.md) | Supplied permission findings plus measured behavior; no final decision or execution token. |
 | Console events/actions | [Zod source](packages/contracts/src/index.ts), generated [event schema](docs/contracts/alice-events.schema.json) | `alice.decision`, context requests, responses and receipts are a separate family. Legacy normalization is not a Pi assessment adapter. |
 | Core audit | [Event schema](common/schemas/audit_event.json), [ledger guide](docs/architecture/decision-evidence-ledger.md) | Compact canonical records and retained evidence, distinct from UI history and simulated enterprise envelopes. |
-| Application response / controller | [Integration requirements](docs/integration/technician-console.md) | Authenticated response/proof, authority fencing, replay protection and execution-result contracts remain to be agreed and implemented. |
+| Application response / controller | [Integration requirements](docs/integration/technician-console.md) | First-light supplies mock HTTP receipt/readback and completed-request replay. Authenticated application proof, endpoint fencing, distributed replay rules and real execution-result contracts remain. |
 
 A shared `alice-audit-event-v1` label does not make the enterprise simulator's
 and core ledger's envelopes or hash rules interchangeable. Any adapter must
@@ -224,9 +272,9 @@ boundary, not protection against a fully compromised same-user host. See the
 
 | Data | Location / owner | Lifecycle and limit |
 | --- | --- | --- |
-| Accepted permissions and normal behavior | Target Pi/USB release inputs | Authenticate source, validate bounded candidate generations and atomically activate compatible releases. Runtime activation, expiry/grace and rollback policy remain. |
-| Core mission evidence | Caller-provisioned protected local SQLite store | Recorder requires durable non-removable storage by deployment policy; detects integrity faults relative to trusted keys/anchors. Production provisioning and live producers remain. |
-| Audit delivery | Core ledger's separate delivery state | Retain unacknowledged records and retry without mutating event history. Sender, enterprise ACK protocol and retention policy remain. ACK never authorizes deletion by itself. |
+| Accepted permissions and normal behavior | Target Pi/USB release inputs | Authenticate source, validate bounded candidate generations and atomically activate compatible releases. First-light verifies a demo manifest signature and payload hashes at startup. Runtime activation, expiry/grace, revocations and rollback policy remain. |
+| Core mission evidence | Caller-provisioned protected local SQLite store | Recorder requires durable non-removable storage by deployment policy; detects integrity faults relative to trusted keys/anchors. First-light is a fixture-based producer. Production key/anchor provisioning and real assessment producers remain. |
+| Audit delivery | Core ledger's separate delivery state | Retain unacknowledged records and retry without mutating event history. First-light USB export verifies NDJSON before acknowledgement; enterprise sender/ACK protocol and retention policy remain. ACK never authorizes deletion by itself. |
 | Console history | Private native SQLite | Identities, immutable decisions, actions, annotations and local audit. Sessions/grants remain native memory. UI/export's latest-500 audit view does not truncate the full decision lineage. |
 | Facial identity | Private biometric service model/data directories | Explicit model provisioning and encrypted enrollment; never put camera images, embeddings or service tokens into enterprise decision records. |
 | Lab releases and evidence | `artifacts/enterprise-sim/`, generated ignored outputs and `docs/reports/` | Selected synthetic payloads/public verification key are tracked; datasets, signing secrets and fitted/private assets follow ignore rules. Published samples are not production trust roots. |
@@ -251,13 +299,14 @@ Paths below describe the current layout. New files follow [AGENTS.md](AGENTS.md#
 
 | Path | Owns / status |
 | --- | --- |
-| `dcamr/anomaly_engine/`, `dcamr/decision_model.py`, `dcamr/audit/` | Implemented core feature/scoring, assessment and ledger code; `anomaly_engine.py` itself is still an empty scaffold. |
-| Remaining `dcamr/` modules | Preserved runtime scaffolds for service entrypoint/API, challenge, evidence, permissions, package loading, provenance, state, reconciliation and enforcement. |
-| `common/` | Executable shared schemas and checkout-root resolution, alongside preserved empty protocol/generic schema scaffolds. |
+| `dcamr/anomaly_engine/`, `dcamr/decision_model.py`, `dcamr/audit/` | Implemented feature/scoring, assessment, additive first-light decision and ledger code; `anomaly_engine.py` itself remains an empty scaffold. |
+| `dcamr/main.py`, `dcamr/packages/package_verifier.py`, `dcamr/policy_engine/policy_engine.py`, `dcamr/enforcement/enforcement_gateway.py` | Implemented first-light HTTP runtime, signed release verification, exact-match resolver and HTTP light client; limited to the test slice. |
+| Remaining `dcamr/` modules | Preserved runtime scaffolds for API, challenge, evidence, additional rules/package loading, provenance, state and reconciliation. |
+| `common/` | Executable anomaly/audit/first-light request schemas and checkout-root resolution, alongside empty protocol and other generic schema scaffolds. |
 | `apps/desktop/` | Active console UI, assets and native Tauri project. Native Rust tests stay with their crate. |
 | `packages/contracts/`, `packages/domain/`, `packages/ui/` | Active console schemas/adapters, workflow rules and shared UI. |
 | `services/biometrics/` | Active facial identity service, its requirements and service-local tests. |
-| `scripts/lab/` | Implemented training, calibration, replays, enterprise generator and lab console, including reusable lab-only logic. |
+| `scripts/lab/` | Implemented training, calibration, replays, enterprise generator/console and first-light release builder, fixture, mock ESP, terminal/view/export tools. |
 | `scripts/console/`, `scripts/biometrics/` | Launch/build/schema-generation and model/identity helpers; console launcher tests are intentionally colocated. |
 | `lab/` | `__init__.py` provides the public `lab.*` namespace pointing to `scripts/lab/`; four empty historical placeholders remain. No second implementation is loaded. |
 | `agent/`, `cloud/`, `protected_systems/` | Empty future agent, enterprise connector and protected-device scaffolds. |
@@ -282,7 +331,8 @@ markers and the preserved legacy `.txt` payload are not stray Markdown guides.
 
 Npm commands run at the Alice root. Workspaces explicitly include only the desktop
 and three console packages. `python -m lab.*` remains the public lab entry point;
-use `scripts/lab/run.py` for execution from another working directory. `workstation/`
+use `scripts/lab/run.py` for its listed commands from another working directory.
+First-light tools currently require `python -m lab.first_light.<module>` from root. `workstation/`
 is no longer a tracked source root. Preserve ignored environments, keys, model
 weights and identity stores instead of moving them as source cleanup.
 
@@ -294,7 +344,7 @@ status. The next integration boundaries are:
 1. Agree normalized request, permission finding, assessment, application response
    and authoritative execution-result bindings, including identity and replay rules.
 2. Implement trusted permissions/cache activation and the service coordinator;
-   connect live producers to the durable ledger and enforce audit readiness.
+   extend first-light audit admission/production to real assessments and full product lifecycle events.
 3. Connect authenticated console transport, remotely verifiable review proof and
    endpoint-enforced single-authority execution, including supersession and retries.
 4. Implement reliable enterprise delivery, append-only reconciliation and safe
@@ -308,7 +358,7 @@ one request/second, with bounded queue/deadline behavior. These are unmeasured
 acceptance targets, not observed performance or implemented service limits.
 
 The [combined verification record](docs/handoffs/2026-09-05-team-layout-review.md)
-records the prior 259 Python tests, console checks, lab replays and five browser
-scenarios. Those establish component/mock behavior. Native/camera/Pi acceptance
+separates earlier component/console checks from the integrated first-light merge
+verification. These establish component/mock behavior. Native/camera/Pi acceptance
 was not rerun at that checkpoint. Use [verification commands](README.md#verify-changes)
 for the scope changed; documentation and layout checks do not establish a deployed system.

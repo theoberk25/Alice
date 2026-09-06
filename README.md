@@ -5,8 +5,9 @@ agent operations when enterprise connectivity is unavailable. ALICE combines tru
 permissions, behavioral assessment, technician review and durable evidence so a
 local action can be understood, reviewed and eventually reconciled upstream.
 
-**Current delivery:** working components and simulations, with a native technician
-console. The complete agent-to-device execution loop is still being integrated.
+**Current delivery:** a first-light signed terminal request can run through the
+local runtime to a mock ESP, alongside assessment/audit components and a native
+technician console. The full product loop is still being integrated.
 Moving code into the shared layout does not make the live system complete.
 
 Start with [architecture.md](architecture.md) for the whole-system picture,
@@ -36,8 +37,9 @@ sensor contracts, operating limits and hardware acceptance remain open.
 | Area | Implemented here | Remaining boundary |
 | --- | --- | --- |
 | Behavioral analysis | Schema validation, cyber features, contextual PRE/POST scoring, synthetic training and calibration experiments | Trusted live observations, persistent model export/load and Pi resource acceptance |
-| Pi assessment | `assess_for_technician` combines supplied permission findings and anomaly evidence into `alice-decision-assessment-v1` | Permission resolution, authenticated transport, app response binding and execution |
-| Decision Evidence Ledger | SQLite recorder, canonical event contracts, hash chains, Ed25519 checkpoints and durable outbox state | Live producers/sender, production trust provisioning and admission/enforcement wiring |
+| First-light runtime | Signed terminal envelope, verified demo release, exact grant resolver, fixture assessment, durable attempt/result audit, mock light transport and verified USB export | Physical Pi/ESP acceptance, real model/review, full permissions and authority lifecycle; [scope](docs/reports/2026-09-05-pi-backend-status.md) |
+| Pi assessment | `assess_for_technician` combines supplied permission findings and anomaly evidence into `alice-decision-assessment-v1` | Full permission semantics, real assessment integration, authenticated console transport and app response binding |
+| Decision Evidence Ledger | SQLite recorder, canonical event contracts, hash chains, Ed25519 checkpoints and durable outbox state | Real assessment/lifecycle producers, enterprise sender and production trust provisioning; first-light supplies a fixture-based producer |
 | Technician console | React/Vite UI, Tauri/Rust boundary, local storage, immutable reassessment lineage and approval guards | Real core transport and execution confirmation; remote mode fails closed |
 | Facial identity | FastAPI/ArcFace service, enrollment storage and native verification boundary | Live operator acceptance on each installation; liveness/deepfake detection is not implemented |
 | Enterprise simulation | Synthetic activity, permission releases, Wazuh configuration, baseline/training data and local console | Authenticated enterprise sync, production feeds, trusted cache activation and real hardware |
@@ -56,12 +58,12 @@ product task IDs. Its component statuses are not a product-readiness percentage.
 
 | Path | Owns |
 | --- | --- |
-| `dcamr/` | Core anomaly/assessment and audit packages; other runtime boundaries include empty scaffolds |
+| `dcamr/` | Core anomaly/assessment/audit and first-light runtime, verifier, exact permissions and light transport; other boundaries include empty scaffolds |
 | `common/` | Shared JSON schemas and checkout-resource lookup |
 | `apps/desktop/` | Active technician UI and native Tauri application |
 | `packages/contracts/`, `packages/domain/`, `packages/ui/` | Console contracts, state/approval rules and shared UI |
 | `services/biometrics/` | Local facial identity service |
-| `scripts/lab/` | Implemented ML, calibration, replay and enterprise simulation tools |
+| `scripts/lab/` | Implemented ML, calibration, replay, enterprise simulation and first-light tools |
 | `scripts/console/`, `scripts/biometrics/` | Console launch/build helpers and model/identity tooling |
 | `lab/` | Compatibility namespace for `lab.*` imports, plus preserved empty placeholders |
 | `tests/`, `tests/console/`, `services/biometrics/tests/` | Core, console and biometric tests |

@@ -12,3 +12,9 @@ shared product, contract and architecture documents retain their central homes.
 - [Decision Evidence Ledger](../architecture/decision-evidence-ledger.md)
 - [Workflow integration handoff](../handoffs/core-workflow-wip-handoff.md)
 - [Implementation tracker](../implementation-tracker.md)
+
+The first-light slice now implements `dcamr.main`, signed release verification,
+exact-match permissions and HTTP light transport. The general service lifecycle
+is still incomplete. See the [source map](../../architecture.md#repository-map)
+and [first-light report](../reports/2026-09-05-pi-backend-status.md) for the fixture,
+demo-trust and mock-hardware limits.

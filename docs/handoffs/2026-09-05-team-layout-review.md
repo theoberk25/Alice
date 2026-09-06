@@ -143,3 +143,42 @@ Fresh verification for this documentation/layout follow-up:
 The earlier full suites and browser runs above remain historical implementation
 verification; they were not rerun for documentation-only edits. No new native,
 camera, live enterprise or Pi hardware acceptance is claimed.
+
+## Latest-main integration before publication
+
+A pre-publication fetch found main advanced from 3330a07 to d6e7e55: first-light
+implementation, its session record and backend status report. Local checkpoint
+56f0f3f preserves the completed documentation/layout follow-up before that merge.
+Merged latest main while preserving its runtime bytes; resolved only current.md
+and tracker documentation conflicts. First-light task evidence and statuses are
+retained; recomputed totals are 12 done components, 38 partial and 68 planned.
+
+The root architecture, README, lab/core indexes and product architecture references
+now include first-light signed request admission, demo release verification, exact
+grants, fixture assessment, durable audit producer, mock ESP HTTP transport, read-only
+event feed and verified USB export. They explicitly retain fixture/demo-trust,
+hard-coded authority, transport-hardening and physical acceptance limits. The
+runtime's import of lab.first_light.assessment_fixture is a test-slice dependency;
+it was not moved or substituted with production scoring. First-light commands use
+python -m lab.first_light.*; the existing run.py allowlist is unchanged.
+
+The new runtime/builder writes private .seed files to caller-selected directories.
+Added *.seed to .gitignore and checked representative generated paths are ignored.
+No private key or model data was opened, moved or provisioned by this review.
+
+Fresh integrated verification:
+
+- Initial full Python run hit a sandbox PermissionError binding the mock ESP;
+  no code fix was needed. With permitted loopback access,
+  `.venv/bin/python -m unittest discover -q` passed **265 tests, zero skips**,
+  in 16.872 seconds. This supersedes earlier suite counts for this checkout.
+- Updated inventory/preservation checks use d6e7e55: all 384 upstream files survive
+  at original or eight mapped paths. No further relocation was necessary. Existing
+  runtime bytes match latest main except the preserved biometric Path import fix.
+- Documentation links/heading targets, current.md limits, archive exclusion,
+  unchanged upstream runtime bytes, tracker IDs/statuses and whitespace were checked
+  again after the merge. Four console launcher tests passed earlier in this turn;
+  no frontend/native code changed in the merge, so those broader suites were not rerun.
+
+This is branch publication, not a merge into main or deployment. Prior native,
+camera, enterprise and hardware reports retain their original evidence scope.

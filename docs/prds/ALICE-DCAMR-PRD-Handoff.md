@@ -1,5 +1,12 @@
 # ALICE / DCAMR — Developer Handoff
 
+Current implementation update: main at `d6e7e55` adds the
+[first-light slice](../reports/2026-09-05-pi-backend-status.md): signed terminal request,
+verified demo release, exact grant resolver, fixture assessment, durable ledger
+producer and mock ESP HTTP execution. Full permission semantics, real scoring/review,
+authority transfer and physical acceptance remain. Requirements below describe
+the full product; use the [current source map](../../architecture.md) for implemented scope.
+
 Updated: 2026-09-05. This handoff coordinates the current two-mode product and
 the next integration increments; it does not claim that the full system runs.
 
@@ -118,9 +125,9 @@ synthetic results. Separate diagnostic/state-change calibration was compared
 using unchanged raw scores and independent source lineage. No model is saved
 for Pi loading, and neither candidate is accepted for deployment.
 
-Policy/permissions evaluation, full decision fusion, package verification,
-authority transfer, live transports, protected execution, live audit producers/delivery
-and cloud reconciliation remain integration work. The local durable audit recorder
+Beyond first-light exact grants, startup signature verification, fixture audit and
+mock execution, full permissions, assessment/review integration, trusted authority
+transfer, physical execution, enterprise audit delivery and reconciliation remain. The local durable audit recorder
 and integrated console now exist; see the [current architecture](../../architecture.md)
 and [combined verification](../handoffs/2026-09-05-team-layout-review.md).
 
@@ -250,9 +257,9 @@ Use paths that actually exist in this repository:
 
 | Path | Responsibility |
 | --- | --- |
-| `common/schemas/` | Shared schemas; distinguish the implemented anomaly schemas from empty generic placeholders. |
+| `common/schemas/` | Shared anomaly, audit and first-light request schemas; remaining generic placeholders stay explicit. |
 | `dcamr/anomaly_engine/` | Implemented feature, baseline, history, result-validation and rank components; live evaluator remains pending. |
-| `dcamr/` other components | Implemented assessment wrapper and durable audit recorder; permissions, APIs, package activation, state, reconciliation and enforcement still need integration. |
+| `dcamr/` other components | Assessment, ledger and first-light runtime/verifier/exact grants/light transport; full APIs, package activation, state, reconciliation and enforcement lifecycle remain. |
 | `packages/` | Active console contracts/domain/UI plus preserved mission-policy/ops-baseline and tooling skeletons; coordinate future permissions naming. |
 | `scripts/lab/`, `lab/`, `tests/fixtures/`, `tests/` | Implemented lab tools under scripts, public lab.* compatibility namespace, fixtures and component acceptance. |
 | `agent/`, `protected_systems/`, `cloud/` | Existing integration skeletons for request sources, controlled systems and external evidence. |

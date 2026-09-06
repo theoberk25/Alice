@@ -49,3 +49,6 @@ embeddings/
 *.pem
 *.p12
 *.pfx
+
+# Generated first-light terminal and ledger private seeds.
+*.seed

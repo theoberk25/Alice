@@ -1,5 +1,12 @@
 # Architecture guide
 
+Current implementation update: main at `d6e7e55` adds the
+[first-light slice](reports/2026-09-05-pi-backend-status.md): signed terminal request,
+verified demo release, exact grant resolver, fixture assessment, durable ledger
+producer and mock ESP HTTP execution. Full permission semantics, real scoring/review,
+authority transfer and physical acceptance remain. Requirements below describe
+the full product; use the [current source map](../architecture.md) for implemented scope.
+
 Start with the root [high-level architecture](../architecture.md) for the current
 component map, runtime boundaries and implemented-versus-planned distinction.
 
@@ -38,8 +45,9 @@ execution ownership are separate status facts.
 
 The core implements anomaly components, Pi assessment packets and a local durable
 ledger, with synthetic Mac experiments and a mock-driven technician console.
-Two-mode orchestration, permissions enforcement, live mission-audit producers,
-enterprise connectors, controller execution and live console integration remain planned. A
+Two-mode orchestration, full permissions enforcement, real assessment audit
+producers, enterprise connectors, physical controller acceptance and live console
+integration remain planned beyond the first-light fixture/mock slice. A
 diagram or contract requirement is not evidence those services are running.
 
 The protected endpoint must enforce one current execution authority. A network
