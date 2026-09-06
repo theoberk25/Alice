@@ -9,8 +9,8 @@ commands over USB serial. Read [AGENTS.md](../../AGENTS.md) and
 
 One LED, one transport. The Pi authenticates, authorizes and records the audit trail;
 the XIAO applies an output and reports it. The node has no network, no policy and no
-decisions. The production protocol does not implement technician approval (HOLD), multiple
-addressable lights, sensors or motors; the separate identification sketch is bench-only.
+decisions. The production protocol supports eight addressable LEDs; technician approval,
+sensors and motors remain separate. The identification sketch is bench-only.
 
 ## Wiring
 
@@ -27,8 +27,7 @@ XIAO GND ───────────────────────�
 - **D0 is GPIO1.** Not GPIO0, and not the onboard user LED on GPIO21.
 - Power comes from the Pi's USB port; the LED is the only load.
 - The bench now has eight individually identified LEDs; use the verified
-  [ESP mapping](../integration/esp-handoff.md). Production commands still target
-  D0 only. All seven unused LED pins are explicitly driven LOW at startup,
+  [ESP mapping](../integration/esp-handoff.md). Production commands address all eight targets. All LED pins start LOW,
   including D6 (GPIO43/UART TX) and D7 (GPIO44/UART RX). Do not enable hardware
   UART while these pads are used for LEDs. Jared confirmed the dim D7 glow is gone.
 

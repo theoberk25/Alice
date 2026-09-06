@@ -13,10 +13,10 @@ from .console import server as enterprise
 
 PAGE = '''<!doctype html><meta charset="utf-8"><title>Sentinel operator</title>
 <style>body{background:#101820;color:#e7eef6;font:17px system-ui;max-width:1000px;margin:45px auto;padding:20px}button,a{padding:12px;margin:8px;color:#071b25;background:#66d9bc;border:0;border-radius:6px;font:inherit}pre{white-space:pre-wrap;background:#1d2a37;padding:18px;border-radius:8px}small{color:#afbfce}</style>
-<h1>Sentinel · SSgt A. Okafor</h1><p>Electrician · elec-agent-01 · ESP-LIGHT-01</p>
+<h1>Sentinel · SSgt A. Okafor</h1><p>Electrician · elec-agent-01 · Eight mapped lights</p>
 <p>Signed action → Pi permissions check → USB audit → Wazuh upload</p>
 <p><strong>Controller: CONTROLLER_LABEL.</strong> Device feedback reports the driven output; visually confirm the external LED.</p>
-<button onclick="act('on')">Turn light on</button><button onclick="act('off')">Turn light off</button>
+<div id="lights"></div>
 <a href="http://127.0.0.1:8787/" target="_blank">Enterprise overview</a>
 <p id="message">Ready. Actions use your provisioned agent key on this Mac.</p>
 <h2>Pi decision and USB-backed history</h2><pre id="pi">No request submitted in this page.</pre>
@@ -25,8 +25,10 @@ PAGE = '''<!doctype html><meta charset="utf-8"><title>Sentinel operator</title>
 The Pi's signed release grants the action. Enterprise → Pi permission-cache refresh is not implemented by this page.</small>
 <script>
 let id=null; const token='TOKEN';
-async function act(state){document.querySelectorAll('button').forEach(b=>b.disabled=true);
-try{const r=await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json','X-Operator-Token':token},body:JSON.stringify({state})});const d=await r.json();if(!r.ok)throw Error(d.error||'Action failed');id=d.request_id;document.getElementById('pi').textContent=JSON.stringify(d,null,2);document.getElementById('message').textContent='Request '+id;await poll();}catch(e){document.getElementById('message').textContent=e.message;}finally{document.querySelectorAll('button').forEach(b=>b.disabled=false);}}
+const labels=['Yellow 1 · D0','Blue 1 · D3','Red 1 · D5','White 1 · D6','Yellow 2 · D10','Blue 2 · D9','Red 2 · D8','White 2 · D7'];
+labels.forEach((label,i)=>{const row=document.createElement('p');row.textContent=label+' ';['on','off'].forEach(state=>{const b=document.createElement('button');b.textContent=state.toUpperCase();b.onclick=()=>act(state,'ESP-LIGHT-'+String(i+1).padStart(2,'0'));row.appendChild(b)});document.getElementById('lights').appendChild(row)});
+async function act(state,target){document.querySelectorAll('button').forEach(b=>b.disabled=true);
+try{const r=await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json','X-Operator-Token':token},body:JSON.stringify({state,target})});const d=await r.json();if(!r.ok)throw Error(d.error||'Action failed');id=d.request_id;document.getElementById('pi').textContent=JSON.stringify(d,null,2);document.getElementById('message').textContent='Request '+id;await poll();}catch(e){document.getElementById('message').textContent=e.message;}finally{document.querySelectorAll('button').forEach(b=>b.disabled=false);}}
 async function poll(){if(!id)return;try{const r=await fetch('/status?id='+encodeURIComponent(id));const d=await r.json();document.getElementById('pi').textContent=JSON.stringify(d.pi,null,2);document.getElementById('siem').textContent=JSON.stringify(d.wazuh,null,2);}catch(e){document.getElementById('siem').textContent='Unavailable: '+e.message;}}
 setInterval(poll,2500);
 </script>'''
@@ -60,10 +62,10 @@ def main():
                 length=int(self.headers.get('Content-Length','0'))
                 if not 0<length<=128:raise ValueError
                 body=json.loads(self.rfile.read(length))
-                if set(body)!={'state'} or body['state'] not in ('on','off'):raise ValueError
+                if set(body)!={'state','target'} or body['state'] not in ('on','off') or body.get('target') not in [f'ESP-LIGHT-{i:02d}' for i in range(1,9)]:raise ValueError
             except (ValueError,TypeError):return self.reply(400,{'error':'Expected on/off state'})
             with lock:
-                e=build_envelope(seed,state=body['state'],agent_id='elec-agent-01',key_id='elec-agent-01-k1')
+                e=build_envelope(seed,state=body['state'],target=body['target'],agent_id='elec-agent-01',key_id='elec-agent-01-k1')
                 rid=e['request']['request_id']
                 try:code,result=send(a.pi_url,e)
                 except Exception:code,result=503,{'error':'Pi response unavailable; check history before retrying'}

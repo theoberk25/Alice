@@ -14,7 +14,7 @@ FIXTURE_PROFILE_SHA256 = sha256(b"first-light-fixture-profile").hexdigest()
 FIXTURE_CALIBRATION_SHA256 = sha256(b"first-light-fixture-calibration").hexdigest()
 
 
-def build_assessment(*, request_id: str, input_sha256: str, request_at_ms: int) -> bytes:
+def build_assessment(*, request_id: str, input_sha256: str, request_at_ms: int, target: str = "ESP-LIGHT-01") -> bytes:
     """Return the exact assessment bytes the runtime retains as evidence."""
     assessment = {
         "schema_version": "context-behavior-assessment-v1",
@@ -34,7 +34,7 @@ def build_assessment(*, request_id: str, input_sha256: str, request_at_ms: int) 
         "context": {
             "action": "set_light_state",
             "fixture_mode": "true",
-            "target": "ESP-LIGHT-01",
+            "target": target,
         },
         "request_at_ms": request_at_ms,
         "cutoff_at_ms": request_at_ms,

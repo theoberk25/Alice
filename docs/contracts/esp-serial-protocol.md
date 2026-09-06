@@ -5,12 +5,22 @@ Updated: 2026-09-06. Wire contract between the Pi runtime
 the XIAO ESP32-S3 light node
 ([xiao_first_light.ino](../../firmware/xiao_first_light/xiao_first_light.ino)).
 
-This contract covers **one light and one transport**. It does not widen the signed
-[action request schema](../../common/schemas/action_request.json), which still permits
-exactly `set_light_state` on `ESP-LIGHT-01` with `{"state":"on"|"off"}`. A command id
-is correlation only and carries no authority: the node trusts whichever host owns its
-USB port, so this is no defense against a compromised Pi. Setup steps are in the
-[hardware runbook](../guides/first-light-hardware.md).
+Production supports eight mapped LEDs. Version 1 retains the original D0-only
+messages; version 2 requires an integer channel from 1 through 8 on SET and GET.
+Both success and rejection replies echo version/channel; the Pi rejects a reply
+whose version or channel differs from its request. A command ID is correlation,
+not authorization. See the [mapping](../integration/esp-handoff.md).
+
+```json
+{"v":2,"id":"example","channel":8,"op":"set","state":"on"}
+{"v":2,"id":"example","channel":8,"ok":true,"state":"on","boot_id":"41de7829"}
+```
+
+Version 1 rejects any channel field; version 2 rejects missing/out-of-range channels.
+Only the selected output changes. Every output starts LOW. The signed request
+carries target ESP-LIGHT-01..08; the runtime maps it to the fixed channel, never
+to a client-selected raw GPIO. Existing framing, duplicate-field, deadline and
+no-uncertain-retry rules below apply to both versions.
 
 ## System authority
 
@@ -46,7 +56,7 @@ Node to Pi:
 
 | Field | Meaning |
 | --- | --- |
-| `v` | Protocol version; currently `1`. Any other value is `BAD_VERSION`. |
+| `v` | Protocol version; `1` (D0) or `2` (explicit channel). Other values are `BAD_VERSION`. |
 | `id` | Per-exchange correlation token, 1-32 characters. Distinct from the signed `request_id` and never reused across commands. |
 | `op` | `set` or `get`. `set` requires `state`; `get` must not carry one. |
 | `state` | Exactly `"on"` or `"off"`. On a reply it is the node's own driven output. |
@@ -125,5 +135,5 @@ against test-only serial/GPIO stubs. They do not establish Arduino board compila
 or physical acceptance of the changed firmware.
 
 The current eight-LED bench wiring is recorded in the [ESP handoff](../integration/esp-handoff.md).
-Production firmware explicitly holds the seven non-D0 outputs LOW; this does not
-add channel fields or authorize multi-light actions.
+Production firmware starts all eight outputs LOW; signed grants determine which
+channel requests can execute.

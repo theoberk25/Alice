@@ -48,13 +48,17 @@ def _decode(raw: bytes):
     except (UnicodeDecodeError, ValueError):
         return None
     if (not isinstance(reply, dict) or type(reply.get("v")) is not int
-            or reply["v"] != PROTOCOL_VERSION):
+            or reply["v"] not in (1, 2)):
         return None
     if not isinstance(reply.get("id"), str) or not isinstance(reply.get("ok"), bool):
         return None
     if not isinstance(reply.get("boot_id"), str) or not re.fullmatch(r"[0-9a-f]{8}", reply["boot_id"]):
         return None
     expected = {"v", "id", "ok", "boot_id", "state" if reply["ok"] else "error"}
+    if reply["v"] == 2:
+        expected.add("channel")
+        if type(reply.get("channel")) is not int or not 1 <= reply["channel"] <= 8:
+            return None
     if set(reply) != expected:
         return None
     return reply
@@ -162,7 +166,10 @@ class SerialLightController:
         except Exception as exc:
             self._drop()
             raise ControllerError("serial write failed") from exc
-        return self._await_reply(transport, command_id, deadline)
+        reply = self._await_reply(transport, command_id, deadline)
+        if reply['v'] != message['v'] or (message['v'] == 2 and reply.get('channel') != message['channel']):
+            raise ControllerError("reply channel/version mismatch")
+        return reply
 
     def _await_reply(self, transport, command_id: str, deadline: float) -> dict:
         buffer = bytearray()
@@ -236,3 +243,33 @@ class SerialLightController:
         if state not in STATES:
             return ObservedState(False, None)
         return ObservedState(True, state)
+
+    def execute_target(self, target, parameters):
+        channel = self._channel(target)
+        if channel == 1:
+            return self.execute(parameters)
+        state = parameters.get("state")
+        if state not in STATES:
+            raise ControllerError("unsupported light state")
+        with self._lock:
+            reply = self._exchange({"v": 2, "channel": channel, "op": "set", "state": state})
+        return ControllerReceipt(reply["ok"] and reply.get("state") == state, None, reply)
+
+    def observe_target(self, target):
+        channel = self._channel(target)
+        if channel == 1:
+            return self.observe()
+        try:
+            with self._lock:
+                reply = self._exchange({"v": 2, "channel": channel, "op": "get"})
+            state = reply.get("state")
+            return ObservedState(reply["ok"] and state in STATES, state if reply["ok"] and state in STATES else None)
+        except ControllerError:
+            return ObservedState(False, None)
+
+    @staticmethod
+    def _channel(target):
+        targets = [f"ESP-LIGHT-{i:02d}" for i in range(1, 9)]
+        if target not in targets:
+            raise ControllerError("unknown light target")
+        return targets.index(target) + 1

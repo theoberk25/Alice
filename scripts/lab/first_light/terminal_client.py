@@ -58,12 +58,13 @@ def main():
     parser.add_argument("--state", choices=("on", "off"), default="on")
     parser.add_argument("--agent", default=AGENT_ID,
                         help="agent id (key file must match <agent>-k1)")
+    parser.add_argument("--target", choices=[f"ESP-LIGHT-{i:02d}" for i in range(1,9)], default="ESP-LIGHT-01")
     parser.add_argument("--request-id", default=None)
     parser.add_argument("--repeat", type=int, default=1,
                         help="send the identical envelope N times (idempotency check)")
     args = parser.parse_args()
     seed = bytes.fromhex(args.key_file.read_text().strip())
-    envelope = build_envelope(seed, state=args.state, request_id=args.request_id,
+    envelope = build_envelope(seed, state=args.state, target=args.target, request_id=args.request_id,
                               agent_id=args.agent, key_id=f"{args.agent}-k1")
     print(f"request_id: {envelope['request']['request_id']}")
     for attempt in range(max(1, args.repeat)):

@@ -2,7 +2,7 @@
 
 Updated: 2026-09-06 UTC (September 5 EDT).
 Baseline: merge `bf6fee0` combines main `d3502e3` and local SIEM work.
-Objective: publish ESP handoff with verified eight-light mapping and grid guidance.
+Objective: production control of all eight mapped lights; ready for grid integration.
 Teammates own Pi ↔ technician approval transport and enterprise cache publication.
 
 ## Implemented and observed
@@ -52,7 +52,7 @@ Backup: ~/first-light/pre-serial-backup/. Idle-low firmware flashed. Mock idle.
 
 ## Evidence and blockers
 
-Historical merged Python suite: **357 passed plus 261 subtests**.
+Current Python suite: **361 passed plus 266 subtests**.
 npm check: typecheck/lint, 73 frontend + 5 script tests, build passed.
 Changed Markdown links and file placement checked against README/AGENTS.md.
 Live outage test was previously staged but not run: approval review rejected SSH
@@ -62,13 +62,14 @@ Real ML, semantic reconciliation, evidence-blob upload,
 full snapshot activation and technician accept/prevent commands remain.
 Uploader connectivity never changes first-light execution authority.
 
-Eight colors confirmed; idle-low firmware deployed; D7 dark confirmed; runtime active.
+Eight-light production deployed: 16 signed ON/OFF tests and 8 replays passed.
+Ledger quota expanded 8→256 MiB with unchanged history; Wazuh resumed.
 
 ## Next steps
 
 1. Complete the staged live outage/recovery test; publication does not imply acceptance.
 2. Test service restart and missing-USB fail-closed behavior in a maintenance window.
-3. Publish the preserved integration and ESP mapping; retain all private data.
+3. Grid teammate assigns asset roles to the eight implemented light targets.
 4. Teammates integrate authenticated, request-bound technician accept/prevent responses.
 5. Integrate full enterprise permission semantics and compatible baseline/model activation.
 

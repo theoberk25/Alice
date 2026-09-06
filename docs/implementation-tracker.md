@@ -16,6 +16,13 @@ read-only transport and Wazuh delivery are described below.
 
 ## Status and current checkpoint
 
+Eight-light production now includes v2 serial addressing, signed target validation,
+operator ON/OFF buttons, per-target provenance and opt-in all-light demo grants.
+Live: 16 signed commands, eight replays, 112 correlated USB events verified.
+Quota-only migration preserved all history and recovered Wazuh delivery. Existing
+118 IDs/statuses remain; broader grid/ML/technician acceptance is not implied.
+
+
 Eight-LED identification completed with all colors visually confirmed; pin/color
 map is in the ESP handoff. Original firmware restored with hash verification and
 runtime resumed. Subsequent dim D7 report led to an idle-low firmware fix;

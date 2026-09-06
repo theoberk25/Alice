@@ -16,3 +16,6 @@ The [console migration](../handoffs/2026-09-05-console-layout.md) includes all
 former workstation files, path repairs and verification. The
 [lab migration](../handoffs/2026-09-05-lab-script-relocation.md) preserves
 public lab.* imports. Neither migration changes product integration status.
+
+Offline ledger quota maintenance: `python -m lab.audit_resize` (runtime stopped,
+new backup required, increase-only). See the [ESP handoff](../integration/esp-handoff.md).

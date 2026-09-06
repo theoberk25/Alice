@@ -33,40 +33,59 @@ supplies the six loads. Model interlocks in software; these LEDs do not physical
 switch utility power. Define whether transfer permits an interruption and which
 loads are critical before making demo scenarios.
 
-### What to implement next
+### Production implementation — ready for the grid teammate
 
-1. Current production supports only D0 through the signed single-light contract.
-   Extend the request schema, signed grants, permission resolution, controller,
-   firmware and operator UI together. Use stable target IDs for each circuit;
-   never infer permission from a color or send arbitrary GPIO numbers from a client.
-2. Version the multi-channel serial contract. Bind SET, GET and acknowledgments to
-   the selected channel; reject unknown channels, preserve the bounded parser,
-   and do not retry an uncertain SET automatically. Keep all outputs LOW at boot.
-   D6/D7 are UART pads: keep hardware UART disabled when using them for these LEDs.
-3. Carry the same target through decision, execution receipt, observation, USB
-   ledger and Wazuh records. Remove hardcoded ESP-LIGHT-01 provenance only as part
-   of that coordinated change. The technician team consumes these same IDs.
-4. Keep permissions and grid rules explicit: approved circuit actions may execute;
-   HOLD waits for an authenticated, request-bound human response; DENY never writes
-   to the device. A simulated transfer interlock needs its own defined rules.
-5. Represent sensor values with units, timestamp, source and freshness. Label
-   generated voltages as simulated; LED output readback is not measured voltage.
-   Preserve the PRE/POST assessment split. The current live demo uses fixture
-   assessment, not the trained Isolation Forest.
-6. Test each channel alone, no change to other channels, invalid channel rejection,
-   signed permission denial, request replay, device disconnect and restart-to-OFF.
-   Then verify one approved circuit action across the USB ledger and Wazuh before
-   adding the technician workflow. Do not expand the existing live release silently.
+All eight stable targets `ESP-LIGHT-01` through `ESP-LIGHT-08` now route
+through signed requests, exact grants, decision, serial execution and target-bound
+USB/Wazuh evidence. Target numbering follows the channel column above. The operator
+at http://127.0.0.1:8789 has separate ON/OFF buttons with the verified color labels.
+Pi firmware is the production `firmware/xiao_first_light` sketch, not bench mode.
+All eight outputs boot LOW. Existing single-light wire clients still work on D0;
+version 2 adds explicit channels 1–8, echoed and checked in replies. Unknown targets,
+channels, wrong-channel replies and uncertain SET outcomes do not trigger fallback
+or automatic re-execution. Other LEDs retain their state when one is changed.
 
-### Current deployed state
+Example using an already provisioned private key and SSH tunnel:
 
-The production sketch now holds the other seven LED outputs LOW; White 2's dim
-idle glow was fixed and visually confirmed. All eight can be selected with the
-separate bench-identification sketch, but **the operator application still controls
-only D0**. The Pi service is running with production firmware; bench mode is over.
-The full original flash backup is historical recovery material and predates the
-idle-low fix. For normal deployment, build the current production source instead
-of restoring that backup. Never flash while alice-runtime owns the serial port.
+```sh
+.venv/bin/python -m lab.first_light.terminal_client \
+  --url http://127.0.0.1:18080 \
+  --key-file /absolute/private/path/elec-agent-01-k1.seed \
+  --agent elec-agent-01 --target ESP-LIGHT-08 --state on
+```
+
+The target above is White 2 / D7. Use `--state off` to switch it off.
+Every new command is a signed request; use `--repeat 2` to test identical replay.
+For a **new isolated demo bundle**, the existing builder accepts `--all-lights`.
+Do not regenerate or overwrite a live team's keys/release: the deployed generation
+3 release preserves existing grants and terminal keys and adds targets 2–8 only
+for `elec-agent-01`. Existing enterprise-cache generation 44 remains cache-only.
+
+The grid teammate should now add asset names, simulated load/voltage data and
+transfer/interlock rules using these stable targets. No need to recreate firmware,
+serial transport, operator buttons, terminal signing or per-target provenance.
+Define critical loads and allowed transfer behavior before adding policy scenarios.
+Keep simulated telemetry labelled with units, timestamps and source; an LED's output
+readback is not measured voltage. Real ML and authenticated technician HOLD release
+remain separate integration tasks. HOLD and DENY never actuate through this runtime.
+
+### Deployment and verification
+
+Production firmware compiled and flashed with hash verification. Signed live tests:
+16 ON/OFF requests completed with correct feedback, eight identical OFF replays
+returned recorded outcomes, and 112 correctly target-bound USB events were verified.
+These are device-feedback checks; previous manual identification establishes colors.
+The test ended with every channel OFF. A later operator request exposed the original
+8 MiB ledger quota; the service was stopped, backed up, and quota increased to
+256 MiB without changing any history table. Wazuh delivery resumed. This is disk
+budget, not a RAM allocation. The deployed Pi remains 2 GB with lightweight firmware.
+
+Pre-upgrade source/release and pre-quota ledger backup:
+`/home/pi/first-light/pre-eight-light-backup/`. Never restore an old ledger over
+new records. Offline quota maintenance is available via `python -m lab.audit_resize`:
+stop every ledger writer, choose a new backup path, then pass `--quota-mib 256`
+and `--runtime-stopped`. It is increase-only, preserves history, and restores
+metadata guards in the same transaction. Startup validates the ledger afterward.
 
 ## Current connection map
 
@@ -143,8 +162,7 @@ exposure than the previous LAN plan, since the cable is the only path in, but it
 is no protection against a compromised Pi. Do not let the agent or technician
 browser drive the node directly and bypass ALICE during governance tests.
 
-**Power-grid extension:** currently only `set_light_state` targeting `ESP-LIGHT-01`
-is accepted by this release/adapter. Voltage readings, feeders, relays and setpoints
+**Power-grid extension:** `set_light_state` now accepts the eight mapped targets. Voltage readings, feeders, relays and setpoints
 need an agreed schema (resource ID, unit, timestamp, sensor verification/freshness,
 requested vs measured value), signed permissions and a matching adapter. Do not
 reuse provisional enterprise-simulator voltage envelopes as hardware safety limits.
@@ -322,8 +340,8 @@ on Jared's Mac. No normal ledger data or permissions were changed.
 
 Identification completed: all eight colors visually confirmed. All outputs were
 commanded OFF, then the original full flash was restored with device hash
-verification. Pi alice-runtime resumed. Normal operator control remains the
-original D0-only contract; the grid teammate owns multi-channel integration.
+verification. Pi alice-runtime resumed. That historical checkpoint used D0-only control; the production extension above
+now supports all eight targets.
 
 After restoring the original firmware, Jared reported White 2 (D7) glowing dimly.
 The production sketch now explicitly drives all seven unused LED pins LOW at
@@ -335,3 +353,7 @@ Publication verification: 31 serial/firmware tests plus 24 subtests passed.
 Changed documentation links resolve; current.md meets both size limits. The
 authorized rename preserves prior handoff material and all tracker IDs. Generated
 Arduino build directories and private local artifacts are excluded from Git.
+
+Final regression: 361 tests plus 266 subtests passed. Operator White 2 OFF
+request e74c1b0b-a118-43d0-ac55-04bb94bd4f64 returned ALLOW/COMPLETED/off
+after quota recovery, with all seven records visible in Wazuh.

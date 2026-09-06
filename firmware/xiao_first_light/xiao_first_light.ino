@@ -1,5 +1,5 @@
 /*
- * ALICE first-light node - Seeed XIAO ESP32-S3, one LED.
+ * ALICE first-light node - Seeed XIAO ESP32-S3, eight mapped LEDs.
  *
  * Executes device commands for the Pi runtime over native USB CDC and reports
  * its own output state. It holds no authority: no networking, no policy, no
@@ -28,7 +28,9 @@
 #include <Arduino.h>
 
 static const int LED_PIN = D0;  // D0 == GPIO1 on the XIAO ESP32-S3
-static const int UNUSED_LED_PINS[] = {D3, D5, D6, D10, D9, D8, D7};
+static const int LIGHT_PINS[] = {D0, D3, D5, D6, D10, D9, D8, D7};
+static bool light_states[8] = {};
+static unsigned long reply_version = 1, reply_channel = 1;
 static const uint8_t PROTOCOL_VERSION = 1;
 static const size_t MAX_LINE = 256;
 static const size_t MAX_ID = 32;
@@ -37,13 +39,19 @@ static char g_line[MAX_LINE + 1];
 static size_t g_len = 0;
 static bool g_overflow = false;
 static bool g_invalid = false;
-static bool g_state_on = false;
 static char g_boot_id[9];
 
 /* ------------------------------------------------------------------ output */
 
 static void emit_ok(const char *id, bool state_on) {
-  Serial.print(F("{\"v\":1,\"id\":\""));
+  Serial.print(F("{\"v\":"));
+  Serial.print(reply_version == 2 ? "2" : "1");
+  if (reply_version == 2) {
+    Serial.print(F(",\"channel\":"));
+    char channel_text[12]; snprintf(channel_text, sizeof(channel_text), "%lu", reply_channel);
+    Serial.print(channel_text);
+  }
+  Serial.print(F(",\"id\":\""));
   Serial.print(id);
   Serial.print(F("\",\"ok\":true,\"state\":\""));
   Serial.print(state_on ? F("on") : F("off"));
@@ -53,7 +61,14 @@ static void emit_ok(const char *id, bool state_on) {
 }
 
 static void emit_error(const char *id, const char *code) {
-  Serial.print(F("{\"v\":1,\"id\":\""));
+  Serial.print(F("{\"v\":"));
+  Serial.print(reply_version == 2 ? "2" : "1");
+  if (reply_version == 2) {
+    Serial.print(F(",\"channel\":"));
+    char channel_text[12]; snprintf(channel_text, sizeof(channel_text), "%lu", reply_channel);
+    Serial.print(channel_text);
+  }
+  Serial.print(F(",\"id\":\""));
   Serial.print(id);
   Serial.print(F("\",\"ok\":false,\"error\":\""));
   Serial.print(code);
@@ -103,7 +118,8 @@ static const char *parse_uint(const char *p, unsigned long *out) {
 }
 
 struct Command {
-  bool has_v, has_id, has_op, has_state;
+  bool has_v, has_id, has_op, has_state, has_channel;
+  unsigned long channel;
   unsigned long v;
   char id[MAX_ID + 1];
   char op[8];
@@ -136,6 +152,11 @@ static const char *parse_command(const char *p, struct Command *cmd) {
       p = parse_uint(p, &cmd->v);
       if (p == NULL) { return "MALFORMED"; }
       cmd->has_v = true;
+    } else if (strcmp(key, "channel") == 0) {
+      if (cmd->has_channel) return "MALFORMED";
+      p = parse_uint(p, &cmd->channel);
+      if (p == NULL) return "MALFORMED";
+      cmd->has_channel = true;
     } else if (strcmp(key, "id") == 0) {
       if (cmd->has_id) { return "MALFORMED"; }
       p = parse_string(p, cmd->id, sizeof(cmd->id));
@@ -168,7 +189,9 @@ static const char *parse_command(const char *p, struct Command *cmd) {
 
 static void handle_line(const char *line) {
   struct Command cmd;
+  reply_version = 1; reply_channel = 1;
   const char *err = parse_command(line, &cmd);
+  if (cmd.has_v && cmd.v == 2) { reply_version = 2; reply_channel = cmd.channel; }
   if (err != NULL) {
     /* cmd.id is set only if "id" was reached before the failure. */
     emit_error(cmd.has_id ? cmd.id : "", err);
@@ -176,12 +199,15 @@ static void handle_line(const char *line) {
   }
   if (!cmd.has_id || cmd.id[0] == '\0') { emit_error("", "MISSING_FIELD"); return; }
   if (!cmd.has_v) { emit_error(cmd.id, "MISSING_FIELD"); return; }
-  if (cmd.v != PROTOCOL_VERSION) { emit_error(cmd.id, "BAD_VERSION"); return; }
+  if (cmd.v != PROTOCOL_VERSION && cmd.v != 2) { emit_error(cmd.id, "BAD_VERSION"); return; }
   if (!cmd.has_op) { emit_error(cmd.id, "MISSING_FIELD"); return; }
+  if (cmd.v == 1 && cmd.has_channel) { emit_error(cmd.id, "UNKNOWN_FIELD"); return; }
+  if (cmd.v == 2 && (!cmd.has_channel || cmd.channel < 1 || cmd.channel > 8)) { emit_error(cmd.id, "BAD_CHANNEL"); return; }
+  const int index = cmd.v == 2 ? cmd.channel - 1 : 0;
 
   if (strcmp(cmd.op, "get") == 0) {
     if (cmd.has_state) { emit_error(cmd.id, "UNKNOWN_FIELD"); return; }
-    emit_ok(cmd.id, g_state_on);  /* readback only; GPIO untouched */
+    emit_ok(cmd.id, light_states[index]);  /* readback only; GPIO untouched */
     return;
   }
   if (strcmp(cmd.op, "set") != 0) { emit_error(cmd.id, "BAD_OP"); return; }
@@ -193,9 +219,9 @@ static void handle_line(const char *line) {
   else { emit_error(cmd.id, "BAD_STATE"); return; }
 
   /* Apply first, acknowledge second: an ack always follows a real write. */
-  digitalWrite(LED_PIN, want_on ? HIGH : LOW);
-  g_state_on = want_on;
-  emit_ok(cmd.id, g_state_on);
+  digitalWrite(LIGHT_PINS[index], want_on ? HIGH : LOW);
+  light_states[index] = want_on;
+  emit_ok(cmd.id, light_states[index]);
 }
 
 /* --------------------------------------------------------------- lifecycle */
@@ -203,12 +229,9 @@ static void handle_line(const char *line) {
 void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);  /* dark before the host can speak */
-  g_state_on = false;
 
-  /* The bench has eight active-HIGH LEDs. Only D0 is addressable by this
-   * protocol; explicitly hold the other seven low instead of leaving their
-   * pads floating. D6 also doubles as UART0 TX. No hardware UART is used. */
-  for (int pin : UNUSED_LED_PINS) {
+  // All channels start OFF. USB CDC is used; hardware UART stays disabled.
+  for (int pin : LIGHT_PINS) {
     digitalWrite(pin, LOW);
     pinMode(pin, OUTPUT);
   }

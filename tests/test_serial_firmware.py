@@ -40,3 +40,24 @@ class SerialFirmwareTests(unittest.TestCase):
             with self.subTest(content_length=content_length):
                 writes, _ = self.run_frames(valid + b' ' * (content_length-len(valid)) + b'\n')
                 self.assertEqual(writes, expected_writes)
+
+    def test_channels_are_independent_and_bad_channels_do_not_write(self):
+        frames = []
+        for channel in range(1, 9):
+            frames.append({'v': 2, 'id': 'set', 'channel': channel, 'op': 'set', 'state': 'on'})
+            for other in range(1, 9):
+                frames.append({'v': 2, 'id': 'get', 'channel': other, 'op': 'get'})
+            frames.append({'v': 2, 'id': 'off', 'channel': channel, 'op': 'set', 'state': 'off'})
+        writes, raw = self.run_frames(b'\n'.join(json.dumps(x).encode() for x in frames)+b'\n')
+        self.assertEqual(writes, 16)
+        replies = [json.loads(x) for x in raw.splitlines()]
+        for channel in range(1, 9):
+            for other in range(1, 9):
+                reply = replies[(channel-1)*10+other]
+                self.assertEqual(reply['channel'], other)
+                self.assertEqual(reply['state'], 'on' if other == channel else 'off')
+        for invalid in (0, 9, -1, True, '2'):
+            with self.subTest(invalid=invalid):
+                frame={'v':2,'id':'bad','op':'set','channel':invalid,'state':'on'}
+                writes, _ = self.run_frames(json.dumps(frame).encode()+b'\n')
+                self.assertEqual(writes, 0)

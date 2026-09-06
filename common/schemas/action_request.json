@@ -6,7 +6,9 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {
+      "const": "1.0"
+    },
     "request_id": {
       "type": "string",
       "minLength": 1,
@@ -19,15 +21,37 @@
       "maxLength": 64,
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*(?![\\s\\S])"
     },
-    "action": {"enum": ["set_light_state"]},
-    "target": {"enum": ["ESP-LIGHT-01"]},
+    "action": {
+      "enum": [
+        "set_light_state"
+      ]
+    },
+    "target": {
+      "enum": [
+        "ESP-LIGHT-01",
+        "ESP-LIGHT-02",
+        "ESP-LIGHT-03",
+        "ESP-LIGHT-04",
+        "ESP-LIGHT-05",
+        "ESP-LIGHT-06",
+        "ESP-LIGHT-07",
+        "ESP-LIGHT-08"
+      ]
+    },
     "parameters": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "state": {"enum": ["on", "off"]}
+        "state": {
+          "enum": [
+            "on",
+            "off"
+          ]
+        }
       },
-      "required": ["state"]
+      "required": [
+        "state"
+      ]
     },
     "issued_at": {
       "type": "string",
@@ -36,5 +60,13 @@
       "pattern": "Z(?![\\s\\S])"
     }
   },
-  "required": ["schema_version", "request_id", "agent_id", "action", "target", "parameters", "issued_at"]
+  "required": [
+    "schema_version",
+    "request_id",
+    "agent_id",
+    "action",
+    "target",
+    "parameters",
+    "issued_at"
+  ]
 }

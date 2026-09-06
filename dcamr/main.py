@@ -136,7 +136,7 @@ class FirstLightRuntime:
             else:
                 self.ledger = AuditLog.initialize(
                     ledger_path, ledger_id="first-light-ledger", node_id="alice-pi-01",
-                    quota_bytes=8 * 1024 * 1024, reserve_bytes=256 * 1024, **options)
+                    quota_bytes=256 * 1024 * 1024, reserve_bytes=256 * 1024, **options)
         except Exception as exc:
             raise StartupError(f"audit ledger unavailable: {exc}") from exc
         if not self.ledger.readiness()["ready"]:
@@ -335,7 +335,7 @@ class FirstLightRuntime:
         # retained as evidence and their sha256 is the evidence binding.
         assessment_bytes = build_assessment(
             request_id=request_id, input_sha256=request_sha256,
-            request_at_ms=int(time.time() * 1000))
+            request_at_ms=int(time.time() * 1000), target=request["target"])
         evidence_path = self._evidence_dir / f"{request_id}.assessment.json"
         self._write_evidence(evidence_path, assessment_bytes)
         assessment_id = f"{request_id}.a1"
@@ -373,7 +373,7 @@ class FirstLightRuntime:
 
         # 7. EXECUTION_ATTEMPT must be durably committed before commanding the
         # ESP (AuditLog append is a committed synchronous SQLite write).
-        command_bytes = canonical_bytes({"state": request["parameters"]["state"]})
+        command_bytes = canonical_bytes({"target": request["target"], "state": request["parameters"]["state"]})
         execution_correlation = dict(correlation, action_id=f"{request_id}.action",
                                      execution_id=f"{request_id}.exec")
         self._append(f"{request_id}.attempt", "EXECUTION_ATTEMPT",
@@ -384,7 +384,12 @@ class FirstLightRuntime:
         if self.storage:
             self.storage.check()
         try:
-            receipt = self.controller.execute(request["parameters"])
+            if hasattr(self.controller, "execute_target"):
+                receipt = self.controller.execute_target(request["target"], request["parameters"])
+            elif request["target"] == "ESP-LIGHT-01":
+                receipt = self.controller.execute(request["parameters"])
+            else:
+                raise ControllerError("controller does not support this target")
             receipt_outcome = "ACCEPTED" if receipt.accepted else "REJECTED"
             available = True
         except ControllerError:
@@ -395,7 +400,7 @@ class FirstLightRuntime:
         self._append(f"{request_id}.receipt", "CONTROLLER_RECEIPT",
                      correlation=execution_correlation, attribution=attribution,
                      detail={"outcome": receipt_outcome,
-                             "source": self._source("ESP-LIGHT-01", f"{request_id}.receipt-src",
+                             "source": self._source(request["target"], f"{request_id}.receipt-src",
                                                     available=available),
                              "reason_codes": [] if available else ["CONTROLLER_UNREACHABLE"]})
         result_outcome = "COMPLETED" if receipt_outcome == "ACCEPTED" else (
@@ -403,13 +408,19 @@ class FirstLightRuntime:
         self._append(f"{request_id}.result", "EXECUTION_RESULT",
                      correlation=execution_correlation, attribution=attribution,
                      detail={"outcome": result_outcome,
-                             "source": self._source("ESP-LIGHT-01", f"{request_id}.result-src",
+                             "source": self._source(request["target"], f"{request_id}.result-src",
                                                     available=available),
                              "reason_codes": [] if available else ["NO_FEEDBACK"]})
         response["execution"] = result_outcome
 
         # 9. OBSERVED_STATE from a separate readback.
-        observed = self.controller.observe()
+        if hasattr(self.controller, "observe_target"):
+            observed = self.controller.observe_target(request["target"])
+        elif request["target"] == "ESP-LIGHT-01":
+            observed = self.controller.observe()
+        else:
+            from dcamr.enforcement.enforcement_gateway import ObservedState
+            observed = ObservedState(False, None)
         observed_bytes = json.dumps({"state": observed.state}).encode("utf-8")
         observed_ref = f"observed-evidence-{request_id}"
         self._write_evidence(self._evidence_dir / f"{request_id}.observed.json", observed_bytes)
@@ -418,17 +429,17 @@ class FirstLightRuntime:
             value = "1" if observed.state == "on" else "0"
         self._append(f"{request_id}.observed", "OBSERVED_STATE",
                      correlation=execution_correlation, attribution=attribution,
-                     detail={"asset_id": "ESP-LIGHT-01", "sensor_id": "esp-light-01-readback",
+                     detail={"asset_id": request["target"], "sensor_id": request["target"].lower() + "-readback",
                              "origin": "ACTUATOR_FEEDBACK", "property": "light_state",
                              "value": value, "unit": "bool",
                              "quality": "GOOD" if observed.available else "UNAVAILABLE",
                              "correlation_absence_reason": None,
-                             "source": self._source("ESP-LIGHT-01", f"{request_id}.observe-src",
+                             "source": self._source(request["target"], f"{request_id}.observe-src",
                                                     available=observed.available),
                              "evidence_ref": observed_ref},
                      evidence=[{"ref": observed_ref,
                                 "sha256": sha256(observed_bytes).hexdigest(),
-                                "source": self._source("ESP-LIGHT-01",
+                                "source": self._source(request["target"],
                                                        f"{request_id}.observe-src",
                                                        available=observed.available)}])
         response["observed_state"] = observed.state

@@ -381,3 +381,17 @@ class SerialPtyTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class MultiLightReplyTest(unittest.TestCase):
+    def test_wrong_channel_ack_is_not_accepted(self):
+        class Wire:
+            def write(self, data): return len(data)
+        c = SerialLightController('test', transport=Wire())
+        c._await_reply = lambda *_: {'v':2,'channel':3,'ok':True,'state':'on','boot_id':'00000001'}
+        with self.assertRaises(ControllerError):
+            c.execute_target('ESP-LIGHT-02', {'state':'on'})
+
+    def test_unknown_target_never_opens_serial(self):
+        c = SerialLightController('must-not-open')
+        with self.assertRaises(ControllerError):
+            c.execute_target('ESP-LIGHT-09', {'state':'on'})

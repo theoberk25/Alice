@@ -48,7 +48,7 @@ def _identity(agent_id: str) -> dict:
                       "responsible_user": USER_ID, "delegator": USER_ID}}
 
 
-def build_grants_payload(agent_ids) -> dict:
+def build_grants_payload(agent_ids, *, all_lights=False) -> dict:
     return {
         "schema_version": "alice-permissions-grants-v1",
         "site_id": "first-light-lab",
@@ -57,7 +57,7 @@ def build_grants_payload(agent_ids) -> dict:
             "grant_id": GRANT_ID,
             "agents": sorted(agent_ids),
             "actions": ["set_light_state"],
-            "targets": ["ESP-LIGHT-01"],
+            "targets": [f"ESP-LIGHT-{i:02d}" for i in range(1,9)] if all_lights else ["ESP-LIGHT-01"],
             "effect": "PERMIT",
             "approval_required": False,
             "parameter_bounds": {"state": {"one_of": ["on", "off"]}},
@@ -90,7 +90,7 @@ def _public_hex(private: Ed25519PrivateKey) -> str:
     return private.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw).hex()
 
 
-def build(out_dir: Path, agent_ids=(AGENT_ID,), grant_agent_ids=None) -> Path:
+def build(out_dir: Path, agent_ids=(AGENT_ID,), grant_agent_ids=None, *, all_lights=False) -> Path:
     """grant_agent_ids limits who the PERMIT grant covers; every agent in
     agent_ids still gets a registered key, so the others authenticate but
     resolve to NO_PERMISSION (default deny)."""
@@ -113,7 +113,7 @@ def build(out_dir: Path, agent_ids=(AGENT_ID,), grant_agent_ids=None) -> Path:
                         "ed25519_public_hex": _public_hex(terminal_key)}
 
     payloads = {
-        "grants.json": build_grants_payload(grant_agent_ids),
+        "grants.json": build_grants_payload(grant_agent_ids, all_lights=all_lights),
         "subjects.json": build_subjects_payload(agent_ids),
         "terminal_keys.json": {"schema_version": "alice-terminal-keys-v1", "keys": keys},
     }
@@ -145,9 +145,10 @@ def main():
     parser.add_argument("--ungranted-agent", action="append", default=None,
                         help="agent id given a registered key but no grant "
                              "(authenticates, then NO_PERMISSION)")
+    parser.add_argument("--all-lights", action="store_true", help="Explicitly grant all eight light targets")
     args = parser.parse_args()
     granted = tuple(args.agent or (AGENT_ID,))
-    release = build(args.out_dir, granted + tuple(args.ungranted_agent or ()), granted)
+    release = build(args.out_dir, granted + tuple(args.ungranted_agent or ()), granted, all_lights=args.all_lights)
     print(f"release written: {release}")
     print("WARNING: demonstration trust only; do not provision these keys in production.")
 
