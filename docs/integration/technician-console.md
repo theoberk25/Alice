@@ -1,5 +1,23 @@
 # Technician console integration
 
+## Current integration direction
+
+User-confirmed (2026-09-05): ML classification stays on the Pi; held-action accept
+or deny is decided on the local Mac after biometric verification. Merek's next
+session builds the backend data flow, enabling Alex to connect workstation scripts
+and live dashboard behavior. Theo and Jared are configuring the Pi; Xavi is working
+on hardware. The backend carries the bound, biometrically verified response and
+the Pi validates execution prerequisites; neither component silently takes over
+the Mac's held-action choice.
+
+Agree both accept/deny proof requirements, request/assessment currentness, event
+projection and receipt/replay contracts before implementing the live connection.
+The existing approval-focused native guards do not establish that complete target.
+See the [corrected architecture](../../architecture.md) and
+[next-session handoff](../handoffs/2026-09-05-theo-architecture-alignment.md).
+
+## Earlier migration and contract evidence
+
 Repository migration note (2026-09-05): the console source is now located in
 [the shared console layout](../guides/technician-console.md), with its executable contracts,
 fixtures and tests. See the [migration assessment](main-repository-migration.md)

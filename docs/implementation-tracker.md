@@ -15,6 +15,16 @@ two-mode admission, authority and live transport still need runtime integration.
 
 ## Status and current checkpoint
 
+Architecture correction from Theo's supplied older plan: the root document now
+defines the intended Pi pipeline and backend/live-workstation data flow. User
+clarification: Pi owns ML classification; the local Mac resolves held actions to
+accept or deny after biometric verification. Theo/Jared are configuring the Pi,
+Xavi is working on hardware, Merek will implement backend integration next session,
+and Alex will adapt workstation scripts/dashboard against the agreed live contract.
+The [alignment handoff](handoffs/2026-09-05-theo-architecture-alignment.md) records
+remaining codec/storage/proof decisions. This is documentation/coordination only;
+all 118 task IDs, labels and implementation statuses remain unchanged.
+
 Integrated architecture/layout review against main `d6e7e55`: preserved the
 first-light implementation and task updates alongside the documentation follow-up.
 Fresh full Python suite: **265 passed, zero skips** (16.872 seconds with local
@@ -387,8 +397,8 @@ workflows run with explicit no-unintended-execution assertions.
 | 066 | Export Raw Decision Data to Dashboard | Partial | [Serializable anomaly contract][contract] and [mock replay][anomaly-replay] exist. The integrated console renders supplied fixtures, but no complete live core decision/event transport is connected. |
 | 067 | Export Live Pi Status to Dashboard | Planned | No actual Pi status endpoint or authenticated telemetry transport is connected to the console; reported console status views currently consume fixtures. |
 | 068 | Export Available Technician Actions | Planned | No authoritative core technician-action capability export exists. Console controls consume supplied capabilities; they do not create authority. |
-| 069 | Receive Technician Decision | Planned | No real core technician-action receiver exists. The console reports local action construction/persistence; authenticated delivery and receipts remain. |
-| 070 | Require Technician Authentication for Approval | Planned | Console local ArcFace enrollment/login and approval grants are reported. Core-verifiable, fresh, one-use proof bound to current decision/request/authority remains; live approval camera acceptance is pending. |
+| 069 | Receive Technician Decision | Planned | Target clarified: local Mac resolves held actions to accept/deny after biometric verification; Merek's backend must deliver that bound response to the Pi. No real receiver is connected; authentication, proof/currentness checks and receipts remain. |
+| 070 | Require Technician Authentication for Approval | Planned | Local ArcFace enrollment/login and native approval grants exist. Target held-action accept/deny choice is biometric-gated on the Mac; both response paths and Pi-verifiable proof bound to current request/assessment/authority need agreement and acceptance. |
 | 071 | Execute Approved Action | Partial | The [enforcement gateway][enforcement] now commands the first-light ESP light over HTTP (receipt and state readback separated; idempotency owned by the runtime), verified against a mock ESP in [tests][first-light-tests]. The real ESP firmware contract, endpoint fence and general action execution remain; ONLINE enterprise control remains direct. |
 | 072 | Record Technician Decision | Partial | [Ledger contract][audit-schema] records supplied technician intent and identity separately from decisions/results; [contract tests][audit-contract-tests] cover it. Authenticated console transport, proof validation and actual approval integration remain absent. |
 | 073 | Record Action Execution Result | Partial | [Ledger][audit-guide] persists separate supplied execution attempts, controller receipts/results and sensor observations with identity/time/evidence binding. [Tests][audit-contract-tests] preserve UNKNOWN outcomes. No controller execution, authenticated result receiver or sensor driver is connected. |

@@ -1,297 +1,262 @@
 # ALICE architecture
 
-ALICE (Authenticated Local Identity & Cyber Enforcement) is a prototype for
-accountable agent operations during enterprise connectivity loss. It combines
-permission findings, behavioral assessment, technician review and durable evidence.
-DCAMR is the retained name of the Python edge package, not a separate product.
+ALICE (Authenticated Local Identity & Cyber Enforcement) governs autonomous-agent
+activity when enterprise connectivity is unavailable and preserves a record that
+can be reconciled when connectivity returns. DCAMR is the existing Pi runtime
+package within ALICE.
 
-**Current delivery:** a first-light terminal-to-runtime-to-mock-ESP path, tested
-assessment/audit components and a native technician console. The first-light path
-uses a fixture assessment and demo trust; it is not the complete product or a
-physical Pi/ESP acceptance result. This map includes main at `d6e7e55`; [current.md](current.md)
-tracks the working checkpoint. The [product architecture specification](docs/prds/ALICE-DCAMR-Architecture.md)
-defines target requirements; source links below identify implemented boundaries.
+This document describes the **intended system and the data flow to build next**,
+using [Theo's older Pi runtime plan](docs/plans/2026-09-05-theo-pi-runtime-reference.md)
+as design reference and the user's current team direction. The reference's claims
+that only anomaly code exists, its old paths, and its embedded build instructions
+are historical. They are not current implementation status or authorization to
+execute the plan. The user clarified the decision boundary: ML classification runs on the Pi;
+the local Mac resolves a held action to accept or deny after biometric verification.
+Differences from the newer contracts are identified below.
 
-## Read this map
+**Current coordination:** Theo and Jared are configuring the Pi; Xavi is working
+on hardware. After the architecture is corrected, Merek will build the backend
+integration that carries data end to end, enabling Alex to adapt the workstation
+scripts and dashboard to real incoming data. This session updates documentation;
+backend implementation and connected acceptance are next-session work.
 
-- [Deployment and authority](#deployment-and-authority): where work runs and who controls execution.
-- [Operating lifecycle](#operating-lifecycle): online synchronization, offline review and reconnection.
-- [Implemented components](#implemented-components): runnable code and its integration limits.
-- [Contracts and trust](#contracts-and-trust): what crosses a boundary and what it proves.
-- [Storage and model lifecycle](#storage-and-model-lifecycle): trusted inputs, generated evidence and private state.
-- [Repository map](#repository-map): active source, preserved scaffolds and placement rules.
-- [Integration and acceptance](#integration-and-acceptance): remaining work and verification scope.
+## System responsibilities
 
-## Deployment and authority
+| Component | Role in the intended system | Team coordination |
+| --- | --- | --- |
+| Enterprise permissions service | Publish signed, versioned permissions and compatible release inputs. Enterprise systems retain direct ONLINE execution control. | Endpoint, issuer and cache contracts need agreement. |
+| Enterprise SIEM/EDR | Supply activity and evidence; receive audit/findings. An evidence feed is not permission authority even when hosted alongside the permissions endpoint. | Backend integration must preserve this separation. |
+| Agent host | Submit actions and bounded supporting context through Generic, MCP or A2A adapters into one normalized request. | Generic/MCP/A2A breadth remains planned; the current terminal test is narrower. |
+| ALICE Pi | Verify accepted inputs, attribute requests, apply permissions/readiness checks, assess behavior, coordinate review/execution and record evidence. | Theo and Jared: Pi configuration underway. |
+| Protected hardware/controller | Receive a currently authorized command and report receipt, completion and available observed state separately. | Xavi: hardware work underway; interface/measurements need coordination. |
+| Technician workstation | Present Pi classifications/evidence, authenticate the reviewer biometrically and resolve held actions to accept or deny; submit the bound result. | Alex: adapt active workstation scripts and dashboard after the data contract is available. |
+| Backend integration | Connect runtime, storage/feed and workstation boundaries with validated, correlated data and bound responses. | Merek: next-session implementation after architecture alignment. |
+| Mac training tools | Train/calibrate models and export an approved frozen artifact for lightweight Pi inference. | Coordinate model/profile/export with Jared. |
 
-The target local network connects the Pi, Agent Mac, Technician Mac and protected
-controller through a switch. A router provides enterprise connectivity. Training
-runs on a development Mac, which is a deployment role rather than a requirement
-for another dedicated physical machine. Network placement alone does not confer trust.
+The Pi target is a Pi 4B, 2 GB RAM, OS Lite. Training, the local LLM and facial
+verification remain on Macs. Pi/hardware work being underway does not establish
+hardware acceptance in this checkout. See [implemented scope](#implemented-scope).
 
-The following is **target topology**. Dashed edges are required integrations;
-they are not evidence of working transports or a deployed system.
+## End-to-end topology
+
+This diagram describes the **target flow**. Dashed arrows are connections to
+complete or accept, not a claim that the full system is connected today.
+“Backend integration” is a responsibility across these boundaries; its deployment
+host, transport and service split have not been selected by this document.
 
 ```mermaid
 flowchart LR
-    Enterprise["Enterprise permissions, context and control"]
-    Agent["Agent Mac: local request source"]
-    Pi["ALICE Pi: assessment, cache and audit"]
-    Tech["Technician Mac: review, identity and local LLM"]
-    Device["Protected endpoint / ESP controller"]
-    Lab["Development Mac: training and simulation"]
-    Enterprise -. "ONLINE commands" .-> Device
-    Enterprise -. "trusted releases and activity feeds" .-> Pi
-    Agent -. "authenticated requests and bounded context" .-> Pi
-    Pi -. "assessment and bound request" .-> Tech
-    Tech -. "bound application response / human proof" .-> Pi
-    Pi -. "OFFLINE command after authority checks" .-> Device
-    Device -. "execution results and observations" .-> Pi
-    Pi -. "audit delivery and reconciliation" .-> Enterprise
-    Lab -. "approved frozen model release" .-> Pi
+    Permission["Enterprise permissions service"]
+    Enterprise["Enterprise control and SIEM/EDR"]
+    Agent["Agent: Generic / MCP / A2A"]
+    Pi["Pi runtime: normalize, permissions, ML classification and enforcement"]
+    Storage["Accepted releases and durable evidence"]
+    Backend["Backend integration: validated feed and bound responses"]
+    Dashboard["Local Mac: live dashboard, biometric verification, accept / deny"]
+    Device["Protected hardware / controller"]
+    Lab["Mac model training and export"]
+    Permission -. "ONLINE signed-release pull" .-> Pi
+    Enterprise -. "ONLINE activity / evidence" .-> Pi
+    Enterprise -. "ONLINE direct control" .-> Device
+    Agent -. "OFFLINE request and context" .-> Pi
+    Lab -. "approved model / profile / calibration" .-> Pi
+    Storage -. "accepted snapshots" .-> Pi
+    Pi -. "durable event append" .-> Storage
+    Pi -. "requests, assessments, status and results" .-> Backend
+    Backend -. "validated live events / replay" .-> Dashboard
+    Dashboard -. "biometrically verified held-action response / context request" .-> Backend
+    Backend -. "authenticated response for Pi revalidation" .-> Pi
+    Pi -. "OFFLINE authorized exact command" .-> Device
+    Device -. "receipt / completion / observation" .-> Pi
+    Pi -. "audit upload and reconciliation" .-> Enterprise
 ```
 
-| Role | Responsibility | Current boundary |
+A shared LAN is connectivity, not execution authority. The protected endpoint must
+accept one current controller. Neither a network outage, face match, dashboard
+button nor an LLM response can establish that ownership.
+
+## Operating modes
+
+| Mode/workflow | Pi behavior | Execution owner |
 | --- | --- | --- |
-| Enterprise | Authoritative permissions, direct online control, relevant context and audit ingestion | Synthetic releases, activity and Wazuh configuration exist. The lab console can query a configured indexer; trusted Pi synchronization and production feed adapters remain. |
-| ALICE Pi | Bounded local assessment, accepted cache use, durable audit and offline enforcement coordination | A first-light HTTP runtime authenticates signed terminal requests, resolves exact grants, records audit and commands a mock light. Full service orchestration and physical deployment remain. |
-| Agent host | Propose attributable actions and answer bounded context requests | `agent/` is empty scaffolding; a lab terminal client submits signed first-light requests. General agent/delegation integration remains. |
-| Technician Mac | Display evidence, explain assessments, authenticate reviewers and submit scoped responses | React/Tauri console, local identity and review controls exist. Live assessment transport and response binding remain. |
-| Protected endpoint | Enforce one current controller, execute once and report actual outcomes | `protected_systems/` is scaffolding; a runtime HTTP light client and lab mock ESP exist. Firmware agreement, endpoint fencing and physical acceptance remain. |
-| Development Mac | Generate synthetic data, fit/calibrate models and replay components | Implemented in `scripts/lab/`. Generated outputs do not automatically become trusted Pi releases. |
+| ONLINE | Pull and verify signed permissions into the cache; ingest authenticated activity/evidence; append and upload audit. No local action evaluation/authorization in Theo's log-only path. | Enterprise systems control actions directly. |
+| Enter OFFLINE / DDIL | Verify local readiness and complete an explicit transfer/fence. Ambiguous ownership or missing prerequisites blocks consequential work. | ALICE only after a confirmed transfer; a simulated lease is demo evidence only. |
+| OFFLINE / DDIL | Run the local pipeline from accepted cached permissions/model/context, obtain review as required, record attempts/results and preserve evidence. | The current ALICE authority, enforced at the endpoint. |
+| Reconnect | Reauthenticate services, resume delivery, append reconciliation, verify/activate updates and perform fenced handback. Backlog, freshness and ownership remain separate status facts. | Transfer back to enterprise control through the agreed protocol. |
 
-The edge target is a Raspberry Pi 4 Model B with 2 GB RAM and OS Lite. Numerical
-training, camera/ArcFace processing and the local LLM stay on Macs. ESP lights and
-voltage sensing are the proposed physical demo; device selection, units, operating
-limits and sensor contracts remain open. Earlier motor examples are not accepted
-hardware requirements. See the [data direction](docs/decisions/2026-09-05-data-direction.md).
+Reconnection is a workflow between two product modes, not a third mode. The Pi's
+enterprise synchronization is direct; the technician workstation is not a manual
+relay for ordinary policy refresh or audit uploads.
 
-## Operating lifecycle
+## OFFLINE runtime pipeline
 
-ALICE has exactly two product modes. Connectivity, execution ownership, cache
-freshness and audit backlog must be reported separately. The console's existing
-`mock`/`remote` settings and DDIL/CONNECTED/DEGRADED display values do not establish
-product authority.
+Theo's stage-by-stage plan supplies the intended structure. The table maps each
+responsibility to current code or a proposed extension; it does not declare the
+full pipeline implemented.
 
-| Stage | Required behavior | Implementation state |
+| Stage | Responsibility and output | Existing boundary / work to extend |
 | --- | --- | --- |
-| ONLINE | Enterprise controls actions directly. Pi synchronizes trusted context, observes authenticated activity and uploads audit/findings. | Enterprise examples and recorder components exist; live lifecycle orchestration remains. |
-| Transfer to OFFLINE | Confirm endpoint-enforced ALICE authority, invalidate stale commands/approvals and check cache/model/audit readiness. Ambiguous ownership blocks execution. | Protocol, readiness gate and fencing remain. A network outage alone cannot grant authority. |
-| OFFLINE / DDIL | Assess supported local requests using accepted inputs; require review as appropriate; record requests, attempts, results and observations. | First-light wires a signed request, exact grant, fixture assessment, ledger and mock light. Real scoring, review and full product governance remain. |
-| Reconnection | Reauthenticate enterprise services, resume audit delivery, append reconciliation, validate cache updates and transfer control back. | Recorder delivery bookkeeping and verified first-light USB export exist; enterprise sender, reconciliation and transfer remain. This is a workflow, not a third mode. |
+| 1. Intake and translation | Bound raw input, validate the source envelope and normalize Generic/MCP/A2A into one action shape. | `dcamr/main.py` has signed first-light terminal intake. General adapters and `dcamr/intake/` are proposed. |
+| 2. Representation and binding | Resolve identifiers, normalize exact target/arguments and compute a reproducible request digest. Retain original provenance. | Current JSON contracts exist. A versioned codebook/codec is proposed; changing hash bytes requires contract agreement. |
+| 3. Identity and attribution | Resolve verified agent → responsible user/delegation → mission using trusted mappings, never agent prose. | First-light binds a verified terminal key to an agent. General identity/delegation resolution remains. |
+| 4. Permissions (L1) | Determine permitted, review-required or prohibited with rule/release provenance. Hard prohibition ends the PRE_ACTION path without a model call. | `policy_engine.py` implements exact first-light PERMIT grants; full prohibitions, conditions, revocations and validity remain. |
+| 5. Readiness and ownership | Check accepted caches/model, clock/freshness, current authority and durable audit capacity. | First-light checks startup releases and ledger headroom but hard-codes authority. General cache/ownership gates remain. |
+| 6. Features and anomaly (L2) | Build compatible features, run the frozen model and calibrate its score; retain UNKNOWN/null on failure. | Cyber/contextual libraries exist. Mac forest export and lightweight Pi loading/scoring remain. |
+| 7. Evidence | Resolve cached SIEM/EDR references as available, stale, unverifiable or contradicted. Presence alone is not authenticity. | General evidence acquisition and verification remain. |
+| 8. Classification and review routing | Pi emits ML classification, permission findings and blockers. Local Mac resolves held actions to accept or deny after biometric verification. | The assessment-only wrapper fits this split; the authenticated Mac-response path remains to implement. No Pi-owned final fusion for held actions. |
+| 9. Bounded challenge/reassessment | Request missing context, pin original behavioral evidence, enforce deadlines/attempt bounds and append a linked successor. | Console fixture workflow/lineage exists; live agent/core producer and routing remain. |
+| 10. Provenance and record | Correlate request, assessment, review and execution with exact parameters and source/model/release identities. | Assessment and audit bindings exist; one accepted end-to-end mapping remains. |
+| 11. Enforcement and output translation | Revalidate latest authorization, durable intent and authority; translate the exact command to the hardware interface. | `LightController` provides mock-tested HTTP light commands; real device contract/fencing and review integration remain. |
+| 12. Result acquisition | Record command receipt, execution completion and available physical observation as distinct facts. | First-light records separate events and mock state readback; actual sensor evidence remains. |
+| 13. Audit and delivery | Persist consequential intent before dispatch, append immutable outcomes, seal/checkpoint and queue reliable delivery. | Reuse `AuditLog` and first-light producer/export. Complete recovery, enterprise delivery and retention semantics remain. |
 
-### One offline request
+Audit is cross-cutting: stage 13 is not “log everything after execution.” Intent
+must be durable before a consequential command. After an uncertain interruption,
+record UNKNOWN and reconcile instead of assuming the action never ran or blindly
+reissuing it. Hardware idempotency and recovery across every crash window still
+need acceptance.
 
-The sequence below describes the full product integration. The narrower first-light
-implementation is documented separately under implemented components.
+### Decision ownership: Pi classification, Mac review
 
-1. **Authenticate and bind.** A future coordinator attributes the agent to a trusted
-   user/delegation and normalizes action parameters. It captures request, permission,
-   observation and profile bindings. Agent text and self-reported trust flags are claims.
-2. **Resolve permissions.** The first-light resolver supplies exact-match PERMIT findings from a
-   signed demo release. The full resolver must also enforce prohibitions, revocations,
-   conditions and release validity with package/rule provenance. Model scores do not supply permission.
-3. **Assess behavior.** The implemented
-   [`assess_for_technician`](dcamr/decision_model.py) validates supplied bindings and
-   invokes the contextual scorer. Its `alice-decision-assessment-v1` packet has
-   `decision: null`, `explanation: null` and `execution_authorized: false`.
-4. **Interpret and review.** A future adapter presents that assessment to the
-   technician application. Unusual PRE_ACTION behavior requires human approval;
-   hard prohibitions and missing prerequisites remain structured blockers. The
-   existing console demonstrates review against a different supplied decision contract.
-5. **Authorize and execute.** A future enforcement boundary rechecks current
-   permissions, exact parameters, latest assessment, required human proof, durable
-   audit readiness and endpoint authority. Approval submission is not execution.
-6. **Record outcomes.** Execution attempt, controller result and measured physical
-   effect are separate records. POST_ACTION scoring assesses an observation after
-   execution; it neither grants retrospective permission nor triggers corrective action.
-7. **Reconcile later.** Append new evidence/findings and linked reassessments while
-   preserving original records. Delivery acknowledgement does not prove execution.
-
-An agent response must not mutate original scores or evidence. The console already
-preserves immutable, linear reassessment history and rejects stale review actions.
-A real core challenge/reassessment producer and distributed ordering/replay protocol
-remain. See the [HOLD workflow](docs/architecture/hold-workflow.md).
-
-## Implemented components
-
-These are **local code paths**. The first-light runtime is integrated with a mock
-controller; the real assessment wrapper and technician console are not connected
-to that flow. Solid arrows describe dependencies or a synthetic replay. Native
-services need local provisioning.
+**User-confirmed boundary:** the Pi runs the ML classification. The local Mac owns
+whether a held action is accepted or denied, after biometric verification. The
+backend carries this decision and its verification/binding evidence; it does not
+move held-action decision-making back onto the Pi.
 
 ```mermaid
-flowchart TB
-    subgraph Core["Python components and lab"]
-        Training["scripts/lab: fit and calibrate"] --> Model["dcamr/anomaly_engine: contextual scorer"]
-        Model --> Assessment["dcamr/decision_model: assessment wrapper"]
-        Model --> Replay["lab.replay_contextual_ledger: synthetic replay"]
-        Replay --> Projection["audit.event_contract: compact projection"]
-        Projection --> Ledger["audit.AuditLog: SQLite and signed checkpoints"]
+sequenceDiagram
+    participant Pi as Pi: permissions and ML classification
+    participant Backend as Backend integration
+    participant Mac as Local Mac: review and biometrics
+    participant Device as Protected hardware
+    Pi-->>Backend: Bound request, classification, evidence and blockers
+    Backend-->>Mac: Display current held action
+    Mac->>Mac: Biometrically verify reviewer; accept or deny
+    Mac-->>Backend: Bound held-action response with verification proof
+    Backend-->>Pi: Authenticated response for the same current request
+    Pi->>Pi: Validate proof, binding, permissions, authority and audit readiness
+    alt Valid accepted response and all prerequisites satisfied
+        Pi->>Device: Execute exact authorized command
+        Device-->>Pi: Receipt, result and available observation
+    else Denied response or invalid prerequisites
+        Pi->>Pi: Record blocked/denied outcome; do not execute
     end
-    subgraph Console["Technician application"]
-        Fixtures["fixtures: mock edge events"] --> Transport["MockAliceTransport"]
-        Transport --> UI["apps/desktop: React and Zustand"]
-        Contracts["packages/contracts and domain"] --> UI
-        UI --> Native["Tauri/Rust: guarded native commands"]
-        Native --> DB["Console SQLite"]
-        Native --> Face["FastAPI / ArcFace"]
-        Native --> LLM["Local Ollama"]
-    end
+    Pi-->>Backend: Durable outcome and correlation
+    Backend-->>Mac: Update live history/status
 ```
 
-### First-light request-to-device slice
+The [assessment contract](docs/contracts/decision-assessment.md) already keeps
+`decision` and `explanation` null, `execution_authorized` false and
+`decision_owner: TECHNICIAN_APPLICATION`. The real Mac response/proof transport
+still needs implementation. Local biometric success alone is not a remotely
+verifiable execution token; the Pi must validate the bound response and current
+execution prerequisites without taking over the Mac's held-action choice.
 
-[`FirstLightRuntime`](dcamr/main.py) serves one test-scoped action,
-`set_light_state → ESP-LIGHT-01`. It verifies a signed terminal envelope against
-release key/agent bindings, resolves exact PERMIT grants and invokes the additive
-`decide()` function. That function allows only verified identity, PERMITTED and an
-OK assessment status; all other cases are denied. It is separate from
-`assess_for_technician`, which still emits no final decision or authorization.
+Theo's older Pi-owned four-state final fusion is superseded **for held-action
+resolution** by this clarification. First-light's separate `decide()` remains an
+auto ALLOW/DENY test-slice function, not the target held-action review path. A hard
+prohibition can block a request before review and cannot be overridden by a low
+classification, a face match or a Mac acceptance.
 
-```mermaid
-flowchart LR
-    Terminal["lab.first_light.terminal_client"] --> Runtime["dcamr.main: signed request and exact grant"]
-    Release["Verified demo release"] --> Runtime
-    Fixture["Labelled fixture assessment"] --> Runtime
-    Runtime --> LedgerFL["AuditLog: attempt before command; seal per request"]
-    Runtime --> HTTP["LightController: POST /light and GET /light"]
-    HTTP --> Mock["lab.first_light.mock_esp"]
-    Runtime --> Feed["Read-only GET /events; CLI technician view"]
-    LedgerFL --> USB["Verified ledger NDJSON USB export"]
-```
+Biometric gating applies to the held-action accept/deny choice described here.
+The existing native implementation's approval-focused grant checks are not proof
+that both final response paths satisfy this target. Agree their evidence and wire
+mapping with Alex (`accept` versus existing APPROVE/APPROVE_ONCE, and `deny` versus
+REJECT/DENY) before coding; preserve current identifiers until that mapping is
+versioned. Local LLM explanations remain assistance, not biometric proof or an
+independent path to authorization.
 
-The happy path records REQUEST, ASSESSMENT, DECISION, EXECUTION_ATTEMPT,
-CONTROLLER_RECEIPT, EXECUTION_RESULT and OBSERVED_STATE. Exact fixture bytes are
-retained as evidence. Admission checks ledger headroom, and EXECUTION_ATTEMPT is
-persisted before dispatch. Completed duplicate requests replay a recorded outcome;
-conflicting reuse is rejected. This is test-scale retry evidence, not acceptance
-of every crash window or device-enforced exactly-once execution.
+## Backend integration and the live dashboard
 
-The fixture is imported from `lab.first_light` into the runtime and labelled in
-retained assessment context. This is an intentional test-slice dependency, not a
-production model adapter to copy elsewhere. Authority is hard-coded OFFLINE and
-confirmed; there is no real transfer/fence. The HTTP surface lacks production
-transport hardening. Human-approval-required grants are denied in this auto-only
-slice; no HOLD or technician approval ingestion is implemented.
+Merek's next work is the data path connecting these components. Alex's dashboard
+already has working fixture-driven state, history and review controls; what is
+missing is the accepted live integration, not the UI itself.
 
-The light client reads controller state separately from the command receipt.
-Mock readback is not independent physical sensor evidence. USB export verifies
-ledger event hashes then updates delivery bookkeeping; it is not the enterprise
-simulator's audit chain or a live enterprise acknowledgement. See the
-[first-light status](docs/reports/2026-09-05-pi-backend-status.md) and
-[acceptance tests](tests/test_first_light.py).
-
-### Assessment and behavioral evidence
-
-The [cyber feature builder](dcamr/anomaly_engine/features.py) validates supplied
-request/baseline history and produces a fixed 11-feature profile. The
-[contextual model](dcamr/anomaly_engine/contextual_model.py) instead consumes named
-numeric measurements, units, phases and categorical contexts. PRE_ACTION and
-POST_ACTION use separate profiles, observations, forests and held-out normal
-references. Neither path is a live sensor collector.
-
-Isolation Forest scores are calibrated normal-tail ranks, not attack probabilities.
-Unavailable models, unsupported contexts and invalid/missing observations remain
-explicit UNKNOWN/null results. Out-of-training-range evidence survives even when
-a learned score is LOW. PRE_ACTION prohibitions skip scoring; POST_ACTION can score
-an observed prohibited action while retaining its prohibition flag. Human approval
-cannot repair missing evidence or make a hard prohibition permissible.
-
-Mac tools fit models in memory using synthetic normal data and separate calibration
-sources. Persistent tree export, lightweight Pi loading, parity checks and real
-sensor baselines remain unfinished. See the [contextual model guide](docs/architecture/contextual-behavior-model.md)
-and [assessment contract](docs/contracts/decision-assessment.md).
-
-### Technician console and local services
-
-[`apps/desktop`](apps/desktop/package.json) is the active React/TypeScript/Vite UI
-and Tauri 2/Rust native app. Shared Zod contracts validate events; domain code
-controls HOLD transitions and lineage; Zustand holds presentation/workflow state.
-[`RemoteAliceTransport`](apps/desktop/src/lib/transport.ts) fails closed: it supplies
-no live event stream and refuses remote context/action submission.
-
-The [native command boundary](apps/desktop/src-tauri/src/commands.rs) guards local
-history, technician/admin sessions, enrollment, fresh verification and action
-submission. Approval grants are native, single-use, bound to technician/decision/
-request and expire after 60 seconds. A successor assessment invalidates old grants.
-A local grant is not a remotely verifiable Pi approval proof. Mock receipts explicitly
-report `NOT_EXECUTED`.
-
-The [biometric service](services/biometrics/app/main.py) uses FastAPI and
-InsightFace/ArcFace with CPU ONNX inference and encrypted enrollment storage.
-Login and fresh approval verification are distinct. Facial matching does not
-implement liveness, replay resistance or Apple's Face ID.
-
-The local Ollama gateway provides explanations, summaries and informational intent.
-Strict output validation constrains shape and referenced evidence, not factual truth.
-It has no tool/execution path. Outage produces a structured fallback; it does not
-relax review requirements. See the [LLM boundary](docs/architecture/llm-boundary.md)
-and [console architecture](docs/architecture/overview.md).
-
-### Durable evidence and enterprise simulation
-
-[`AuditLog`](dcamr/audit/audit_log.py) records canonical events in SQLite with hash
-chains, Ed25519 checkpoints, idempotency checks, retained evidence and durable
-outbox bookkeeping. It validates an existing store before use. The
-[contextual replay](scripts/lab/replay_contextual_ledger.py) exercises scoring,
-compact projection, evidence retention, sealing, anchored restart and duplicate retry.
-The first-light runtime now produces ledger events using its labelled fixture.
-Neither path wires the real technician assessment wrapper to a production producer.
-
-The [enterprise lab](docs/lab/README.md) generates synthetic permission releases,
-Wazuh configuration, activity, baseline data and observations. Its local console
-compares cached/published state and can query a configured Wazuh indexer. That
-access does not implement Pi cache trust, enterprise command ownership or reliable
-mission-audit delivery. See the [enterprise simulation record](docs/handoffs/enterprise-sim-handoff.md).
-
-## Contracts and trust
-
-| Boundary | Existing contract/source | Required distinction |
+| Direction | Data the backend must carry | Contract requirement |
 | --- | --- | --- |
-| Cyber input/result | [Common JSON schemas](common/schemas/anomaly_result.json), [feature contract](docs/contracts/anomaly-features.md) | Valid structure and digest binding do not authenticate the upstream producer. The action-request schema now pins first-light action/target fields; other generic schemas remain empty scaffolds. |
-| Contextual assessment | [Pi assessment](docs/contracts/decision-assessment.md) and [context profiles](docs/architecture/contextual-behavior-model.md) | Supplied permission findings plus measured behavior; no final decision or execution token. |
-| Console events/actions | [Zod source](packages/contracts/src/index.ts), generated [event schema](docs/contracts/alice-events.schema.json) | `alice.decision`, context requests, responses and receipts are a separate family. Legacy normalization is not a Pi assessment adapter. |
-| Core audit | [Event schema](common/schemas/audit_event.json), [ledger guide](docs/architecture/decision-evidence-ledger.md) | Compact canonical records and retained evidence, distinct from UI history and simulated enterprise envelopes. |
-| Application response / controller | [Integration requirements](docs/integration/technician-console.md) | First-light supplies mock HTTP receipt/readback and completed-request replay. Authenticated application proof, endpoint fencing, distributed replay rules and real execution-result contracts remain. |
+| Pi → workstation | Normalized request; permission findings; PRE/POST assessment, blockers and provenance | Bind the request bytes/digest to the assessment. Do not invent scores or verification flags. |
+| Pi → workstation | Mode/authority, readiness, cache/model freshness, services and audit delivery state | Separate current operational status from facts captured with historical decisions. |
+| Pi → workstation | Execution attempt, controller receipt, completion, observation and reconciliation | Preserve their distinct meaning and correlate them to the original request/authority. |
+| Workstation → Pi | Context/research request; held-action accept/deny response after biometric verification, with identity/proof and exact assessment binding | Authenticate, reject stale/superseded actions and recheck permission/authority at enforcement. |
+| Reconnect/restart | Cursor/replay, duplicate/conflict handling, durable action receipts and history recovery | No duplicate execution, silent lost events, rewritten decisions or old approvals becoming new authority. |
 
-A shared `alice-audit-event-v1` label does not make the enterprise simulator's
-and core ledger's envelopes or hash rules interchangeable. Any adapter must
-identify the producer, validate its contract and preserve source provenance.
-Existing `policy` keys, `dcamr.*` aliases and `packages/mission_policy` paths remain
-compatibility identifiers; use permissions in product language without silently
-renaming wire formats.
+The current `GET /events` endpoint supplies a first-light read-only ledger feed.
+It is a starting boundary to inspect, not a drop-in replacement for the console's
+`alice.decision` stream. `alice-decision-assessment-v1`, console `alice.*` events,
+core ledger records and enterprise-simulator records need explicit validated
+mappings. Shared names do not establish interchangeable envelopes or hash rules.
 
-Renderer input and LLM text cannot create native authority. Local HTTP clients
-constrain services to configured loopback endpoints, disable redirects and bound
-requests; biometric service credentials stay outside React. This is a local trust
-boundary, not protection against a fully compromised same-user host. See the
-[threat model](docs/architecture/threat-model.md).
+Before coding, agree the event/response contracts with Alex and the Pi team, then
+choose transport, authentication, deployment location and recovery behavior. Do
+not infer a new server location from the empty `services/backend/` directory.
+The [console integration guide](docs/integration/technician-console.md) retains
+native identity, currentness and proof requirements for this work.
 
-## Storage and model lifecycle
+## Trusted storage, serialization and models
 
-| Data | Location / owner | Lifecycle and limit |
+Theo's plan adds useful runtime requirements beyond the earlier inventory. Some
+choices are proposals that conflict with the existing implementation and therefore
+need an explicit migration decision.
+
+| Area | Design direction from Theo's reference | Reconciliation with current code |
 | --- | --- | --- |
-| Accepted permissions and normal behavior | Target Pi/USB release inputs | Authenticate source, validate bounded candidate generations and atomically activate compatible releases. First-light verifies a demo manifest signature and payload hashes at startup. Runtime activation, expiry/grace, revocations and rollback policy remain. |
-| Core mission evidence | Caller-provisioned protected local SQLite store | Recorder requires durable non-removable storage by deployment policy; detects integrity faults relative to trusted keys/anchors. First-light is a fixture-based producer. Production key/anchor provisioning and real assessment producers remain. |
-| Audit delivery | Core ledger's separate delivery state | Retain unacknowledged records and retry without mutating event history. First-light USB export verifies NDJSON before acknowledgement; enterprise sender/ACK protocol and retention policy remain. ACK never authorizes deletion by itself. |
-| Console history | Private native SQLite | Identities, immutable decisions, actions, annotations and local audit. Sessions/grants remain native memory. UI/export's latest-500 audit view does not truncate the full decision lineage. |
-| Facial identity | Private biometric service model/data directories | Explicit model provisioning and encrypted enrollment; never put camera images, embeddings or service tokens into enterprise decision records. |
-| Lab releases and evidence | `artifacts/enterprise-sim/`, generated ignored outputs and `docs/reports/` | Selected synthetic payloads/public verification key are tracked; datasets, signing secrets and fitted/private assets follow ignore rules. Published samples are not production trust roots. |
+| Internal representation | Frozen native records; package-versioned codebook indices; one deterministic CBOR codec at boundaries, JSON for human/console projection. | Current request/assessment/audit paths use JSON-compatible contracts and canonical JSON bytes. CBOR/codebooks are not implemented; preserve old hash/record decoding across any migration. Benchmark size/CPU before claiming the plan's estimates. |
+| Signed releases | ONLINE pull → verify signature/digests → stage → validate → atomic activate; OFFLINE uses accepted cached inputs. | First-light verifies a demo release at startup. Full activation, expiry, revocations and rollback handling remain. Evidence feeds cannot become permission authority. |
+| Storage isolation | Read-only signed-input partition; distinct writable output storage; secrets outside the signed-input medium. | The existing ledger requires protected non-removable local storage. Theo's removable audit/WAL proposal needs reconciliation; USB export cannot replace the only authoritative record. Mounts, update ownership and removal behavior need agreement with the Pi/hardware team. |
+| Audit and outbox | Durable intent before execution; distinguish audit-capacity failure from upload backlog pressure. | Reuse the SQLite/hash-chain/Ed25519 ledger. Do not introduce a second CBOR logger/WAL by assumption. Theo's bounded delivery ring must not discard unacknowledged source history; gap markers are not permission to lose evidence. |
+| Signing library | The older plan proposes PyNaCl and rejects cryptography for its target image. | Existing audit and first-light signing use cryptography. No library replacement is approved here; assess compatibility and Pi packaging before changing trust code. |
+| Model deployment | Mac-exported, hash-verified forest arrays; pure-Python Pi traversal; no pickle/joblib model loading. | Models currently fit/score in Mac Python components. Export/load and parity are future work. Keep profile, model, calibration and PRE/POST observation bindings explicit. |
 
-The proposed removable layout is `permissions/`, `normal_behavior/` and
-`audit_logs/`: accepted inputs and generated outputs need different write owners
-and retention rules. Folder names do not enforce that separation. Removing USB
-must not erase the only authoritative audit copy; quotas, disk-full handling and
-fallback acceptance remain deployment work.
+The export must reproduce scorer/calibration behavior without changing severity
+bands. Theo proposes `atol=1e-9`, `rtol=0` and zero band flips as parity gates;
+these are proposed acceptance criteria, not measured parity. Cyber's 11-feature
+profile cannot be reused for arbitrary hardware measurements without an agreed
+context profile, units, timing and normal data.
 
-A hash chain is tamper evidence relative to a trusted checkpoint. Detecting whole-
-store rollback requires an independent anchor. Neither console SQLite nor a
-Wazuh role should be described as a complete distributed audit guarantee.
+Scores are normal-tail ranks, not permission or attack probability. Unknown context,
+unavailable models and invalid measurements remain explicit. Out-of-training-range
+signals must survive even if the model returns a LOW band.
 
-Online updates must not automatically retrain from live activity or technician
-approvals. Freeze and version model/profile/reference bindings before deployment;
-validate compatibility and parity rather than treating a new file as accepted.
+## Runtime reliability and Pi acceptance
+
+The plan calls for bounded intake/queueing, one scoring worker, per-stage monotonic
+timing, explicit clock uncertainty, watchdog/hang recovery and graceful shutdown.
+These belong in the target runtime; the current mock slice does not establish them.
+
+- Bound input before parsing, including bytes/depth/key count, and record bounded
+  rejection reasons. Theo proposes a 64 KiB envelope cap; retain the existing
+  smaller component-specific limits until contracts are reconciled.
+- Deadlines and durations use monotonic time. Offline freshness needs an explicit
+  uncertainty policy; signed package build time alone is not attestation of current
+  time. Missing time confidence must not silently validate an expired cache.
+- Watchdog recovery must restore a blocked state until authority is re-established.
+  A hung enforcer is a failure, not merely a slow request.
+- Exercise crashes between intent, dispatch and result; audit exhaustion; outbox
+  backlog; USB removal; bad releases; stale approvals; and authority handover.
+
+Theo's performance targets are p95 ≤100 ms at 1 request/s, steady worker RSS
+≤256 MiB, peak ≤384 MiB and startup ≤5 s. Its queue ≤8, 500 ms deadline,
+per-stage budgets and burst criteria are design targets to measure on the actual
+Pi. They are not current guarantees or proof of whole-device capacity. Model,
+codec, crypto, service and hardware choices must be assessed together.
+
+## Implemented scope
+
+The local baseline is `d6e7e55` plus the preserved follow-up at `33b35cf`.
+The earlier reference's “only anomaly implemented” statement no longer applies.
+
+| Existing component | What it establishes | What it does not establish |
+| --- | --- | --- |
+| Anomaly and assessment libraries | Strict feature/context validation, fitted-model experiments, PRE/POST scoring and assessment bindings | Deployable forest artifact, real sensor baselines or the connected Mac held-action response path |
+| Durable ledger | SQLite canonical events, hash chain, Ed25519 checkpoints, evidence references and delivery bookkeeping | Complete runtime recovery, production trust provisioning or enterprise delivery |
+| First-light runtime | Signed terminal request, verified demo release, exact PERMIT grant, labelled fixture assessment, durable attempt, mock-light command/readback and USB export | Real scoring, general permissions, real authority transfer, hardware acceptance or workstation integration |
+| Technician workstation | React/Tauri UI, fixture transport, immutable lineage, native review guards, local ArcFace/Ollama boundaries | Connected Pi event stream, remote review proof or execution confirmation; remote transport fails closed |
+| Enterprise lab | Synthetic releases/activity, Wazuh configuration and development views | Production permissions service or trusted live synchronization |
+
+Prior verification recorded 265 Python tests with zero skips and console checks;
+that is historical component/mock evidence. This architecture revision runs
+only documentation checks. See the [combined evidence](docs/handoffs/2026-09-05-team-layout-review.md)
+and [first-light report](docs/reports/2026-09-05-pi-backend-status.md).
 
 ## Repository map
 
@@ -336,29 +301,25 @@ First-light tools currently require `python -m lab.first_light.<module>` from ro
 is no longer a tracked source root. Preserve ignored environments, keys, model
 weights and identity stores instead of moving them as source cleanup.
 
-## Integration and acceptance
+## Next session: backend integration handoff
 
-The [tracker](docs/implementation-tracker.md) owns stable task IDs and detailed
-status. The next integration boundaries are:
+1. **Confirm architecture and contracts:** preserve Pi ML classification and Mac
+   biometric-gated held-action resolution; record normalized request, assessment/event,
+   accept/deny proof and hardware-result mappings.
+   Treat codec/storage/library changes as explicit proposals, not prerequisite rewrites.
+2. **Coordinate readiness:** Theo and Jared report Pi configuration; Xavi supplies
+   the hardware interface and measurement constraints. Record what is simulated,
+   available and still blocked before choosing the connected test.
+3. **Merek builds the backend data path:** reuse the runtime, ledger and accepted
+   contracts; implement validated live delivery, correlated history and response
+   handling with authentication/replay requirements agreed first.
+4. **Alex connects the workstation:** adapt scripts, transport and dashboard state
+   to those live contracts, preserving native identity, lineage and stale-action guards.
+5. **Validate one connected flow:** request → permission/assessment → live display →
+   permitted response → authorized hardware attempt → result/observation → durable
+   history. Then extend context/reassessment, offline recovery and enterprise sync.
 
-1. Agree normalized request, permission finding, assessment, application response
-   and authoritative execution-result bindings, including identity and replay rules.
-2. Implement trusted permissions/cache activation and the service coordinator;
-   extend first-light audit admission/production to real assessments and full product lifecycle events.
-3. Connect authenticated console transport, remotely verifiable review proof and
-   endpoint-enforced single-authority execution, including supersession and retries.
-4. Implement reliable enterprise delivery, append-only reconciliation and safe
-   handover in both directions, with cache and backlog status kept distinct.
-5. Export/load frozen models, agree real sensor profiles and validate Pi/operator
-   acceptance under restart, lost connectivity, storage failure and stale inputs.
-
-The [resource specification](docs/prds/ALICE-DCAMR-Architecture.md#12-pi-resource-and-offline-readiness-requirements)
-proposes a ≤256 MiB steady scoring worker, ≤384 MiB load peak and p95 ≤100 ms at
-one request/second, with bounded queue/deadline behavior. These are unmeasured
-acceptance targets, not observed performance or implemented service limits.
-
-The [combined verification record](docs/handoffs/2026-09-05-team-layout-review.md)
-separates earlier component/console checks from the integrated first-light merge
-verification. These establish component/mock behavior. Native/camera/Pi acceptance
-was not rerun at that checkpoint. Use [verification commands](README.md#verify-changes)
-for the scope changed; documentation and layout checks do not establish a deployed system.
+These are next steps, not implementation completed by this document. The
+[session handoff](docs/handoffs/2026-09-05-theo-architecture-alignment.md) records
+source differences, current owners and the next-session boundary. Detailed product
+tasks remain in the [tracker](docs/implementation-tracker.md).

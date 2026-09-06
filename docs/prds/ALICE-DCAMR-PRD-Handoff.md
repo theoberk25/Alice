@@ -25,6 +25,15 @@ its older upstream assumptions do not redefine the current product modes.
 
 ## Current decision boundary — technician application
 
+User clarification (2026-09-05): **ML classification runs on the Pi; the local
+Mac resolves a held action to accept or deny after biometric verification.**
+The backend transports the bound response; the Pi checks proof, currentness,
+permissions, authority and audit prerequisites before hardware execution. Theo's
+older Pi-owned final fusion does not govern this held-action choice. Existing
+approval-only implementation evidence does not establish biometric gating of both
+response paths. See the [corrected architecture](../../architecture.md) and
+[next-session handoff](../handoffs/2026-09-05-theo-architecture-alignment.md).
+
 The [Pi assessment contract](../contracts/decision-assessment.md) supersedes earlier
 Pi-owned final-fusion descriptions for the current increment. The Pi supplies
 permission findings, contextual Isolation Forest scores, source provenance,

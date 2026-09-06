@@ -15,7 +15,7 @@ and evidence. Read only the detailed documents relevant to the task.
 | Setup and operation | guides/; [demo runbook](guides/demo-runbook.md) |
 | Integration boundaries | [Technician console](integration/technician-console.md) |
 | Accepted decisions | [Data direction](decisions/2026-09-05-data-direction.md) |
-| Implementation plans | plans/ |
+| Implementation plans | plans/; [Theo’s older runtime reference](plans/2026-09-05-theo-pi-runtime-reference.md) (historical proposals; use the corrected root architecture) |
 | Team responsibilities | [Developer handoff](prds/ALICE-DCAMR-PRD-Handoff.md) |
 | Session records and detailed checkpoints | handoffs/; [workflow checkpoint](handoffs/core-workflow-wip-handoff.md) |
 | Experiment evidence | [Published reports](reports/anomaly-lab/README.md) |

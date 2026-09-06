@@ -1,5 +1,12 @@
 # Architecture guide
 
+The [root architecture](../architecture.md) now leads with Theo's intended runtime
+pipeline and the user's confirmed split: Pi classification, local Mac held-action
+accept/deny after biometric verification, then Pi validation/enforcement. It also
+defines the backend/live-dashboard work for the next session. The
+[older Pi plan](plans/2026-09-05-theo-pi-runtime-reference.md) is a preserved reference,
+not current implementation status or automatic authorization to execute its steps.
+
 Current implementation update: main at `d6e7e55` adds the
 [first-light slice](reports/2026-09-05-pi-backend-status.md): signed terminal request,
 verified demo release, exact grant resolver, fixture assessment, durable ledger

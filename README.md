@@ -10,6 +10,11 @@ local runtime to a mock ESP, alongside assessment/audit components and a native
 technician console. The full product loop is still being integrated.
 Moving code into the shared layout does not make the live system complete.
 
+The intended decision split is **Pi ML classification → local Mac held-action
+accept/deny after biometric verification → Pi validation/enforcement**. Backend
+and live workstation integration are the next workstream; see the
+[next-session handoff](docs/handoffs/2026-09-05-theo-architecture-alignment.md).
+
 Start with [architecture.md](architecture.md) for the whole-system picture,
 [current.md](current.md) for the current checkpoint, and
 [AGENTS.md](AGENTS.md) for every contributor's working rules.
