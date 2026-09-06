@@ -1,3 +1,5 @@
+> **Current integrated behavior:** [machine-metrics integration](../../docs/guides/machine-metrics-integration.md). `MACHINE_BACKEND=thermal` is the default: it reads the authoritative plant and routes fan changes through ALICE. The file-backed behavior below is retained only for explicit `MACHINE_BACKEND=file` standalone tests, and does not control the demo.
+
 # Machine-metrics MCP server
 
 > Repurposed from light control (dir/package name kept as `light_mcp` to preserve

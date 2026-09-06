@@ -243,6 +243,8 @@ class ReviewAuthority:
             reason = 'REQUEST_DETAILS_UNAVAILABLE'
         elif decision['outcome'] != 'CHALLENGE':
             reason = 'MACHINE_DECISION_NOT_REVIEWABLE'
+        elif not self.runtime.request_is_current(request):
+            reason = 'EXECUTION_SCOPE_STALE'
         elif not owner:
             reason = 'AUTHORITY_NOT_LOCAL'
         elif not self.trust:
@@ -273,7 +275,7 @@ class ReviewAuthority:
                 'execution_status': item.get('execution_status', 'UNKNOWN' if state == 'APPROVED' else 'NOT_EXECUTED')}
         # Additive fan fields only. Existing light snapshots remain byte-shape
         # compatible during the coordinated console rollout.
-        if request and request.get('action') == 'set_fan_speed':
+        if request and request.get('action') in ('set_fan_speed', 'set_demo_fan_pct'):
             response['decision_reason_codes'] = list(decision['reason_codes'])
             response['assessment'] = assessment
         return response

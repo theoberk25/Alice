@@ -34,14 +34,46 @@ static bool light_phases[8] = {};
 static unsigned long light_ticks[8] = {};
 static const unsigned long BLINK_HALF_PERIOD_MS = 1000;
 
+// v3 is a read-only telemetry display, independent of signed light actions.
+// Pair updates are atomic on the MCU. Phase is a millionth of a full cycle.
+enum PatternMode { LEGACY, OFF, SOLID, BLINK, UNAVAILABLE };
+static PatternMode modes[8] = {};
+static uint32_t rates[8] = {}, phases[8] = {}, pattern_ticks[8] = {}, leases[8] = {};
+static bool stale_patterns[8] = {};
+static const uint32_t LEASE_MS = 2000;
+
+static void drive(int i, bool high) {
+  if (light_phases[i] != high) {
+    light_phases[i] = high;
+    digitalWrite(LIGHT_PINS[i], high ? HIGH : LOW);
+  }
+}
 static void update_blinks() {
-  const unsigned long now = millis();
+  const uint32_t now = (uint32_t)millis();
   for (int i = 0; i < 8; ++i) {
-    if (light_states[i] && (unsigned long)(now - light_ticks[i]) >= BLINK_HALF_PERIOD_MS) {
-      light_ticks[i] = now;
-      light_phases[i] = !light_phases[i];
-      digitalWrite(LIGHT_PINS[i], light_phases[i] ? HIGH : LOW);
+    if (modes[i] == LEGACY) {
+      const uint32_t elapsed = now - (uint32_t)light_ticks[i];
+      if (light_states[i] && elapsed >= BLINK_HALF_PERIOD_MS) {
+        const uint32_t steps = elapsed / BLINK_HALF_PERIOD_MS;
+        light_ticks[i] += steps * BLINK_HALF_PERIOD_MS;
+        if (steps & 1) drive(i, !light_phases[i]);
+      }
+      continue;
     }
+    if (!stale_patterns[i] && (uint32_t)(now - leases[i]) >= LEASE_MS) {
+      modes[i] = UNAVAILABLE;
+      light_states[i] = false;
+      rates[i] = 0;
+      stale_patterns[i] = true;
+    }
+    const uint32_t elapsed = now - pattern_ticks[i];
+    if (elapsed < 5) continue;  // nominal 200 Hz; no sleeping or accumulated drift
+    pattern_ticks[i] = now;
+    phases[i] = (phases[i] + (uint64_t)elapsed * rates[i]) % 1000000;
+    const uint32_t fault_phase = now % 2000;
+    const bool fault_on = fault_phase < 75 || (fault_phase >= 150 && fault_phase < 225);
+    drive(i, modes[i] == SOLID || (modes[i] == BLINK && phases[i] < 500000)
+             || (modes[i] == UNAVAILABLE && fault_on));
   }
 }
 static unsigned long reply_version = 1, reply_channel = 1;
@@ -59,8 +91,8 @@ static char g_boot_id[9];
 
 static void emit_ok(const char *id, bool state_on) {
   Serial.print(F("{\"v\":"));
-  Serial.print(reply_version == 2 ? "2" : "1");
-  if (reply_version == 2) {
+  Serial.print(reply_version == 3 ? "3" : (reply_version == 2 ? "2" : "1"));
+  if (reply_version >= 2) {
     Serial.print(F(",\"channel\":"));
     char channel_text[12]; snprintf(channel_text, sizeof(channel_text), "%lu", reply_channel);
     Serial.print(channel_text);
@@ -76,8 +108,8 @@ static void emit_ok(const char *id, bool state_on) {
 
 static void emit_error(const char *id, const char *code) {
   Serial.print(F("{\"v\":"));
-  Serial.print(reply_version == 2 ? "2" : "1");
-  if (reply_version == 2) {
+  Serial.print(reply_version == 3 ? "3" : (reply_version == 2 ? "2" : "1"));
+  if (reply_version >= 2) {
     Serial.print(F(",\"channel\":"));
     char channel_text[12]; snprintf(channel_text, sizeof(channel_text), "%lu", reply_channel);
     Serial.print(channel_text);
@@ -89,6 +121,21 @@ static void emit_error(const char *id, const char *code) {
   Serial.print(F("\",\"boot_id\":\""));
   Serial.print(g_boot_id);
   Serial.print(F("\"}\n"));
+}
+
+static const char *mode_name(PatternMode mode) {
+  switch (mode) {
+    case OFF: return "off"; case SOLID: return "solid"; case BLINK: return "blink";
+    case UNAVAILABLE: return "unavailable"; default: return "legacy";
+  }
+}
+static void emit_pattern(const char *id, int i) {
+  char result[256];
+  snprintf(result, sizeof(result),
+    "{\"v\":3,\"channel\":%lu,\"id\":\"%s\",\"ok\":true,\"mode\":\"%s\",\"mhz\":%lu,\"stale\":%s,\"boot_id\":\"%s\"}\n",
+    reply_channel, id, mode_name(modes[i]), (unsigned long)rates[i],
+    stale_patterns[i] ? "true" : "false", g_boot_id);
+  Serial.print(result);
 }
 
 /* ------------------------------------------------------------------ parser */
@@ -132,7 +179,9 @@ static const char *parse_uint(const char *p, unsigned long *out) {
 }
 
 struct Command {
-  bool has_v, has_id, has_op, has_state, has_channel;
+  bool has_v, has_id, has_op, has_state, has_channel, has_mode, has_mhz;
+  char mode[16];
+  unsigned long mhz;
   unsigned long channel;
   unsigned long v;
   char id[MAX_ID + 1];
@@ -181,6 +230,16 @@ static const char *parse_command(const char *p, struct Command *cmd) {
       p = parse_string(p, cmd->op, sizeof(cmd->op));
       if (p == NULL) { return "MALFORMED"; }
       cmd->has_op = true;
+    } else if (strcmp(key, "mode") == 0) {
+      if (cmd->has_mode) return "MALFORMED";
+      p = parse_string(p, cmd->mode, sizeof(cmd->mode));
+      if (p == NULL) return "MALFORMED";
+      cmd->has_mode = true;
+    } else if (strcmp(key, "mhz") == 0) {
+      if (cmd->has_mhz) return "MALFORMED";
+      p = parse_uint(p, &cmd->mhz);
+      if (p == NULL) return "MALFORMED";
+      cmd->has_mhz = true;
     } else if (strcmp(key, "state") == 0) {
       if (cmd->has_state) { return "MALFORMED"; }
       p = parse_string(p, cmd->state, sizeof(cmd->state));
@@ -205,7 +264,7 @@ static void handle_line(const char *line) {
   struct Command cmd;
   reply_version = 1; reply_channel = 1;
   const char *err = parse_command(line, &cmd);
-  if (cmd.has_v && cmd.v == 2) { reply_version = 2; reply_channel = cmd.channel; }
+  if (cmd.has_v && (cmd.v == 2 || cmd.v == 3)) { reply_version = cmd.v; reply_channel = cmd.channel; }
   if (err != NULL) {
     /* cmd.id is set only if "id" was reached before the failure. */
     emit_error(cmd.has_id ? cmd.id : "", err);
@@ -213,12 +272,54 @@ static void handle_line(const char *line) {
   }
   if (!cmd.has_id || cmd.id[0] == '\0') { emit_error("", "MISSING_FIELD"); return; }
   if (!cmd.has_v) { emit_error(cmd.id, "MISSING_FIELD"); return; }
-  if (cmd.v != PROTOCOL_VERSION && cmd.v != 2) { emit_error(cmd.id, "BAD_VERSION"); return; }
+  if (cmd.v != PROTOCOL_VERSION && cmd.v != 2 && cmd.v != 3) { emit_error(cmd.id, "BAD_VERSION"); return; }
   if (!cmd.has_op) { emit_error(cmd.id, "MISSING_FIELD"); return; }
   if (cmd.v == 1 && cmd.has_channel) { emit_error(cmd.id, "UNKNOWN_FIELD"); return; }
-  if (cmd.v == 2 && (!cmd.has_channel || cmd.channel < 1 || cmd.channel > 8)) { emit_error(cmd.id, "BAD_CHANNEL"); return; }
-  const int index = cmd.v == 2 ? cmd.channel - 1 : 0;
+  if (cmd.v >= 2 && (!cmd.has_channel || cmd.channel < 1 || cmd.channel > 8)) { emit_error(cmd.id, "BAD_CHANNEL"); return; }
+  const int index = cmd.v >= 2 ? cmd.channel - 1 : 0;
 
+  if (cmd.v == 3) {
+    if (cmd.has_state) { emit_error(cmd.id, "UNKNOWN_FIELD"); return; }
+    if (strcmp(cmd.op, "get") == 0) {
+      if (cmd.has_mode || cmd.has_mhz) { emit_error(cmd.id, "UNKNOWN_FIELD"); return; }
+      emit_pattern(cmd.id, index); return;
+    }
+    const bool keep = strcmp(cmd.op, "keep") == 0;
+    if (!keep && strcmp(cmd.op, "pattern") != 0) { emit_error(cmd.id, "BAD_OP"); return; }
+    PatternMode mode = OFF;
+    if (keep) {
+      if (cmd.has_mode || cmd.has_mhz) { emit_error(cmd.id, "UNKNOWN_FIELD"); return; }
+    } else {
+      if (!cmd.has_mode || !cmd.has_mhz) { emit_error(cmd.id, "MISSING_FIELD"); return; }
+      if (strcmp(cmd.mode, "off") == 0) mode = OFF;
+      else if (strcmp(cmd.mode, "solid") == 0) mode = SOLID;
+      else if (strcmp(cmd.mode, "blink") == 0) mode = BLINK;
+      else if (strcmp(cmd.mode, "unavailable") == 0) mode = UNAVAILABLE;
+      else { emit_error(cmd.id, "BAD_PATTERN"); return; }
+      if ((mode == BLINK && (cmd.mhz < 500 || cmd.mhz > 5000)) ||
+          (mode != BLINK && cmd.mhz != 0)) { emit_error(cmd.id, "BAD_PATTERN"); return; }
+    }
+    const int base = (index >= 4 && index <= 6) ? index - 4 : index;
+    const int pair = base < 3 ? base + 4 : base;
+    const uint32_t now = (uint32_t)millis();
+    for (int i = base; ; i = pair) {
+      if (keep) {
+        // A keepalive never revives expired telemetry or overrides legacy SET.
+        if (modes[i] != LEGACY && !stale_patterns[i]) leases[i] = now;
+      } else {
+        phases[i] = phases[base];
+        modes[i] = mode; rates[i] = cmd.mhz; leases[i] = now;
+        pattern_ticks[i] = now; stale_patterns[i] = false;
+        light_states[i] = mode == SOLID || mode == BLINK;
+        const uint32_t fault = now % 2000;
+        drive(i, mode == SOLID || (mode == BLINK && phases[i] < 500000) ||
+              (mode == UNAVAILABLE && (fault < 75 || (fault >= 150 && fault < 225))));
+      }
+      if (i == pair) break;
+    }
+    emit_pattern(cmd.id, index); return;
+  }
+  if (cmd.has_mode || cmd.has_mhz) { emit_error(cmd.id, "UNKNOWN_FIELD"); return; }
   if (strcmp(cmd.op, "get") == 0) {
     if (cmd.has_state) { emit_error(cmd.id, "UNKNOWN_FIELD"); return; }
     emit_ok(cmd.id, light_states[index]);  /* readback only; GPIO untouched */
@@ -234,6 +335,7 @@ static void handle_line(const char *line) {
 
   /* Apply first, acknowledge second: an ack always follows a real write. */
   digitalWrite(LIGHT_PINS[index], want_on ? HIGH : LOW);
+  modes[index] = LEGACY; rates[index] = 0; stale_patterns[index] = false;
   light_states[index] = want_on;
   light_phases[index] = want_on;
   light_ticks[index] = millis();

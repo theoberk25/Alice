@@ -83,7 +83,7 @@ def portable_hybrid_score(artifact, row):
     import heapq
     import math
     m=artifact['models'][row['request']['agent_id']]
-    x=features(row)[:7]
+    x=features(row)[:6]
     f=-portable_score(m['forest'],x)
     value=bisect_right(m['forest_reference'],f)/len(m['forest_reference'])
     if m['hybrid']:

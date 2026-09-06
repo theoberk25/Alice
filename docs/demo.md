@@ -1,3 +1,5 @@
+> **Scope reconciliation:** the implemented governed environmental slice uses [metrics MCP :8790 → thermal service :8795](guides/machine-metrics-integration.md). Port :8792 remains reserved for the external agent-loop console. The cold-start/restore and cloud-outage storyline below is a future concept, not an instruction to zero or overwrite operator-entered values. LEDs in the environmental slice are telemetry indicators, not independently switched supplies.
+
 # Demo script
 
 The live demo, scripted beat by beat. This document is written in show order —
@@ -82,7 +84,7 @@ and is **idempotent** (a Gemini 503 + model fallback re-ran it once, no ill effe
 For the Pi, swap the in-memory driver for the real `EspSerialDriver` over the XIAO,
 or route through the governed ALICE ledger — agent and prompt unchanged.
 
-**Ports (when the pieces run together):** `:8795` metrics MCP · `:8791` Goose ·
+**Ports (when the pieces run together):** `:8790` metrics MCP · `:8791` Goose ·
 `:8792` agent-loop web / test-sim console · `:8793` Decision-Brief MCP · `:8794`
 lights intro · `:11434` Ollama · `:8000` `adk web`.
 
@@ -109,11 +111,16 @@ After "systems normal," **cut the network** (unplug the Wi-Fi router). The Gemin
 cloud agent needs the internet and goes dark; the two local Qwen agents keep
 regulating on localhost. This is the hinge of the whole demo.
 
-## Part 2 — DDIL: local agents hold the line (TBD)
+## Part 2 — DDIL: local agents hold the line
 
-> To be scripted. The two conflicting local agents ([thermal](../services/agent_loop/profiles/thermal.yaml)
-> raises `fan_speed` as temp climbs; [power](../services/agent_loop/profiles/power.yaml)
-> cuts it as draw crosses 430 W) oscillate `fan_speed` under ALICE governance —
-> the power agent's "kill the fans" cut is **Held** and the technician **rejects**
-> it (temperature recommendation wins). See
-> [`docs/agent-build/06-agent-loops.md`](agent-build/06-agent-loops.md).
+The governed backend path is implemented. Configure the simulated room at 100 F
+and 60% fan, then use the cooling agent for small +10 point proposals. The current
+model classifies 60→70, 70→80 and 80→90 as normal in that context, so ALICE permits
+and applies them. Use the power agent to propose a full cut to 0%; its combination
+of direction, magnitude, temperature and power is outside normal support, so ALICE
+records a HIGH assessment and an eligible **HOLD** without changing the fan target.
+The technician sees the exact proposal and score, completes a fresh face scan and
+selects **Reject**. The signed rejection is recorded and the fan stays on.
+
+The local agent trigger loop and physical Pi/LED acceptance remain separate live
+steps. See [`docs/agent-build/06-agent-loops.md`](agent-build/06-agent-loops.md).

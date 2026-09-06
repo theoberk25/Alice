@@ -1,8 +1,7 @@
 [Unit]
-Description=ALICE governed machine-metrics MCP server
+Description=ALICE governed machine-metrics MCP server (Streamable HTTP)
 Wants=network-online.target
 After=network-online.target
-RequiresMountsFor=/mnt/alice-usb
 
 [Service]
 Type=simple
@@ -10,11 +9,12 @@ Type=simple
 WorkingDirectory=/home/pi/Alice
 Environment=PYTHONUNBUFFERED=1
 Environment=LIGHT_MCP_HOST=127.0.0.1
-Environment=LIGHT_MCP_PORT=8795
-# The Pi state file the MCP reads. Authorized writes are owned by alice-runtime.
-Environment=MACHINE_STATE_FILE=/mnt/alice-usb/machine-state.json
-# Set these in a private systemd credential/drop-in; never commit the seed.
-Environment=ALICE_RUNTIME_URL=http://192.168.50.20:8080
+Environment=LIGHT_MCP_PORT=8790
+# One authoritative thermal plant; MCP never owns the fan state file or serial port.
+Environment=MACHINE_BACKEND=thermal
+Environment=THERMAL_DEMO_URL=http://127.0.0.1:8795
+# Private file with THERMAL_AGENT_TOKENS (same mapping as the demo backend).
+EnvironmentFile=/etc/alice/metrics-mcp.env
 ExecStart=/home/pi/Alice/.venv/bin/python -m services.light_mcp.server
 Restart=on-failure
 RestartSec=5

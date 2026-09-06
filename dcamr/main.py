@@ -127,7 +127,7 @@ class FirstLightRuntime:
                 self.release = load_snapshot(release_dir, trusted_manifest_key)
             else:
                 self.release = load_release(release_dir, trusted_manifest_key)
-            self._validator = _request_validator()
+            self._validator = self.request_validator()
         except Exception as exc:
             raise StartupError(f"release verification failed: {exc}") from exc
 
@@ -142,16 +142,16 @@ class FirstLightRuntime:
             raise StartupError(str(exc)) from exc
         self._boot_id = "boot-" + uuid.uuid4().hex[:12]
         self._lock = threading.Lock()
-        self.controller = _make_controller(esp_base_url, esp_serial,
+        self.controller = self.make_controller(esp_base_url, esp_serial,
                                            serial_baud, serial_timeout)
-        self.fan_model = self.fan_controller = None
+        self.direct_fan_model = self.fan_controller = None
         if bool(fan_model_file) != bool(machine_state_file):
             raise StartupError('fan model and machine state must be configured together')
         if fan_model_file:
             try:
                 from dcamr.anomaly_engine.fan_model import FanModel
                 from dcamr.enforcement.fan_state_controller import FanStateController
-                self.fan_model = FanModel(fan_model_file)
+                self.direct_fan_model = FanModel(fan_model_file)
                 self.fan_controller = FanStateController(machine_state_file)
             except Exception as exc:
                 raise StartupError(f'fan scoring unavailable: {exc}') from exc
@@ -184,6 +184,18 @@ class FirstLightRuntime:
         self._outcomes = {}
         self._rebuild_outcomes()
         self.reviews = ReviewAuthority(self, console_trust)
+
+    @staticmethod
+    def request_validator():
+        return _request_validator()
+
+    @staticmethod
+    def make_controller(esp_base_url, esp_serial, serial_baud, serial_timeout):
+        return _make_controller(esp_base_url, esp_serial, serial_baud, serial_timeout)
+
+    def request_is_current(self, request):
+        """Subsystem execution precondition; legacy light requests have no run."""
+        return True
 
     def current_authority(self):
         # Existing first-light OFFLINE authority only. Connectivity does not
@@ -243,11 +255,11 @@ class FirstLightRuntime:
                      for name in ("baseline", "model", "calibration", "snapshot")}
         artifacts["policy"] = {"id": self.release.bundle_id,
                                "sha256": self.release.manifest_sha256, "missing_reason": None}
-        if self.fan_model:
-            artifacts['model'] = {'id': self.fan_model.model_id,
-                                  'sha256': self.fan_model.sha256, 'missing_reason': None}
-            artifacts['calibration'] = {'id': self.fan_model.model_id + '-calibration',
-                                        'sha256': self.fan_model.calibration_sha256,
+        if self.direct_fan_model:
+            artifacts['model'] = {'id': self.direct_fan_model.model_id,
+                                  'sha256': self.direct_fan_model.sha256, 'missing_reason': None}
+            artifacts['calibration'] = {'id': self.direct_fan_model.model_id + '.calibration',
+                                        'sha256': self.direct_fan_model.calibration_sha256,
                                         'missing_reason': None}
         if self.release_snapshot:
             # Identify the verified signed content, not SQLite's physical layout.
@@ -407,26 +419,38 @@ class FirstLightRuntime:
             self.ledger.seal()
             return 403, response
 
-        # 5. Fan actions use a frozen model with the state captured immediately
-        # before the decision. Light actions keep the labelled fixture path.
+        detail, assessment_correlation = self.assess_request(
+            request, request_sha256, correlation, attribution)
+
+        # 6. DECISION (emitted once per request_id)
+        decision = decide(True, finding, detail["status"], detail.get("result", "LOW"))
+        reason_codes = {decision.reason_code}
+        reason_codes.update("GRANT_" + rule.replace("-", "_").upper() for rule in finding.rule_ids)
+        self._append(f"{request_id}.decision", "DECISION",
+                     correlation=assessment_correlation, attribution=attribution,
+                     detail={"outcome": decision.outcome, "reason_codes": sorted(reason_codes)})
+        response = {"request_id": request_id, "decision": decision.outcome,
+                    "reason_code": decision.reason_code, "execution": None,
+                    "observed_state": None}
+        if decision.outcome != "ALLOW":
+            self._record_outcome(request_id, request_sha256, response)
+            self.ledger.seal()
+            return (202 if decision.outcome == "CHALLENGE" else 403), response
+
+        return self._execute_request(request, request_sha256, response, correlation, attribution)
+
+    def assess_request(self, request, request_sha256, correlation, attribution):
+        request_id = request['request_id']
         request_at_ms = int(time.time() * 1000)
-        source_id = "first-light-fixture"
-        if request["action"] == "set_fan_speed":
-            if not self.fan_model or not self.fan_controller:
-                response = {"request_id": request_id, "decision": "DENY",
-                            "reason_code": "ASSESSMENT_UNAVAILABLE", "execution": None,
-                            "observed_state": None}
-                self._append(f"{request_id}.rejection", "REJECTION", correlation=correlation,
-                             attribution=attribution,
-                             detail={"outcome": "REJECTED",
-                                     "reason_codes": ["ASSESSMENT_UNAVAILABLE"]})
-                self._record_outcome(request_id, request_sha256, response)
-                self.ledger.seal()
-                return 503, response
-            snapshot = self.fan_controller.read_metrics()
-            assessment_bytes, _ = self.fan_model.assess(
-                request, snapshot, request_sha256, request_at_ms)
-            source_id = "machine-state-file"
+        source_id = 'first-light-fixture'
+        if request['action'] == 'set_fan_speed':
+            if not self.direct_fan_model or not self.fan_controller:
+                return ({'kind': 'CONTEXTUAL', 'status': 'UNAVAILABLE',
+                         'result': 'UNKNOWN', 'contextual': None,
+                         'reason_codes': ['ASSESSMENT_UNAVAILABLE']}, correlation)
+            assessment_bytes, _ = self.direct_fan_model.assess(
+                request, self.fan_controller.read_metrics(), request_sha256, request_at_ms)
+            source_id = 'machine-state-file'
         else:
             assessment_bytes = build_assessment(
                 request_id=request_id, input_sha256=request_sha256,
@@ -451,22 +475,7 @@ class FirstLightRuntime:
                                 "source": self._source(source_id,
                                                        f"{request_id}.obs")}])
 
-        # 6. DECISION (emitted once per request_id)
-        decision = decide(True, finding, detail["status"], detail["result"])
-        reason_codes = {decision.reason_code}
-        reason_codes.update("GRANT_" + rule.replace("-", "_").upper() for rule in finding.rule_ids)
-        self._append(f"{request_id}.decision", "DECISION",
-                     correlation=assessment_correlation, attribution=attribution,
-                     detail={"outcome": decision.outcome, "reason_codes": sorted(reason_codes)})
-        response = {"request_id": request_id, "decision": decision.outcome,
-                    "reason_code": decision.reason_code, "execution": None,
-                    "observed_state": None}
-        if decision.outcome != "ALLOW":
-            self._record_outcome(request_id, request_sha256, response)
-            self.ledger.seal()
-            return (202 if decision.outcome == "CHALLENGE" else 403), response
-
-        return self._execute_request(request, request_sha256, response, correlation, attribution)
+        return detail, assessment_correlation
 
     def _execute_request(self, request, request_sha256, response, correlation, attribution):
         request_id = request["request_id"]
@@ -485,10 +494,10 @@ class FirstLightRuntime:
             self.storage.check()
         self._owner.check()
         try:
-            if request["action"] == "set_fan_speed":
+            if request['action'] == 'set_fan_speed':
                 if not self.fan_controller:
-                    raise ControllerError("fan controller unavailable")
-                receipt = self.fan_controller.execute(request["parameters"])
+                    raise ControllerError('fan controller unavailable')
+                receipt = self.fan_controller.execute(request['parameters'])
             elif hasattr(self.controller, "execute_target"):
                 receipt = self.controller.execute_target(request["target"], request["parameters"])
             elif request["target"] == "ESP-LIGHT-01":
@@ -519,7 +528,7 @@ class FirstLightRuntime:
         response["execution"] = result_outcome
 
         # 9. OBSERVED_STATE from a separate readback.
-        if request["action"] == "set_fan_speed":
+        if request['action'] == 'set_fan_speed':
             observed = self.fan_controller.observe()
         elif hasattr(self.controller, "observe_target"):
             observed = self.controller.observe_target(request["target"])
@@ -533,15 +542,15 @@ class FirstLightRuntime:
         self._write_evidence(self._evidence_dir / f"{request_id}.observed.json", observed_bytes)
         value = None
         if observed.available:
-            value = (observed.state if request["action"] == "set_fan_speed"
+            value = (observed.state if request['action'] == 'set_fan_speed'
                      else ("1" if observed.state == "on" else "0"))
         self._append(f"{request_id}.observed", "OBSERVED_STATE",
                      correlation=execution_correlation, attribution=attribution,
                      detail={"asset_id": request["target"], "sensor_id": request["target"].lower() + "-readback",
                              "origin": "ACTUATOR_FEEDBACK",
-                             "property": "fan_speed" if request["action"] == "set_fan_speed" else "light_state",
+                             "property": "fan_speed" if request['action'] == 'set_fan_speed' else "light_state",
                              "value": value,
-                             "unit": "percent" if request["action"] == "set_fan_speed" else "bool",
+                             "unit": "percent" if request['action'] == 'set_fan_speed' else "bool",
                              "quality": "GOOD" if observed.available else "UNAVAILABLE",
                              "correlation_absence_reason": None,
                              "source": self._source(request["target"], f"{request_id}.observe-src",

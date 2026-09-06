@@ -175,10 +175,15 @@ adds signed HOLD review locally, selectively adapted from preserved
 [validation](../reports/2026-09-06-native-live-backend-validation.md). Device-output
 adjustments remain deferred. Theodore's newer dashboard, runtime, MCP services,
 agent and network work are preserved. No console contract was promoted to common/.
-The additive fan-review slice accepts `set_fan_speed` only for
-`SERVER-ROOM-FANS` with integer `parameters.value` in 0..100. A fan review
-snapshot may include verified retained assessment fields: LOW/ELEVATED/HIGH,
-integer millionths of normal-tail rank/raw score, model ID/fingerprint and reason
-codes. Existing light snapshots retain their previous shape during rollout.
-The Pi remains the source of the immutable CHALLENGE and the signed review
-execution. The console displays scores and never recomputes the classification.
+
+
+## 2026-09-06 environmental demo adapter
+
+The user authorized the full [demo contract](../contracts/environmental-demo-v1.md).
+A separate simulation-only signed request schema now binds fan basis points, run,
+client request and actuator revision. Common first-light schemas remain unchanged.
+Native Rust and TypeScript review accept this strict variant alongside first-light;
+the existing face proof, review nonce, immutable decision and ledger semantics remain.
+The feed bridge optionally authenticates upstream via `ALICE_UPSTREAM_TOKEN`;
+legacy no-token upstream operation is unchanged. Operator page design remains with
+the teammate. This does not promote enterprise fan authority or physical fan control.

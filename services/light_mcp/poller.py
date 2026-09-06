@@ -23,6 +23,8 @@ import asyncio
 import contextlib
 import json
 import logging
+import math
+import re
 import os
 import signal
 import time
@@ -38,26 +40,36 @@ DEFAULT_INTERVAL = float(os.environ.get("METRICS_POLL_INTERVAL", "0.1"))
 
 
 def _payload(result) -> dict:
-    """Extract the JSON/structured payload from an MCP tool result."""
-    if getattr(result, "structuredContent", None):
-        return result.structuredContent
-    for block in result.content:
-        text = getattr(block, "text", None)
-        if text:
-            try:
-                return json.loads(text)
-            except (ValueError, TypeError):
-                return {"raw": text}
-    return {}
+    """Never publish tool failures or incomplete metrics as a healthy sample."""
+    if getattr(result, 'isError', False):
+        raise ValueError('Metrics tool returned an error')
+    value = getattr(result, 'structuredContent', None)
+    if not value:
+        for block in result.content:
+            text = getattr(block, 'text', None)
+            if text:
+                value = json.loads(text)
+                break
+    if not isinstance(value, dict) or not all(k in value for k in ('fan_speed', 'server_temperature', 'power_consumption')):
+        raise ValueError('Incomplete metrics')
+    for key in ('fan_speed', 'server_temperature', 'power_consumption'):
+        number = value[key]
+        if number is not None and (type(number) not in (int, float) or not math.isfinite(number)):
+            raise ValueError('Invalid metric value')
+    return value
 
 
 def _snapshot_path(agent: str, out: str | None) -> Path:
+    if not re.fullmatch(r'[A-Za-z0-9_-]{1,64}', agent):
+        raise ValueError('Invalid poller agent label')
     if out:
         return Path(out)
     return Path(__file__).with_name(f"poller_{agent}_latest.json")
 
 
 async def poll(agent: str, url: str, interval: float, out: str | None, once: bool) -> int:
+    if not math.isfinite(interval) or not .01 <= interval <= 60:
+        raise ValueError('Poll interval must be between .01 and 60 seconds')
     snap = _snapshot_path(agent, out)
     snap.parent.mkdir(parents=True, exist_ok=True)
     stop = asyncio.Event()
@@ -68,7 +80,9 @@ async def poll(agent: str, url: str, interval: float, out: str | None, once: boo
             loop.add_signal_handler(sig, stop.set)
 
     log.info("poller[%s] connecting to %s (interval=%.3fs, snapshot=%s)", agent, url, interval, snap)
-    async with streamablehttp_client(url) as (read, write, _):
+    token = os.environ.get('LIGHT_MCP_TOKEN')
+    headers = {'Authorization': 'Bearer ' + token} if token else None
+    async with streamablehttp_client(url, headers=headers) as (read, write, _):
         async with ClientSession(read, write) as session:
             await session.initialize()
             n = 0
@@ -76,8 +90,17 @@ async def poll(agent: str, url: str, interval: float, out: str | None, once: boo
             heartbeat_every = max(1, round(1.0 / interval)) if interval > 0 else 1
             while not stop.is_set():
                 t0 = time.monotonic()
-                metrics = _payload(await session.call_tool("get_metrics", {}))
-                sample = {"agent": agent, "ts": time.time(), "metrics": metrics}
+                try:
+                    metrics = _payload(await session.call_tool("get_metrics", {}))
+                    sample = {"agent": agent, "ts": time.time(), "available": True,
+                              "max_age_seconds": 1, "metrics": metrics}
+                except Exception:
+                    sample = {"agent": agent, "ts": time.time(), "available": False,
+                              "max_age_seconds": 1, "metrics": None}
+                    tmp = snap.with_suffix(snap.suffix + ".tmp")
+                    tmp.write_text(json.dumps(sample) + "\n")
+                    os.replace(tmp, snap)
+                    raise
                 tmp = snap.with_suffix(snap.suffix + ".tmp")
                 tmp.write_text(json.dumps(sample) + "\n")
                 os.replace(tmp, snap)

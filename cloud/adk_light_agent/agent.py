@@ -1,9 +1,9 @@
-"""Google ADK cooling agent for the governed machine-metrics MCP server.
+"""Google ADK cloud agent for the Light-Control MCP server.
 
-``root_agent`` is an ``LlmAgent`` (Gemini) whose tools are the four Light MCP
+``root_agent`` is an ``LlmAgent`` (Gemini) whose tools are the two machine-metrics MCP
 tools, reached over **Streamable HTTP** at the canonical, fixed URL
-``http://127.0.0.1:8795/mcp`` (build 03). Each physical agent deployment runs
-its own loopback MCP instance with its own ALICE signing identity.
+``http://127.0.0.1:8790/mcp`` (build 03). This is one of two clients of that
+shared MCP tool layer — the other is the Goose local harness (build 02).
 
 Auth defaults to the **free AI Studio key path** (no GCP needed):
 ``GOOGLE_GENAI_USE_VERTEXAI=FALSE`` + ``GOOGLE_API_KEY`` in the local ``.env``.
@@ -11,7 +11,7 @@ The Vertex/Agent-Engine path is deliberately NOT wired here — it is gated behi
 the human checkpoint in docs/agent-build/01-cloud-agent.md.
 
 Run it (from this directory's parent, ``cloud/``, with the venv active and the
-Light MCP server up in mock mode):
+metrics MCP server configured for the governed demo):
 
     adk web        # http://localhost:8000 -> pick machine_ops_cloud, watch Trace tab
 """
@@ -34,20 +34,25 @@ except ModuleNotFoundError:  # pragma: no cover - dotenv ships with google-adk
     pass
 
 # FIXED canonical endpoint — both agents depend on it (see build docs 01/02/03).
-LIGHT_MCP_URL = os.getenv("LIGHT_MCP_URL", "http://127.0.0.1:8795/mcp")
+LIGHT_MCP_URL = "http://127.0.0.1:8790/mcp"
 
 # Model is env-overridable but defaults to a current Gemini Flash. The free
 # AI Studio key serves this model on the non-Vertex path.
 MODEL = os.getenv("ADK_MODEL", "gemini-flash-latest")
 
 _INSTRUCTION = (
-    "You are the cooling agent for the server room. Read get_metrics before acting. "
-    "When temperature requires more cooling, request small set_fan_speed changes, "
-    "normally no more than 10 percentage points at a time. Never invent metric values, "
-    "and report ALLOW, CHALLENGE/HOLD, or DENY exactly as the tool returns it. "
-    "If a tool returns ok:false, "
-    "report the error instead of retrying blindly."
+    "Use only get_metrics and set_fan_speed(value) through the shared metrics MCP. "
+    "Read metrics before proposing a fan change. fan_speed is actual percent; "
+    "fan_target_speed is the authorized target. server_temperature is Fahrenheit "
+    "and power_consumption is watts in the governed thermal demo. "
+    "You may propose fan percent only; never write temperature/power or control LEDs. "
+    "ALICE governs every change. Report decision, review and application separately. "
+    "HOLD/CHALLENGE, DENY and UNKNOWN do not mean the fan changed. "
+    "If ok:false, inspect get_metrics and report the outcome; do not blindly retry. "
+    "An uncertain retry must use the exact returned request_id, run_id and expected_revision. "
+    "Do not claim actual fan speed instantly reaches its target or that simulated readings are real hardware."
 )
+
 
 
 def build_agent(model: str = MODEL) -> LlmAgent:
@@ -60,11 +65,13 @@ def build_agent(model: str = MODEL) -> LlmAgent:
     return LlmAgent(
         model=model,
         name="machine_ops_cloud",
-        description="Cloud cooling agent that requests governed server-room fan changes.",
+        description="Cloud agent that observes machine metrics and proposes governed fan changes.",
         instruction=_INSTRUCTION,
         tools=[
             McpToolset(
-                connection_params=StreamableHTTPConnectionParams(url=LIGHT_MCP_URL),
+                connection_params=StreamableHTTPConnectionParams(url=LIGHT_MCP_URL, headers=(
+                    {"Authorization": "Bearer " + os.environ["LIGHT_MCP_TOKEN"]}
+                    if os.environ.get("LIGHT_MCP_TOKEN") else None)),
             )
         ],
     )

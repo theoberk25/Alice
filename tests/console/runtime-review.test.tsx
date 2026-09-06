@@ -400,3 +400,33 @@ describe('review display contracts fail closed', () => {
     ).toBe(false);
   });
 });
+
+it('accepts exact demo fan requests and rejects mixed physical-light authority', () => {
+  const id = 'c'.repeat(64);
+  const request = {
+    schema_version: 'alice-demo-fan-v1',
+    request_id: id,
+    client_request_id: 'fan-1',
+    agent_id: 'cooling-agent-01',
+    run_id: 'a'.repeat(32),
+    expected_revision: 0,
+    action: 'set_demo_fan_pct',
+    target: 'DEMO-SERVER-01',
+    parameters: { fan_basis_points: 8500 },
+  };
+  const value = { ...review(), request_id: id, request };
+  expect(RuntimeReviewSchema.safeParse(value).success).toBe(true);
+  for (const change of [
+    { target: 'ESP-LIGHT-01' },
+    { action: 'set_light_state' },
+    { parameters: { fan_basis_points: 10001 } },
+    { parameters: { fan_basis_points: 8500.1 } },
+    { parameters: { fan_pct: 85 } },
+    { expected_revision: -1 },
+    { run_id: 'old-run' },
+  ]) {
+    expect(
+      RuntimeReviewSchema.safeParse({ ...value, request: { ...request, ...change } }).success,
+    ).toBe(false);
+  }
+});

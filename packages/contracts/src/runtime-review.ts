@@ -8,6 +8,35 @@ export const RuntimeReviewStatusSchema = z.strictObject({
   ready: z.boolean(),
   reason: z.string().max(2000),
 });
+const DemoFanRequest = z.strictObject({
+  schema_version: z.literal('alice-demo-fan-v1'),
+  request_id: Hash,
+  client_request_id: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
+  agent_id: RequestId,
+  run_id: z.string().regex(/^[a-f0-9]{32}$/),
+  expected_revision: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  action: z.literal('set_demo_fan_pct'),
+  target: z.literal('DEMO-SERVER-01'),
+  parameters: z.strictObject({ fan_basis_points: z.number().int().min(0).max(10000) }),
+});
+const DirectFanRequest = z.strictObject({
+  schema_version: z.literal('1.0'),
+  request_id: RequestId,
+  agent_id: RequestId,
+  action: z.literal('set_fan_speed'),
+  target: z.literal('SERVER-ROOM-FANS'),
+  parameters: z.strictObject({ value: z.number().int().min(0).max(100) }),
+  issued_at: z.iso.datetime(),
+});
+const AnomalyAssessment = z.strictObject({
+  status: z.literal('OK'),
+  result: z.enum(['LOW', 'ELEVATED', 'HIGH']),
+  score_ppm: z.number().int().min(-1_000_000).max(1_000_000),
+  raw_score_ppm: z.number().int().min(-1_000_000).max(1_000_000),
+  model_id: Id,
+  model_fingerprint: Hash,
+  reason_codes: z.array(Id).max(32),
+});
 export const RuntimeReviewSchema = z
   .strictObject({
     schema_version: z.literal('alice-runtime-review-v1'),
@@ -20,47 +49,27 @@ export const RuntimeReviewSchema = z
     runtime_epoch: Id,
     review_nonce: Id,
     request: z
-      .discriminatedUnion('action', [
-        z.strictObject({
-          schema_version: z.literal('1.0'),
-          request_id: RequestId,
-          agent_id: RequestId,
-          action: z.literal('set_light_state'),
-          target: z.string().regex(/^ESP-LIGHT-0[1-8]$/),
-          parameters: z.strictObject({ state: z.enum(['on', 'off']) }),
-          issued_at: z.iso.datetime(),
-        }),
-        z.strictObject({
-          schema_version: z.literal('1.0'),
-          request_id: RequestId,
-          agent_id: RequestId,
-          action: z.literal('set_fan_speed'),
-          target: z.literal('SERVER-ROOM-FANS'),
-          parameters: z.strictObject({ value: z.number().int().min(0).max(100) }),
-          issued_at: z.iso.datetime(),
-        }),
-      ])
+      .strictObject({
+        schema_version: z.literal('1.0'),
+        request_id: RequestId,
+        agent_id: RequestId,
+        action: z.literal('set_light_state'),
+        target: z.string().regex(/^ESP-LIGHT-0[1-8]$/),
+        parameters: z.strictObject({ state: z.enum(['on', 'off']) }),
+        issued_at: z.iso.datetime(),
+      })
+      .or(DirectFanRequest)
+      .or(DemoFanRequest)
       .nullable(),
     decision: z.enum(['ALLOW', 'DENY', 'CHALLENGE', 'REJECTED']),
-    decision_reason_codes: z.array(Id).max(32).optional(),
-    assessment: z
-      .strictObject({
-        status: z.literal('OK'),
-        result: z.enum(['LOW', 'ELEVATED', 'HIGH']),
-        score_ppm: z.number().int().min(0).max(1_000_000),
-        raw_score_ppm: z.number().int(),
-        model_id: Id,
-        model_fingerprint: Hash,
-        reason_codes: z.array(Id).max(32),
-      })
-      .nullable()
-      .optional(),
     review_state: z.enum(['PENDING', 'APPROVED', 'REJECTED']),
     accepted_action_id: Id.nullable(),
     accepted_action: RuntimeReviewActionSchema.nullable(),
     eligible: z.boolean(),
     reason: z.string().max(200),
     execution_status: Execution,
+    decision_reason_codes: z.array(Id).max(32).optional(),
+    assessment: AnomalyAssessment.nullable().optional(),
   })
   .superRefine((v, c) => {
     const fail = (message: string) => c.addIssue({ code: 'custom', message });

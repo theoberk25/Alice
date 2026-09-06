@@ -82,7 +82,8 @@ class FanModel:
                 'threshold': model['threshold'], 'distance': distance,
                 'unusual': score > model['threshold']}
 
-    def assess(self, request, snapshot, request_sha256, request_at_ms):
+    def assess(self, request, snapshot, request_sha256, request_at_ms,
+               source_id='machine-state-file'):
         profile = AGENT_PROFILE.get(request['agent_id'])
         if profile is None:
             raise ValueError('unknown fan agent profile')
@@ -105,17 +106,17 @@ class FanModel:
             'profile_sha256': sha256(canonical_bytes({'features': list(FEATURES)})).hexdigest(),
             'model_id': self.model_id, 'model_fingerprint': self.sha256,
             'calibration_sha256': self.calibration_sha256,
-            'context': {'action': 'set_fan_speed', 'agent_profile': profile,
+            'context': {'action': request.get('action', 'set_fan_speed'), 'agent_profile': profile,
                         'target': request['target']},
             'request_at_ms': request_at_ms, 'cutoff_at_ms': request_at_ms,
             'execution_id': None, 'execution_at_ms': None,
-            'source_ids': ['machine-state-file'],
+            'source_ids': [source_id],
             'factors': [{'name': name,
                          'unit': ('percent' if 'fan' in name or 'delta' in name
                                   else ('degrees_C' if name == 'temperature' else 'W')),
                          'observed': value, 'training_min': value, 'training_max': value,
                          'outside_training_range': False, 'timing': 'PRE_ACTION',
-                         'source_id': 'machine-state-file', 'observed_at_ms': request_at_ms}
+                         'source_id': source_id, 'observed_at_ms': request_at_ms}
                         for name, value in zip(FEATURES, vector)],
         }
         return json.dumps(assessment, sort_keys=True, separators=(',', ':'),

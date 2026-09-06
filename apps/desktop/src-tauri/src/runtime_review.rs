@@ -177,10 +177,6 @@ pub struct Snapshot {
     #[serde(deserialize_with = "required_nullable")]
     pub request: Option<Value>,
     pub decision: String,
-    #[serde(default)]
-    pub decision_reason_codes: Vec<String>,
-    #[serde(default)]
-    pub assessment: Option<Value>,
     pub review_state: String,
     pub eligible: bool,
     pub reason: String,
@@ -189,6 +185,21 @@ pub struct Snapshot {
     pub accepted_action_id: Option<String>,
     #[serde(deserialize_with = "required_nullable")]
     pub accepted_action: Option<String>,
+    #[serde(default)]
+    pub decision_reason_codes: Option<Vec<String>>,
+    #[serde(default)]
+    pub assessment: Option<AnomalyAssessment>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct AnomalyAssessment {
+    status: String,
+    result: String,
+    score_ppm: i64,
+    raw_score_ppm: i64,
+    model_id: String,
+    model_fingerprint: String,
+    reason_codes: Vec<String>,
 }
 fn required_nullable<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
     d: D,
@@ -246,8 +257,6 @@ impl Snapshot {
             || !["NOT_EXECUTED", "COMPLETED", "FAILED", "UNKNOWN"]
                 .contains(&self.execution_status.as_str())
             || self.reason.len() > 200
-            || self.decision_reason_codes.len() > 32
-            || self.decision_reason_codes.iter().any(|v| !id(v))
         {
             return Err("INVALID_RUNTIME_REVIEW".into());
         }
@@ -269,18 +278,39 @@ impl Snapshot {
         }
         // Validate retained request evidence for all outcomes, not just eligible HOLDs.
         if let Some(request) = &self.request {
-            let parsed: Request =
-                serde_json::from_value(request.clone()).map_err(|_| "INVALID_REVIEW_REQUEST")?;
-            if parsed.schema_version != "1.0"
-                || parsed.request_id != request_id
-                || parsed.request_id.len() > 64
-                || parsed.agent_id.len() > 64
-                || !id(&parsed.agent_id)
-                || !parsed.valid_action()
-                || !parsed.issued_at.ends_with('Z')
-                || chrono::DateTime::parse_from_rfc3339(&parsed.issued_at).is_err()
-                || digest(&canonical(request)?) != self.request_sha256
-            {
+            let valid = if request.get("schema_version").and_then(Value::as_str) == Some("alice-demo-fan-v1") {
+                let parsed: DemoFanRequest = serde_json::from_value(request.clone())
+                    .map_err(|_| "INVALID_REVIEW_REQUEST")?;
+                parsed.schema_version == "alice-demo-fan-v1"
+                    && parsed.request_id == request_id && hash(&parsed.request_id)
+                    && parsed.client_request_id.len() <= 64 && !parsed.client_request_id.is_empty()
+                    && parsed.client_request_id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+                    && parsed.run_id.len() == 32 && parsed.run_id.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+                    && parsed.expected_revision <= 9_007_199_254_740_991
+                    && parsed.agent_id.len() <= 64 && id(&parsed.agent_id)
+                    && parsed.action == "set_demo_fan_pct" && parsed.target == "DEMO-SERVER-01"
+                    && parsed.parameters.fan_basis_points <= 10000
+            } else if request.get("action").and_then(Value::as_str) == Some("set_fan_speed") {
+                let parsed: DirectFanRequest = serde_json::from_value(request.clone())
+                    .map_err(|_| "INVALID_REVIEW_REQUEST")?;
+                parsed.schema_version == "1.0" && parsed.request_id == request_id
+                    && parsed.request_id.len() <= 64 && parsed.agent_id.len() <= 64
+                    && id(&parsed.agent_id) && parsed.action == "set_fan_speed"
+                    && parsed.target == "SERVER-ROOM-FANS" && parsed.parameters.value <= 100
+                    && parsed.issued_at.ends_with('Z')
+                    && chrono::DateTime::parse_from_rfc3339(&parsed.issued_at).is_ok()
+            } else {
+                let parsed: Request = serde_json::from_value(request.clone())
+                    .map_err(|_| "INVALID_REVIEW_REQUEST")?;
+                parsed.schema_version == "1.0" && parsed.request_id == request_id
+                    && parsed.request_id.len() <= 64 && parsed.agent_id.len() <= 64
+                    && id(&parsed.agent_id) && parsed.action == "set_light_state"
+                    && (1..=8).any(|n| parsed.target == format!("ESP-LIGHT-0{n}"))
+                    && ["on", "off"].contains(&parsed.parameters.state.as_str())
+                    && parsed.issued_at.ends_with('Z')
+                    && chrono::DateTime::parse_from_rfc3339(&parsed.issued_at).is_ok()
+            };
+            if !valid || digest(&canonical(request)?) != self.request_sha256 {
                 return Err("REVIEW_REQUEST_BINDING_INVALID".into());
             }
         }
@@ -296,30 +326,22 @@ impl Snapshot {
         if self.review_state == "REJECTED" && self.execution_status != "NOT_EXECUTED" {
             return Err("INVALID_REJECTION_EXECUTION".into());
         }
-        if let Some(value) = &self.assessment {
-            let object = value.as_object().ok_or("INVALID_RUNTIME_ASSESSMENT")?;
-            let expected = ["status", "result", "score_ppm", "raw_score_ppm", "model_id",
-                            "model_fingerprint", "reason_codes"];
-            if object.len() != expected.len() || expected.iter().any(|k| !object.contains_key(*k))
-                || object.get("status").and_then(Value::as_str) != Some("OK")
-                || !object.get("result").and_then(Value::as_str)
-                    .is_some_and(|v| ["LOW", "ELEVATED", "HIGH"].contains(&v))
-                || !object.get("score_ppm").and_then(Value::as_i64)
-                    .is_some_and(|v| (0..=1_000_000).contains(&v))
-                || object.get("raw_score_ppm").and_then(Value::as_i64).is_none()
-                || !object.get("model_id").and_then(Value::as_str).is_some_and(id)
-                || !object.get("model_fingerprint").and_then(Value::as_str)
-                    .is_some_and(|v| {
-                        v.len() == 64
-                            && v.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
-                    })
-                || !object.get("reason_codes").and_then(Value::as_array).is_some_and(|values| {
-                    values.len() <= 32
-                        && values.iter().all(|item| item.as_str().is_some_and(id))
-                })
-            {
-                return Err("INVALID_RUNTIME_ASSESSMENT".into());
-            }
+        if self.decision_reason_codes.as_ref().is_some_and(|codes| {
+            codes.len() > 32 || codes.iter().any(|value| !id(value))
+        }) {
+            return Err("INVALID_DECISION_REASON_CODES".into());
+        }
+        if self.assessment.as_ref().is_some_and(|a| {
+            a.status != "OK"
+                || !["LOW", "ELEVATED", "HIGH"].contains(&a.result.as_str())
+                || !(-1_000_000..=1_000_000).contains(&a.score_ppm)
+                || !(-1_000_000..=1_000_000).contains(&a.raw_score_ppm)
+                || !id(&a.model_id)
+                || !hash(&a.model_fingerprint)
+                || a.reason_codes.len() > 32
+                || a.reason_codes.iter().any(|value| !id(value))
+        }) {
+            return Err("INVALID_ANOMALY_ASSESSMENT".into());
         }
         Ok(())
     }
@@ -338,25 +360,41 @@ struct Request {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Parameters {
-    #[serde(default)]
-    state: Option<String>,
-    #[serde(default)]
-    value: Option<i64>,
+    state: String,
 }
-impl Request {
-    fn valid_action(&self) -> bool {
-        match self.action.as_str() {
-            "set_light_state" => {
-                (1..=8).any(|n| self.target == format!("ESP-LIGHT-0{n}"))
-                    && self.parameters.value.is_none()
-                    && self.parameters.state.as_deref().is_some_and(|v| ["on", "off"].contains(&v))
-            }
-            "set_fan_speed" => self.target == "SERVER-ROOM-FANS"
-                && self.parameters.state.is_none()
-                && self.parameters.value.is_some_and(|v| (0..=100).contains(&v)),
-            _ => false,
-        }
-    }
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DemoFanRequest {
+    schema_version: String,
+    request_id: String,
+    client_request_id: String,
+    run_id: String,
+    expected_revision: u64,
+    agent_id: String,
+    action: String,
+    target: String,
+    parameters: DemoFanParameters,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DemoFanParameters {
+    fan_basis_points: u32,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DirectFanRequest {
+    schema_version: String,
+    request_id: String,
+    agent_id: String,
+    action: String,
+    target: String,
+    parameters: DirectFanParameters,
+    issued_at: String,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DirectFanParameters {
+    value: u32,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]

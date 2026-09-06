@@ -24,7 +24,7 @@ fn snapshot() -> Snapshot {
         review_nonce: "NONCE-1".into(),
         request: Some(request),
         decision: "CHALLENGE".into(),
-        decision_reason_codes: vec!["PERMISSION_REVIEW_REQUIRED".into()],
+        decision_reason_codes: Some(vec!["PERMISSION_REVIEW_REQUIRED".into()]),
         assessment: None,
         review_state: "PENDING".into(),
         eligible: true,
@@ -836,4 +836,30 @@ fn reused_request_id_cannot_inherit_acknowledgment_from_another_runtime_or_decis
         .unwrap()
         .receipt
         .is_some());
+}
+
+#[test]
+fn demo_fan_request_is_exact_and_cannot_become_a_physical_action() {
+    let mut view = snapshot();
+    let rid = "c".repeat(64);
+    let request = json!({"schema_version":"alice-demo-fan-v1","request_id":rid,
+        "client_request_id":"fan-1","run_id":"a".repeat(32),"expected_revision":0,
+        "agent_id":"cooling-agent-01","action":"set_demo_fan_pct","target":"DEMO-SERVER-01",
+        "parameters":{"fan_basis_points":8500}});
+    view.request_id = rid.clone();
+    view.request = Some(request.clone());
+    view.request_sha256 = digest(&canonical(&request).unwrap());
+    assert!(view.validate(&rid).is_ok());
+    for (field, bad) in [("target", json!("ESP-LIGHT-01")),
+                          ("action", json!("set_light_state")),
+                          ("expected_revision", json!(-1)),
+                          ("parameters", json!({"fan_basis_points":10001})),
+                          ("parameters", json!({"fan_pct":85})),
+                          ("run_id", json!("old-run"))] {
+        let mut changed = request.clone();
+        changed[field] = bad;
+        view.request_sha256 = digest(&canonical(&changed).unwrap());
+        view.request = Some(changed);
+        assert!(view.validate(&rid).is_err());
+    }
 }

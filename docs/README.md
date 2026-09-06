@@ -37,3 +37,5 @@ limitations; they do not supersede the current PRD or authorize implementation.
 
 Completed session handoffs and superseded runbooks move to `archive/`; they are not
 required for current implementation work.
+
+Environmental demo: [contract](contracts/environmental-demo-v1.md), [run guide](guides/environmental-demo.md), [validation](reports/2026-09-06-environmental-demo-validation.md).

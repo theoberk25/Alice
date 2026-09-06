@@ -234,8 +234,12 @@ export function RuntimeReviewPanel() {
             <dd>{JSON.stringify(snapshot.request.parameters)}</dd>
           </div>
           <div>
-            <dt>ISSUED</dt>
-            <dd>{snapshot.request.issued_at}</dd>
+            <dt>{snapshot.request.schema_version === '1.0' ? 'ISSUED' : 'SIMULATED FAN / RUN'}</dt>
+            <dd>
+              {snapshot.request.schema_version === '1.0'
+                ? snapshot.request.issued_at
+                : `${snapshot.request.parameters.fan_basis_points / 100}% · ${snapshot.request.run_id} · revision ${snapshot.request.expected_revision}`}
+            </dd>
           </div>
         </dl>
       )}

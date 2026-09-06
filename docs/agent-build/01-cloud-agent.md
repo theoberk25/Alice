@@ -1,3 +1,5 @@
+> **Current contract:** [machine-metrics integration](../guides/machine-metrics-integration.md) supersedes the light tools, driver-selection, prompts and acceptance steps below. Use `get_metrics` / `set_fan_speed`, per-agent bearer credentials, and the governed backend. Earlier light-only build instructions are retained as historical context; model-provider setup remains separate.
+
 # Build 01 — Cloud Agent Framework (Google ADK + Gemini)
 
 > Build order: build `03-light-mcp.md` first and confirm it passes. This agent is a client of that MCP server. Can be built independently of the Goose harness (file 02).

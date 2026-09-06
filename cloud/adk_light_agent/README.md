@@ -1,3 +1,5 @@
+> **Current tools and authentication:** [machine-metrics integration](../../docs/guides/machine-metrics-integration.md). The agent now uses `get_metrics` / `set_fan_speed(value)` and `LIGHT_MCP_TOKEN`. Earlier light-tool examples below are historical. The `smoke_lights` entry point is retained but now performs a read-only metrics check.
+
 # ADK cloud agent — `machine_ops_cloud`
 
 A Google **ADK** (`LlmAgent`, Gemini) agent that controls the machine lights by
