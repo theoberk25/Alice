@@ -97,7 +97,7 @@ Alice/services/brief_mcp/
   > Same SDK gotcha as the Light MCP: pin `mcp<2` (2.x renames `FastMCP`). The
   > canonical URL the agent expects is **`http://127.0.0.1:8793/mcp`**.
 - Port **8793** avoids clashes (backend, `adk web`→8000, biometrics→8765,
-  feed→8787, esp-op→8789, light MCP→8790). Make host/port/source env-overridable.
+  feed→8787, esp-op→8789, light MCP→8795). Make host/port/source env-overridable.
 - `sources.py`:
   ```python
   class DecisionSource(ABC):

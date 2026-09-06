@@ -102,7 +102,8 @@ class Decision:
         _check(self.reason_code, _ID)
 
 
-def decide(auth_ok: bool, finding: PermissionFinding, assessment_status: str) -> Decision:
+def decide(auth_ok: bool, finding: PermissionFinding, assessment_status: str,
+           assessment_result: str = 'LOW') -> Decision:
     """ALLOW only for verified identity + PERMITTED (no approval) + OK assessment."""
     if type(auth_ok) is not bool or type(finding) is not PermissionFinding:
         raise ValueError('trusted typed inputs required')
@@ -114,6 +115,10 @@ def decide(auth_ok: bool, finding: PermissionFinding, assessment_status: str) ->
         return Decision('DENY', 'PERMISSION_' + finding.outcome)
     if assessment_status != 'OK':
         return Decision('DENY', 'ASSESSMENT_UNAVAILABLE')
+    if assessment_result in ('ELEVATED', 'HIGH'):
+        return Decision('CHALLENGE', 'ANOMALY_REVIEW_REQUIRED')
+    if assessment_result != 'LOW':
+        return Decision('DENY', 'ASSESSMENT_INVALID')
     return Decision('ALLOW', 'PERMITTED_NORMAL_AUTO')
 
 

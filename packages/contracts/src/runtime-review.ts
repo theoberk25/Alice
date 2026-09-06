@@ -20,17 +20,41 @@ export const RuntimeReviewSchema = z
     runtime_epoch: Id,
     review_nonce: Id,
     request: z
-      .strictObject({
-        schema_version: z.literal('1.0'),
-        request_id: RequestId,
-        agent_id: RequestId,
-        action: z.literal('set_light_state'),
-        target: z.string().regex(/^ESP-LIGHT-0[1-8]$/),
-        parameters: z.strictObject({ state: z.enum(['on', 'off']) }),
-        issued_at: z.iso.datetime(),
-      })
+      .discriminatedUnion('action', [
+        z.strictObject({
+          schema_version: z.literal('1.0'),
+          request_id: RequestId,
+          agent_id: RequestId,
+          action: z.literal('set_light_state'),
+          target: z.string().regex(/^ESP-LIGHT-0[1-8]$/),
+          parameters: z.strictObject({ state: z.enum(['on', 'off']) }),
+          issued_at: z.iso.datetime(),
+        }),
+        z.strictObject({
+          schema_version: z.literal('1.0'),
+          request_id: RequestId,
+          agent_id: RequestId,
+          action: z.literal('set_fan_speed'),
+          target: z.literal('SERVER-ROOM-FANS'),
+          parameters: z.strictObject({ value: z.number().int().min(0).max(100) }),
+          issued_at: z.iso.datetime(),
+        }),
+      ])
       .nullable(),
     decision: z.enum(['ALLOW', 'DENY', 'CHALLENGE', 'REJECTED']),
+    decision_reason_codes: z.array(Id).max(32).optional(),
+    assessment: z
+      .strictObject({
+        status: z.literal('OK'),
+        result: z.enum(['LOW', 'ELEVATED', 'HIGH']),
+        score_ppm: z.number().int().min(0).max(1_000_000),
+        raw_score_ppm: z.number().int(),
+        model_id: Id,
+        model_fingerprint: Hash,
+        reason_codes: z.array(Id).max(32),
+      })
+      .nullable()
+      .optional(),
     review_state: z.enum(['PENDING', 'APPROVED', 'REJECTED']),
     accepted_action_id: Id.nullable(),
     accepted_action: RuntimeReviewActionSchema.nullable(),

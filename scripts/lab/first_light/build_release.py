@@ -91,7 +91,7 @@ def _public_hex(private: Ed25519PrivateKey) -> str:
 
 
 def build(out_dir: Path, agent_ids=(AGENT_ID,), grant_agent_ids=None, *, all_lights=False,
-          approval_required=False) -> Path:
+          approval_required=False, manifest_key=None) -> Path:
     """grant_agent_ids limits who the PERMIT grant covers; every agent in
     agent_ids still gets a registered key, so the others authenticate but
     resolve to NO_PERMISSION (default deny)."""
@@ -130,7 +130,7 @@ def build(out_dir: Path, agent_ids=(AGENT_ID,), grant_agent_ids=None, *, all_lig
     manifest["release_note"] = ("First-light test release: one PERMIT grant, "
                                 "demonstration trust only.")
 
-    manifest_key = Ed25519PrivateKey.generate()
+    manifest_key = manifest_key or Ed25519PrivateKey.generate()
     signed_bytes, signature = sign_manifest(manifest, manifest_key)
     (release / "manifest.json").write_bytes(signed_bytes)
     (release / "manifest.sig").write_bytes(signature)

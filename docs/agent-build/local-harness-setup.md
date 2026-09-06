@@ -11,7 +11,7 @@ Light-Control MCP over Streamable HTTP. Three moving parts, all on loopback:
 ```
 Goose CLI  ──HTTP──▶ Ollama  (local LLM, tool calls)      127.0.0.1:11434
    │
-   └────────HTTP───▶ Light MCP (light_control tools)      127.0.0.1:8790/mcp
+   └────────HTTP───▶ Light MCP (light_control tools)      127.0.0.1:8795/mcp
                         └─ MockDriver (in-memory; esp/alice drivers = real path)
 ```
 
@@ -37,7 +37,7 @@ committed. Only the MCP tool server and docs live in the repo.
 ## Setup runbook (for a fresh machine)
 
 Assumes the Light MCP is running in mock mode
-(`python -m services.light_mcp.server` → serves `http://127.0.0.1:8790/mcp`).
+(`python -m services.light_mcp.server` → serves `http://127.0.0.1:8795/mcp`).
 
 ```bash
 # 1. Install Goose + Ollama
@@ -63,7 +63,7 @@ extensions:
     enabled: true
     type: streamable_http          # Goose 1.49 key/type; verify with `goose configure`
     name: light_control
-    uri: http://127.0.0.1:8790/mcp  # fixed by file 03
+    uri: http://127.0.0.1:8795/mcp  # fixed by file 03
     timeout: 300
 ```
 

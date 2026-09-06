@@ -11,7 +11,7 @@ flowchart TB
         CHAT["Goose chat UI<br/>:8791"]
         OLLAMA["Ollama :11434<br/>qwen2.5-tools"]
         ADK["ADK cloud agent<br/>adk web :8000"]
-        LMCP["Light-Control MCP<br/>:8790 (mock default /<br/>governed client)"]
+        LMCP["Light-Control MCP<br/>:8795 (mock default /<br/>governed client)"]
         DASH["Technician dashboard<br/>Vite :5173 · Tauri<br/>(not running)"]
         FEED["runtime_feed bridge<br/>:8788 (read-only)"]
         BMCP["Decision-Brief MCP<br/>:8793 (not running)"]
@@ -38,9 +38,9 @@ flowchart TB
 
     %% agent -> tools
     CHAT -->|spawns| GOOSE
-    GOOSE -->|MCP :8790| LMCP
+    GOOSE -->|MCP :8795| LMCP
     GOOSE -->|local model| OLLAMA
-    ADK -->|MCP :8790| LMCP
+    ADK -->|MCP :8795| LMCP
     ADK -->|LLM| GEM
     ADK -.->|deploy| AE
 
@@ -68,7 +68,7 @@ flowchart TB
 
 | Host | Runs today | Planned / optional |
 | --- | --- | --- |
-| **Theo's Mac** (dev/demo) | Goose agent, chat UI `:8791`, Light MCP `:8790` (mock), Ollama `:11434` | ADK cloud agent (`adk web :8000`), dashboard (Vite `:5173`), `runtime_feed :8788`, Brief MCP `:8793` |
+| **Theo's Mac** (dev/demo) | Goose agent, chat UI `:8791`, Light MCP `:8795` (mock), Ollama `:11434` | ADK cloud agent (`adk web :8000`), dashboard (Vite `:5173`), `runtime_feed :8788`, Brief MCP `:8793` |
 | **Raspberry Pi** `alice-pi-01` (`192.168.50.20`) | ALICE runtime `:8080`, enforcement + `SerialLightController`, USB ledger, Wazuh worker | Light MCP in `esp` mode could run **here** instead (direct serial, bypasses gate) |
 | **XIAO ESP32-S3** | 8 LEDs over **USB-serial to the Pi** (no IP, no network) | real power-grid schema |
 | **Jared's Mac** (`192.168.50.50`) | Wazuh indexer `:9200`, enterprise permissions/SIEM | — |

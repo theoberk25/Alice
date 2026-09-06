@@ -27,8 +27,9 @@ def corpus(seed, tag, n, balanced=False):
 
 
 def matrix(rows):
-    # Joint action/context distance uses raw continuous features, not anomaly rules.
-    return np.asarray([features(r)[:7] for r in rows],dtype=float)
+    # Runtime metrics expose these six values. Keep server_load out until a real
+    # producer supplies it; training must match the deployed observation exactly.
+    return np.asarray([features(r)[:6] for r in rows],dtype=float)
 
 
 def metrics(rows, predicted):
@@ -117,7 +118,7 @@ def run(out, demo_data):
     demo=[json.loads(l) for l in demo_data.read_text().splitlines()]
     f,s=score(m,demo)
     report['demo']=[dict(record_id=r['record_id'],unusual=bool(v),score=float(w)) for r,v,w in zip(demo,f,s)]
-    artifact=dict(schema_version='alice-fan-hybrid-experiment-v1',features=['fan_before','fan_after','delta','absolute_delta','temperature','power','server_load'],models={})
+    artifact=dict(schema_version='alice-fan-hybrid-experiment-v1',features=['fan_before','fan_after','delta','absolute_delta','temperature','power'],models={})
     parity=0
     for agent,v in m.items():
         trees=[]
@@ -125,7 +126,7 @@ def run(out, demo_data):
             t=e.tree_;trees.append(dict(left=t.children_left.tolist(),right=t.children_right.tolist(),feature=t.feature.tolist(),threshold=t.threshold.tolist(),samples=t.n_node_samples.tolist()))
         exported=dict(max_samples=256,trees=trees)
         for r in [r for r in test if r['request']['agent_id']==agent][:100]:
-            x=features(r)[:7];parity=max(parity,abs(portable_score(exported,x)-v['forest'].score_samples([x])[0]))
+            x=features(r)[:6];parity=max(parity,abs(portable_score(exported,x)-v['forest'].score_samples([x])[0]))
         artifact['models'][agent]=dict(forest=exported,mean=v['mean'].tolist(),scale=v['scale'].tolist(),
              prototypes=v['neighbors']._fit_X.tolist(),neighbors=5,forest_reference=v['fr'].tolist(),
              distance_reference=v['dr'].tolist(),threshold=v['threshold'],hybrid=v['hybrid'],

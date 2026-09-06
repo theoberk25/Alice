@@ -177,6 +177,10 @@ pub struct Snapshot {
     #[serde(deserialize_with = "required_nullable")]
     pub request: Option<Value>,
     pub decision: String,
+    #[serde(default)]
+    pub decision_reason_codes: Vec<String>,
+    #[serde(default)]
+    pub assessment: Option<Value>,
     pub review_state: String,
     pub eligible: bool,
     pub reason: String,
@@ -242,6 +246,8 @@ impl Snapshot {
             || !["NOT_EXECUTED", "COMPLETED", "FAILED", "UNKNOWN"]
                 .contains(&self.execution_status.as_str())
             || self.reason.len() > 200
+            || self.decision_reason_codes.len() > 32
+            || self.decision_reason_codes.iter().any(|v| !id(v))
         {
             return Err("INVALID_RUNTIME_REVIEW".into());
         }
@@ -270,9 +276,7 @@ impl Snapshot {
                 || parsed.request_id.len() > 64
                 || parsed.agent_id.len() > 64
                 || !id(&parsed.agent_id)
-                || parsed.action != "set_light_state"
-                || !(1..=8).any(|n| parsed.target == format!("ESP-LIGHT-0{n}"))
-                || !["on", "off"].contains(&parsed.parameters.state.as_str())
+                || !parsed.valid_action()
                 || !parsed.issued_at.ends_with('Z')
                 || chrono::DateTime::parse_from_rfc3339(&parsed.issued_at).is_err()
                 || digest(&canonical(request)?) != self.request_sha256
@@ -292,6 +296,31 @@ impl Snapshot {
         if self.review_state == "REJECTED" && self.execution_status != "NOT_EXECUTED" {
             return Err("INVALID_REJECTION_EXECUTION".into());
         }
+        if let Some(value) = &self.assessment {
+            let object = value.as_object().ok_or("INVALID_RUNTIME_ASSESSMENT")?;
+            let expected = ["status", "result", "score_ppm", "raw_score_ppm", "model_id",
+                            "model_fingerprint", "reason_codes"];
+            if object.len() != expected.len() || expected.iter().any(|k| !object.contains_key(*k))
+                || object.get("status").and_then(Value::as_str) != Some("OK")
+                || !object.get("result").and_then(Value::as_str)
+                    .is_some_and(|v| ["LOW", "ELEVATED", "HIGH"].contains(&v))
+                || !object.get("score_ppm").and_then(Value::as_i64)
+                    .is_some_and(|v| (0..=1_000_000).contains(&v))
+                || object.get("raw_score_ppm").and_then(Value::as_i64).is_none()
+                || !object.get("model_id").and_then(Value::as_str).is_some_and(id)
+                || !object.get("model_fingerprint").and_then(Value::as_str)
+                    .is_some_and(|v| {
+                        v.len() == 64
+                            && v.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+                    })
+                || !object.get("reason_codes").and_then(Value::as_array).is_some_and(|values| {
+                    values.len() <= 32
+                        && values.iter().all(|item| item.as_str().is_some_and(id))
+                })
+            {
+                return Err("INVALID_RUNTIME_ASSESSMENT".into());
+            }
+        }
         Ok(())
     }
 }
@@ -309,7 +338,25 @@ struct Request {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Parameters {
-    state: String,
+    #[serde(default)]
+    state: Option<String>,
+    #[serde(default)]
+    value: Option<i64>,
+}
+impl Request {
+    fn valid_action(&self) -> bool {
+        match self.action.as_str() {
+            "set_light_state" => {
+                (1..=8).any(|n| self.target == format!("ESP-LIGHT-0{n}"))
+                    && self.parameters.value.is_none()
+                    && self.parameters.state.as_deref().is_some_and(|v| ["on", "off"].contains(&v))
+            }
+            "set_fan_speed" => self.target == "SERVER-ROOM-FANS"
+                && self.parameters.state.is_none()
+                && self.parameters.value.is_some_and(|v| (0..=100).contains(&v)),
+            _ => false,
+        }
+    }
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]

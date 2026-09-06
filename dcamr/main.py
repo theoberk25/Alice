@@ -82,7 +82,7 @@ class FirstLightRuntime:
                  esp_base_url: str = None, usb_root=None, ledger_key_file=None,
                  initialize_ledger=False, release_snapshot=False, esp_serial: str = None,
                  serial_baud: int = 115200, serial_timeout: float = 2.0,
-                 console_trust_file=None):
+                 console_trust_file=None, fan_model_file=None, machine_state_file=None):
         self.sync_worker = None
         self.controller = None
         self.ledger = None
@@ -93,7 +93,8 @@ class FirstLightRuntime:
                              ledger_key_file=ledger_key_file, initialize_ledger=initialize_ledger,
                              release_snapshot=release_snapshot, esp_serial=esp_serial,
                              serial_baud=serial_baud, serial_timeout=serial_timeout,
-                             console_trust_file=console_trust_file)
+                             console_trust_file=console_trust_file,
+                             fan_model_file=fan_model_file, machine_state_file=machine_state_file)
         except Exception:
             self.close()
             raise
@@ -101,7 +102,7 @@ class FirstLightRuntime:
     def _initialize(self, *, release_dir, trusted_manifest_key, data_dir,
                     esp_base_url, usb_root, ledger_key_file, initialize_ledger,
                     release_snapshot, esp_serial, serial_baud, serial_timeout,
-                    console_trust_file):
+                    console_trust_file, fan_model_file, machine_state_file):
         from dcamr.technician_review import ReviewAuthority, ReviewError, RuntimeOwner, load_trust
         try:
             console_trust = load_trust(console_trust_file)
@@ -143,6 +144,17 @@ class FirstLightRuntime:
         self._lock = threading.Lock()
         self.controller = _make_controller(esp_base_url, esp_serial,
                                            serial_baud, serial_timeout)
+        self.fan_model = self.fan_controller = None
+        if bool(fan_model_file) != bool(machine_state_file):
+            raise StartupError('fan model and machine state must be configured together')
+        if fan_model_file:
+            try:
+                from dcamr.anomaly_engine.fan_model import FanModel
+                from dcamr.enforcement.fan_state_controller import FanStateController
+                self.fan_model = FanModel(fan_model_file)
+                self.fan_controller = FanStateController(machine_state_file)
+            except Exception as exc:
+                raise StartupError(f'fan scoring unavailable: {exc}') from exc
 
         seed_path = Path(ledger_key_file) if ledger_key_file else data_dir / "ledger_key.seed"
         if not seed_path.exists():
@@ -231,6 +243,12 @@ class FirstLightRuntime:
                      for name in ("baseline", "model", "calibration", "snapshot")}
         artifacts["policy"] = {"id": self.release.bundle_id,
                                "sha256": self.release.manifest_sha256, "missing_reason": None}
+        if self.fan_model:
+            artifacts['model'] = {'id': self.fan_model.model_id,
+                                  'sha256': self.fan_model.sha256, 'missing_reason': None}
+            artifacts['calibration'] = {'id': self.fan_model.model_id + '-calibration',
+                                        'sha256': self.fan_model.calibration_sha256,
+                                        'missing_reason': None}
         if self.release_snapshot:
             # Identify the verified signed content, not SQLite's physical layout.
             artifacts["snapshot"] = dict(artifacts["policy"])
@@ -389,11 +407,30 @@ class FirstLightRuntime:
             self.ledger.seal()
             return 403, response
 
-        # 5. Fixture ASSESSMENT via contextual_projection; the exact bytes are
-        # retained as evidence and their sha256 is the evidence binding.
-        assessment_bytes = build_assessment(
-            request_id=request_id, input_sha256=request_sha256,
-            request_at_ms=int(time.time() * 1000), target=request["target"])
+        # 5. Fan actions use a frozen model with the state captured immediately
+        # before the decision. Light actions keep the labelled fixture path.
+        request_at_ms = int(time.time() * 1000)
+        source_id = "first-light-fixture"
+        if request["action"] == "set_fan_speed":
+            if not self.fan_model or not self.fan_controller:
+                response = {"request_id": request_id, "decision": "DENY",
+                            "reason_code": "ASSESSMENT_UNAVAILABLE", "execution": None,
+                            "observed_state": None}
+                self._append(f"{request_id}.rejection", "REJECTION", correlation=correlation,
+                             attribution=attribution,
+                             detail={"outcome": "REJECTED",
+                                     "reason_codes": ["ASSESSMENT_UNAVAILABLE"]})
+                self._record_outcome(request_id, request_sha256, response)
+                self.ledger.seal()
+                return 503, response
+            snapshot = self.fan_controller.read_metrics()
+            assessment_bytes, _ = self.fan_model.assess(
+                request, snapshot, request_sha256, request_at_ms)
+            source_id = "machine-state-file"
+        else:
+            assessment_bytes = build_assessment(
+                request_id=request_id, input_sha256=request_sha256,
+                request_at_ms=request_at_ms, target=request["target"])
         evidence_path = self._evidence_dir / f"{request_id}.assessment.json"
         self._write_evidence(evidence_path, assessment_bytes)
         assessment_id = f"{request_id}.a1"
@@ -411,11 +448,11 @@ class FirstLightRuntime:
                      detail=detail,
                      evidence=[{"ref": evidence_ref,
                                 "sha256": sha256(assessment_bytes).hexdigest(),
-                                "source": self._source("first-light-fixture",
+                                "source": self._source(source_id,
                                                        f"{request_id}.obs")}])
 
         # 6. DECISION (emitted once per request_id)
-        decision = decide(True, finding, detail["status"])
+        decision = decide(True, finding, detail["status"], detail["result"])
         reason_codes = {decision.reason_code}
         reason_codes.update("GRANT_" + rule.replace("-", "_").upper() for rule in finding.rule_ids)
         self._append(f"{request_id}.decision", "DECISION",
@@ -435,7 +472,8 @@ class FirstLightRuntime:
         request_id = request["request_id"]
         # 7. EXECUTION_ATTEMPT must be durably committed before commanding the
         # ESP (AuditLog append is a committed synchronous SQLite write).
-        command_bytes = canonical_bytes({"target": request["target"], "state": request["parameters"]["state"]})
+        command_bytes = canonical_bytes({"target": request["target"],
+                                         "parameters": request["parameters"]})
         execution_correlation = dict(correlation, action_id=correlation.get("action_id") or f"{request_id}.action",
                                      execution_id=f"{request_id}.exec")
         self._append(f"{request_id}.attempt", "EXECUTION_ATTEMPT",
@@ -447,7 +485,11 @@ class FirstLightRuntime:
             self.storage.check()
         self._owner.check()
         try:
-            if hasattr(self.controller, "execute_target"):
+            if request["action"] == "set_fan_speed":
+                if not self.fan_controller:
+                    raise ControllerError("fan controller unavailable")
+                receipt = self.fan_controller.execute(request["parameters"])
+            elif hasattr(self.controller, "execute_target"):
                 receipt = self.controller.execute_target(request["target"], request["parameters"])
             elif request["target"] == "ESP-LIGHT-01":
                 receipt = self.controller.execute(request["parameters"])
@@ -477,7 +519,9 @@ class FirstLightRuntime:
         response["execution"] = result_outcome
 
         # 9. OBSERVED_STATE from a separate readback.
-        if hasattr(self.controller, "observe_target"):
+        if request["action"] == "set_fan_speed":
+            observed = self.fan_controller.observe()
+        elif hasattr(self.controller, "observe_target"):
             observed = self.controller.observe_target(request["target"])
         elif request["target"] == "ESP-LIGHT-01":
             observed = self.controller.observe()
@@ -489,12 +533,15 @@ class FirstLightRuntime:
         self._write_evidence(self._evidence_dir / f"{request_id}.observed.json", observed_bytes)
         value = None
         if observed.available:
-            value = "1" if observed.state == "on" else "0"
+            value = (observed.state if request["action"] == "set_fan_speed"
+                     else ("1" if observed.state == "on" else "0"))
         self._append(f"{request_id}.observed", "OBSERVED_STATE",
                      correlation=execution_correlation, attribution=attribution,
                      detail={"asset_id": request["target"], "sensor_id": request["target"].lower() + "-readback",
-                             "origin": "ACTUATOR_FEEDBACK", "property": "light_state",
-                             "value": value, "unit": "bool",
+                             "origin": "ACTUATOR_FEEDBACK",
+                             "property": "fan_speed" if request["action"] == "set_fan_speed" else "light_state",
+                             "value": value,
+                             "unit": "percent" if request["action"] == "set_fan_speed" else "bool",
                              "quality": "GOOD" if observed.available else "UNAVAILABLE",
                              "correlation_absence_reason": None,
                              "source": self._source(request["target"], f"{request_id}.observe-src",
@@ -653,6 +700,10 @@ def main():
                         help="Private HTTPS credentials; enables automatic ledger delivery")
     parser.add_argument("--console-trust-file", type=Path,
                         help="Explicit console public keys and allowed technician IDs; absent disables review")
+    parser.add_argument("--fan-model-file", type=Path,
+                        help="Frozen data-only fan model; requires --machine-state-file")
+    parser.add_argument("--machine-state-file", type=Path,
+                        help="Live fan/temperature/power JSON; requires --fan-model-file")
     transport = parser.add_mutually_exclusive_group(required=True)
     transport.add_argument("--esp-url", help="HTTP light node base URL")
     transport.add_argument("--esp-serial",
@@ -671,7 +722,9 @@ def main():
                                 usb_root=args.usb_root, ledger_key_file=args.ledger_key_file,
                                 initialize_ledger=args.initialize_ledger,
                                 esp_serial=args.esp_serial, serial_baud=args.serial_baud,
-                                serial_timeout=args.serial_timeout, console_trust_file=args.console_trust_file)
+                                serial_timeout=args.serial_timeout, console_trust_file=args.console_trust_file,
+                                fan_model_file=args.fan_model_file,
+                                machine_state_file=args.machine_state_file)
     if args.wazuh_sync_config:
         runtime.start_wazuh_sync(args.wazuh_sync_config)
     server = make_server(runtime, args.host, args.port)

@@ -2,7 +2,7 @@
 
 A Google **ADK** (`LlmAgent`, Gemini) agent that controls the machine lights by
 calling the [Light-Control MCP server](../../services/light_mcp/) over Streamable
-HTTP at the fixed URL **`http://127.0.0.1:8790/mcp`**. It is one of two clients
+HTTP at the fixed URL **`http://127.0.0.1:8795/mcp`**. It is one of two clients
 of that shared tool layer; the other is the Goose local harness (build 02).
 
 Spec: [docs/agent-build/01-cloud-agent.md](../../docs/agent-build/01-cloud-agent.md).

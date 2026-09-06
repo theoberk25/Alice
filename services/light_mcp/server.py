@@ -1,7 +1,7 @@
 """Machine-metrics MCP server (FastMCP, Streamable HTTP).
 
-Repurposed from light control: the MCP no longer drives lights. It now reads and
-writes a JSON state file **on the Raspberry Pi** holding three numbers —
+Repurposed from light control: the MCP no longer drives lights. It reads a JSON
+state file **on the Raspberry Pi** holding three numbers —
 ``fan_speed``, ``server_temperature``, ``power_consumption`` (see state.py). The
 agent may read all three and may set **only** ``fan_speed``.
 
@@ -9,8 +9,8 @@ Two tools (stable contract for both agents):
     get_metrics()          -> {"fan_speed", "server_temperature", "power_consumption"}
     set_fan_speed(value)   -> {"ok", "fan_speed", "metrics"} | {"ok": false, "error"}
 
-Endpoint is unchanged: Streamable HTTP at ``http://127.0.0.1:8790/mcp`` so both a
-local Goose agent and a (possibly remote) cloud agent share one tool layer. Run
+Endpoint is Streamable HTTP at ``http://127.0.0.1:8795/mcp``. Run one loopback
+instance per physical agent identity so callers cannot select another agent's key. Run
 from the repo root with the ``.venv`` active::
 
     python -m services.light_mcp.server
@@ -42,7 +42,7 @@ log = logging.getLogger("light_mcp.server")
 
 # --- Config (env-overridable) -------------------------------------------------
 HOST = os.environ.get("LIGHT_MCP_HOST", "127.0.0.1")
-PORT = int(os.environ.get("LIGHT_MCP_PORT", "8790"))
+PORT = int(os.environ.get("LIGHT_MCP_PORT", "8795"))
 
 # The Pi state file. Local relative default for dev; set MACHINE_STATE_FILE to the
 # real Pi path in deployment (see services/systemd/light-mcp.service).
@@ -63,6 +63,13 @@ STATE = MachineState(
     STATE_FILE, seeds=SEEDS, fan_min=FAN_SPEED_MIN, fan_max=FAN_SPEED_MAX
 )
 
+ALICE_CLIENT = None
+if os.environ.get('ALICE_AGENT_ID') and os.environ.get('ALICE_AGENT_KEY_FILE'):
+    from .alice_client import AliceFanClient
+    ALICE_CLIENT = AliceFanClient(os.environ.get('ALICE_RUNTIME_URL', 'http://192.168.50.20:8080'),
+                                  os.environ['ALICE_AGENT_ID'],
+                                  os.environ['ALICE_AGENT_KEY_FILE'])
+
 mcp = FastMCP("machine-metrics", host=HOST, port=PORT)
 
 
@@ -78,19 +85,21 @@ def get_metrics() -> dict:
 
 
 @mcp.tool()
-def set_fan_speed(value: float) -> dict:
-    """Set the fan speed — the only metric the agent may write.
+def set_fan_speed(value: int) -> dict:
+    """Request a governed fan-speed change through the ALICE runtime.
 
-    Writes ``fan_speed`` to the Pi state file (preserving temperature and power).
-    Returns ``{"ok": true, "fan_speed", "metrics"}`` on success, or a clean
-    ``{"ok": false, "value", "error"}`` (no crash) if ``value`` is not a number
-    or is outside ``[FAN_SPEED_MIN, FAN_SPEED_MAX]``.
+    ALICE may allow, hold for technician review, or deny the request. The state
+    changes only after an automatic allow or a signed technician approval.
     """
     try:
-        metrics = STATE.set_fan_speed(value)
+        if ALICE_CLIENT is None:
+            raise ValueError('ALICE governed fan client is not configured')
+        if type(value) is not int or not FAN_SPEED_MIN <= value <= FAN_SPEED_MAX:
+            raise ValueError('fan speed must be an integer from 0 through 100')
+        result = ALICE_CLIENT.set_fan_speed(value)
     except ValueError as exc:
         return {"ok": False, "value": value, "error": str(exc)}
-    return {"ok": True, "fan_speed": metrics["fan_speed"], "metrics": metrics}
+    return result
 
 
 def main() -> None:

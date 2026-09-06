@@ -1,11 +1,11 @@
-"""Headless smoke test: prove the cloud ADK agent reaches the Light MCP and acts.
+"""Headless smoke test: prove the cloud ADK agent reaches governed fan tools.
 
 `adk web` is a UI; this is the scriptable equivalent. It drives ``root_agent``
 through one prompt with the ADK Runner and asserts the agent actually called
-``set_machine`` on the shared MCP. It really calls Gemini, so it also exercises
+``set_fan_speed`` on its MCP. It really calls Gemini, so it also exercises
 the internet-dependent path that the router-unplug demo severs.
 
-Run from the repo root with the venv active and the Light MCP up (:8790):
+Run from the repo root with the venv active and the Light MCP up (:8795):
 
     PYTHONPATH="$(pwd)" .venv/bin/python -m cloud.adk_light_agent.smoke_lights
 
@@ -25,10 +25,7 @@ from google.genai import types
 
 from .agent import build_agent  # see agent.py
 
-PROMPT = (
-    "List all machines, then turn ESP-LIGHT-05 on, then report its new state. "
-    "Use the tools; keep it brief."
-)
+PROMPT = "Read the current metrics, request a 10-point fan-speed increase, and report the decision."
 FALLBACK_MODELS = ["gemini-flash-latest", "gemini-3.6-flash", "gemini-2.0-flash"]
 
 
@@ -67,10 +64,10 @@ async def main() -> int:
         for name, args in tool_calls:
             print(f"  - {name}({args})")
         print("FINAL:", (final or "")[:300])
-        if any(n == "set_machine" for n, _ in tool_calls):
-            print("\nOK: cloud agent reached the MCP and called set_machine.")
+        if any(n == "set_fan_speed" for n, _ in tool_calls):
+            print("\nOK: cloud agent reached the MCP and called set_fan_speed.")
             return 0
-        print("FAIL: agent ran but never called set_machine.", file=sys.stderr)
+        print("FAIL: agent ran but never called set_fan_speed.", file=sys.stderr)
         return 1
     print(f"FAIL: all models unavailable. Last error: {last_err}", file=sys.stderr)
     return 2

@@ -175,3 +175,10 @@ adds signed HOLD review locally, selectively adapted from preserved
 [validation](../reports/2026-09-06-native-live-backend-validation.md). Device-output
 adjustments remain deferred. Theodore's newer dashboard, runtime, MCP services,
 agent and network work are preserved. No console contract was promoted to common/.
+The additive fan-review slice accepts `set_fan_speed` only for
+`SERVER-ROOM-FANS` with integer `parameters.value` in 0..100. A fan review
+snapshot may include verified retained assessment fields: LOW/ELEVATED/HIGH,
+integer millionths of normal-tail rank/raw score, model ID/fingerprint and reason
+codes. Existing light snapshots retain their previous shape during rollout.
+The Pi remains the source of the immutable CHALLENGE and the signed review
+execution. The console displays scores and never recomputes the classification.

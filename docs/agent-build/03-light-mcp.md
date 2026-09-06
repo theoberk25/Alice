@@ -1,4 +1,9 @@
-# Build 03 — Light-Control MCP Server (BUILD THIS FIRST)
+# Build 03 — Governed machine-metrics MCP server
+
+> Current implementation supersedes the original light-driver plan retained
+> below as design history. The active contract is `get_metrics()` plus
+> `set_fan_speed(value: int)`. Fan changes are signed and sent through ALICE;
+> this service never writes protected fan state directly.
 
 > Build order: **this file first**, then `02-local-harness.md` (Goose), then `01-cloud-agent.md` (Google ADK). The two agents are just clients of this server.
 
@@ -9,13 +14,15 @@ You are working inside the **Alice** repo (`/Users/theo/Desktop/DNHacks/Alice`).
 - Existing services live in `services/*` (e.g. `services/backend/server.py`, `services/biometrics/`) with a `services/systemd/` folder for deploy units. This new server follows that pattern.
 
 ## Goal
-A standalone MCP server that controls "machine" indicator lights on a PCB (simulating machines at a base / power plant). Two agents — a Google ADK **cloud** agent and a Goose **local** agent — connect to it as a shared tool layer.
+A standalone MCP adapter that exposes current fan/temperature/power metrics and
+submits governed fan requests. Each physical cloud/local agent deployment runs
+its own loopback instance with its own private ALICE signing identity.
 
-## Two hard design decisions (already made — keep them)
+## Original light-driver design history
 1. **Transport = Streamable HTTP**, not stdio. One long-running HTTP service serves the local harness over the network *and* a possibly-remote/cloud-deployed agent. (A stdio subprocess can't be reached by a cloud agent.)
 2. **Driver swap seam.** Hardware sits behind a `LightDriver` interface. Ship a `MockDriver` now (in-memory + logs); a `SerialDriver` is dropped in later with **zero change** to the server or either agent. The PCB wiring is not known yet — that is fine and expected.
 
-## Machines are config-driven
+## Original machine-light configuration
 The set of machines is **not** hardcoded and its real-world meaning is intentionally undecided. Define machines in a config file so they can be renamed/remapped later (to `protected_systems`, to power-plant equipment, whatever) without touching code.
 
 ## Location
@@ -28,32 +35,30 @@ Alice/services/light_mcp/
 └── README.md        # run + test instructions
 ```
 
-## The tool contract (STABLE — both agents depend on these names/shapes)
+## Active tool contract
 Implement exactly these tools. Do not rename without updating files 01 and 02.
 
 | Tool | Signature | Returns |
 |---|---|---|
-| `list_machines` | `()` | `{"machines": [{"id": str, "state": str, "allowed_states": [str]}]}` |
-| `get_status` | `(machine_id: str \| None = None)` | one machine's state, or all if omitted |
-| `set_machine` | `(machine_id: str, state: str)` | `{"machine_id", "state", "ok": bool}` — error if state not in that machine's `allowed_states` |
-| `blink` | `(machine_id: str, count: int = 3, interval_ms: int = 300)` | `{"machine_id", "ok": bool}` — transient effect, returns to prior state |
+| `get_metrics` | `()` | Exact current `fan_speed`, `server_temperature`, and `power_consumption` from the state file |
+| `set_fan_speed` | `(value: int)` | Signed ALICE result: ALLOW, CHALLENGE/HOLD, or DENY; HOLD never changes state before technician approval |
 
 Default `allowed_states = ["on", "off"]`. Config may extend per machine later (e.g. `["green","amber","red"]`).
 
-## Implementation notes
+## Original light-driver implementation notes
 - Use the official **MCP Python SDK** (`pip install mcp`) with `FastMCP`. Pattern:
   ```python
   from mcp.server.fastmcp import FastMCP
-  mcp = FastMCP("light-control", host="127.0.0.1", port=8790)
+  mcp = FastMCP("light-control", host="127.0.0.1", port=8795)
 
   @mcp.tool()
   def set_machine(machine_id: str, state: str) -> dict: ...
 
   if __name__ == "__main__":
-      mcp.run(transport="streamable-http")   # serves at http://127.0.0.1:8790/mcp
+      mcp.run(transport="streamable-http")   # serves at http://127.0.0.1:8795/mcp
   ```
-  > The FastMCP `run`/settings surface shifts between SDK versions — verify host/port/path wiring against the installed `mcp` version and pin it in `requirements`. The canonical URL other files expect is **`http://127.0.0.1:8790/mcp`**.
-- Port **8790** is chosen to avoid clashes (backend, `adk web`→8000, biometrics→8765, feed→8787). Make host/port env-overridable.
+  > The FastMCP `run`/settings surface shifts between SDK versions — verify host/port/path wiring against the installed `mcp` version and pin it in `requirements`. The canonical URL other files expect is **`http://127.0.0.1:8795/mcp`**.
+- Port **8795** is chosen to avoid clashes (backend, `adk web`→8000, biometrics→8765, feed→8787). Make host/port env-overridable.
 - `drivers.py`:
   ```python
   class LightDriver(ABC):
@@ -78,19 +83,25 @@ Default `allowed_states = ["on", "off"]`. Config may extend per machine later (e
 ## Env (append to `.env.example`)
 ```
 LIGHT_MCP_HOST=127.0.0.1
-LIGHT_MCP_PORT=8790
-LIGHT_DRIVER=mock            # mock | serial
-LIGHT_SERIAL_PORT=           # e.g. /dev/tty.usbmodem* (later)
-LIGHT_SERIAL_BAUD=115200
-LIGHT_MACHINES_CONFIG=services/light_mcp/machines.yaml
+LIGHT_MCP_PORT=8795
+MACHINE_STATE_FILE=/mnt/alice-usb/machine-state.json
+ALICE_RUNTIME_URL=http://192.168.50.20:8080
+ALICE_AGENT_ID=cooling-agent-01
+ALICE_AGENT_KEY_FILE=/private/path/cooling-agent-01-k1.seed
 ```
 
 ## Acceptance / verification (must pass before building the agents)
-1. Server starts: `python -m services.light_mcp.server` (from repo root, `.venv` active) and logs `streamable-http` listening on `127.0.0.1:8790`.
-2. Inspect it with the MCP Inspector: `npx @modelcontextprotocol/inspector` → connect to `http://127.0.0.1:8790/mcp` (Streamable HTTP). Confirm the four tools are listed.
-3. Call `set_machine("machine-01","on")` → returns `ok:true`; `get_status()` shows `machine-01: on`; MockDriver logged the call. `blink("machine-01")` returns and leaves state `on`.
-4. `set_machine("machine-01","banana")` → clean error (not a crash).
-5. Optional: add a `services/systemd/light-mcp.service` unit mirroring existing units.
+1. Start `python -m services.light_mcp.server` from the repo root and confirm
+   Streamable HTTP is listening on `127.0.0.1:8795`.
+2. Connect MCP Inspector to `http://127.0.0.1:8795/mcp`; confirm exactly
+   `get_metrics` and `set_fan_speed` are exposed.
+3. `get_metrics()` returns the three current numbers from the Pi state file.
+4. A normal integer `set_fan_speed` request returns ALLOW and changes state only
+   through ALICE. An anomalous request returns CHALLENGE and leaves state unchanged.
+5. A non-integer or out-of-range value returns a clean error without a request.
 
 ## Handoff to the agent files
-Both agents connect to **`http://127.0.0.1:8790/mcp`** (Streamable HTTP) and use the tool names above. Nothing about the agents depends on `MockDriver` vs `SerialDriver`.
+Each agent connects to its own **`http://127.0.0.1:8795/mcp`** instance. Configure
+`ALICE_AGENT_ID` and `ALICE_AGENT_KEY_FILE` outside Git for that one identity.
+Both instances use the same code and tool contract; they do not share a key-bearing
+process.

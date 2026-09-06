@@ -16,7 +16,7 @@ def test_support_distance_and_unknown_agent():
     row=record(random.Random(1),'train',0,'cooling_step')
     # Single-leaf forest is constant; only distance changes the result.
     model={'forest':{'max_samples':2,'trees':[{'left':[-1],'right':[-1], 'feature':[-2],'threshold':[-2],'samples':[2]}]},
-           'mean':[0]*7,'scale':[1]*7,'hybrid':True,'neighbors':1,
+               'mean':[0]*6,'scale':[1]*6,'hybrid':True,'neighbors':1,
            'forest_reference':[0.6], 'distance_reference':[1.0], 'threshold':0.99}
     from lab.refine_fan_model import matrix
     model['prototypes']=matrix([row]).tolist()

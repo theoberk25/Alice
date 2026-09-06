@@ -24,6 +24,8 @@ fn snapshot() -> Snapshot {
         review_nonce: "NONCE-1".into(),
         request: Some(request),
         decision: "CHALLENGE".into(),
+        decision_reason_codes: vec!["PERMISSION_REVIEW_REQUIRED".into()],
+        assessment: None,
         review_state: "PENDING".into(),
         eligible: true,
         reason: "READY".into(),

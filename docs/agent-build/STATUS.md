@@ -1,23 +1,25 @@
 # Agent demo — status (2026-09-06)
 
-Agents share one MCP, **repurposed from lights to machine-metrics**: they read
-`{fan_speed, server_temperature, power_consumption}` and write only `fan_speed`.
+Agents use the same MCP implementation, **repurposed from lights to governed
+machine metrics**. Each physical agent runs its own loopback instance and private
+ALICE signing identity. They read `{fan_speed, server_temperature,
+power_consumption}` and request only `fan_speed` changes.
 Dev runs off a local state file; the real path is the Pi state file governed
 through ALICE. The standalone live-demo/agent-loop prototype has been extracted
 to a separate folder outside this repo (`../test-simulation/`).
 
 | # | Project | Status | Blocker / next |
 | --- | --- | --- | --- |
-| 1 | **Cloud agent** — Google ADK + Gemini | 🟡 Verified earlier vs the *light* MCP; now **stale** vs the metrics contract | `cloud/adk_light_agent/` still instructs `set_machine`/`blink`, which no longer exist. Repoint to `get_metrics`/`set_fan_speed` (or a read-only "flashing" role) before demoing. Vertex/Agent Engine still gated behind the human checkpoint. |
+| 1 | **Cloud agent** — Google ADK + Gemini | 🟡 Updated to the metrics contract | Cooling prompt and smoke test now use `get_metrics`/`set_fan_speed`; live Gemini rerun is pending. Vertex/Agent Engine remains gated behind the human checkpoint. |
 | 2 | **Local agent** — Goose + Ollama | 🟢 Verified (interactive) | Chat at `http://127.0.0.1:8791`. Will see the new metrics tools on reconnect. |
-| 3 | **Machine-metrics MCP** — `services/light_mcp/` | 🟢 Rewritten & running | Streamable HTTP `:8790`, tools `get_metrics` + `set_fan_speed`, state file on the Pi. `poller.py` (10 Hz read). Legacy light drivers (`drivers.py`, `machines.yaml`) dormant. |
+| 3 | **Machine-metrics MCP** — `services/light_mcp/` | 🟢 Governed adapter implemented | Streamable HTTP `:8795`, tools `get_metrics` + signed `set_fan_speed`. ALICE owns protected writes. `poller.py` provides 10 Hz reads; legacy light drivers are dormant. |
 
 ## Local model (dashboard + local agent)
 🟢 **Ollama up** on `:11434` with `qwen2.5-tools` (4.7 GB, custom tool-calling build) and base `qwen2.5`. Tool-calling **verified** through Goose.
 🟡 **Dashboard not yet pointed at it:** `ALICE_LLM_MODEL` is empty and `ALICE_BIOMETRIC_MODE=mock` (ArcFace/InsightFace available but `ALICE_INSIGHTFACE_ROOT` unset). The model is ready on the host; the technician dashboard's LLM/biometric hooks still need wiring.
 
 ## Running now
-`:8790` machine-metrics MCP · `:8791` Goose chat · `:11434` Ollama · `:8000` `adk web`.
+`:8795` machine-metrics MCP · `:8791` Goose chat · `:11434` Ollama · `:8000` `adk web`.
 Not running: technician dashboard, Decision-Brief MCP.
 The live demo runs from `../test-simulation/` (standalone, outside this repo).
 

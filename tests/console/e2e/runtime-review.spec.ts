@@ -92,7 +92,7 @@ async function installNativeFixture(page: Page) {
           parameters: { state: 'on' },
           issued_at: '2026-09-06T01:00:00Z',
         },
-        decision: 'CHALLENGE',
+          decision: 'CHALLENGE',
         review_state: saved ? receipt().review_state : 'PENDING',
         accepted_action_id: saved?.action_id ?? null,
         accepted_action: saved?.action ?? null,

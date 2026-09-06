@@ -2,7 +2,7 @@
 
 **Owner:** Jared (anomaly workstream)  
 **Consumers:** DCAMR integration team; technician dashboard through DCAMR  
-**Status:** Draft contract implemented in a local schema/fixture slice; not deployed  
+**Status:** Draft general contract; first-light fan slice deployed for demo validation
 **Date:** 2026-09-06
 **Proposed anomaly schema:** `1.0.0-draft.1`
 
@@ -20,8 +20,10 @@ match overrides a hard prohibition or missing execution prerequisites.
 `alice-decision-assessment-v1` is implemented, with decision and explanation null
 and execution_authorized false. It is not a drop-in `alice.decision` event or an
 execution token. The app must enforce the structured blockers outside the LLM
-prompt. Transport/response binding, permission resolution and lightweight Pi
-forest loading remain integrations. Existing historical decisions and scores
+prompt. The first-light fan path now implements transport binding, permission
+resolution, lightweight Pi forest loading and anomaly-to-HOLD fusion for one
+strict action. The general rich assessment/decision adapter remains an integration.
+Existing historical decisions and scores
 remain immutable; reassessments and subsequent app decisions are new records.
 Automatic context push-back is not implemented by this slice.
 
@@ -32,21 +34,21 @@ Define the anomaly result that the Raspberry Pi produces for DCAMR, its provenan
 
 The [canonical architecture](../architecture.md) now distinguishes **ONLINE**, when enterprise controls execute directly and the Pi synchronizes bounded trusted caches/authenticated activity feeds and sends audit upstream, from **OFFLINE**, when the Pi governs local actions after controlled single-authority handover. This PRD's proposed decision/fusion path describes that OFFLINE responsibility. The Pi is not a mandatory gateway for ONLINE enterprise execution; an anomaly score is advisory in either context.
 
-The initial increment delivered this PRD. Jared subsequently authorized implementation: the nested result schema, Python validation/binding, deterministic score mapper, eight result fixtures and local replay are implemented. The [feature-builder increment](../contracts/anomaly-features.md) implements 11 fixed features, trusted snapshot/baseline validation, cohort selection and five feature fixtures. A separate [Mac training lab](../guides/anomaly-training.md) now fits and evaluates a synthetic Web-01 candidate in memory and emits JSON reports; it does not save or deploy a model. See [the output-contract guide](../contracts/anomaly-contract.md) for that boundary. The live evaluator, model persistence/loading, outer decision schema, fusion and device integration remain future increments.
+The initial increment delivered this PRD. The nested result schema, Python validation/binding, deterministic score mapper, fixtures and local replay remain the general contract work. The [feature-builder increment](../contracts/anomaly-features.md) implements the original cyber features. The newer fan-demo training path exports a 928 KB data-only hybrid Isolation Forest/nearest-normal candidate with six features: fan speed before/after, signed and absolute delta, temperature and power. The Pi loads it without sklearn, pickle or joblib, scores each signed fan request against a fresh USB snapshot, and maps a permitted calibrated anomaly to `CHALLENGE/ANOMALY_REVIEW_REQUIRED`.
 
 The newer [general contextual interface](../architecture/contextual-behavior-model.md) supports
 separate before-action and after-action profiles with arbitrary named numeric
 features and exact categorical context. It is a distinct internal contract;
-this PRD's cyber schema/fixtures remain unchanged. Actual ESP light/voltage data
-and the adapter into the canonical decision result are still pending.
+this PRD's cyber schema/fixtures remain unchanged. Real sensor acquisition,
+POST_ACTION scoring and the general rich decision adapter remain pending.
 
 The selected fan demonstration trains on many synthetic sessions in which small
 `+10%` cooling adjustments are normal under overheating conditions. The live demo
 performs three representative increments, then asks the model to score a power
 agent's abrupt `set_fan_speed(0%)` request. That shutdown must evaluate as
-`ELEVATED` or `HIGH` from action magnitude, recent sequence and fresh temperature/
-power context before the review path is accepted. Three demo rows alone are not
-enough to fit or calibrate an Isolation Forest.
+`HIGH` from action magnitude and fresh temperature/power context before the review
+path is accepted. The deployed candidate trains from 8,604 synthetic contextual
+records; the three visible increments are the demo sequence, not the training set.
 
 The [2026-09-05 data update](../decisions/2026-09-05-data-direction.md) records the newer single-USB layout and motor-control demo direction. Motor requests require a separately agreed/versioned profile; this cyber implementation does not score them. Jared selected a separate diagnostic/state-change calibration experiment; its completed Mac comparison and measured limitations are in the training guide. The [implementation tracker](../implementation-tracker.md) preserves all 118 requested tasks and their current evidence.
 
@@ -89,7 +91,14 @@ Verified baseline/model --> feature builder --> anomaly result
                                   workstation display/explanation
 ```
 
-**In scope for the eventual anomaly slice:** baseline-relative features; bounded sequence observations; a frozen scorer; explicit unavailable/error results; versioned provenance; fixtures; resource measurements on the actual Pi.
+**Implemented first-light fan boundary:** strict signed `set_fan_speed` requests,
+verified permission, live PRE_ACTION USB metrics, frozen data-only scoring,
+ALLOW versus anomaly CHALLENGE, retained provenance and one-use human review.
+
+**Still in scope for the general anomaly slice:** signed model packages,
+baseline-relative features across action families, explicit unavailable/error
+results, real sensor freshness/authenticity, POST_ACTION scoring and Pi resource
+measurements under the final workload.
 
 **Outside this workstream:** policy language/OPA selection, authentication, package signing implementation, final fusion policy, context challenge orchestration, HTTP/WebSocket endpoints, audit-chain implementation, facial verification, LLM explanation, protected-system execution, cloud connectors, online learning, and production detection claims. Interfaces to these components are described here so the boundaries can be tested.
 

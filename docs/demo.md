@@ -82,7 +82,7 @@ and is **idempotent** (a Gemini 503 + model fallback re-ran it once, no ill effe
 For the Pi, swap the in-memory driver for the real `EspSerialDriver` over the XIAO,
 or route through the governed ALICE ledger — agent and prompt unchanged.
 
-**Ports (when the pieces run together):** `:8790` metrics MCP · `:8791` Goose ·
+**Ports (when the pieces run together):** `:8795` metrics MCP · `:8791` Goose ·
 `:8792` agent-loop web / test-sim console · `:8793` Decision-Brief MCP · `:8794`
 lights intro · `:11434` Ollama · `:8000` `adk web`.
 

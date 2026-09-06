@@ -39,10 +39,10 @@ Alice/cloud/adk_light_agent/
        instruction="You operate base/plant machines via the light_control tools. "
                     "Query status before acting; confirm state changes.",
        tools=[MCPToolset(connection_params=StreamableHTTPConnectionParams(
-           url="http://127.0.0.1:8790/mcp"))],
+           url="http://127.0.0.1:8795/mcp"))],
    )
    ```
-   > ADK's MCP connection-params class name has shifted across versions (`StreamableHTTPConnectionParams` / `StreamableHTTPServerParams` / `SseServerParams`). Verify the exact symbol in the installed `google.adk.tools.mcp_tool` and adjust. Target URL is fixed: **`http://127.0.0.1:8790/mcp`**.
+   > ADK's MCP connection-params class name has shifted across versions (`StreamableHTTPConnectionParams` / `StreamableHTTPServerParams` / `SseServerParams`). Verify the exact symbol in the installed `google.adk.tools.mcp_tool` and adjust. Target URL is fixed: **`http://127.0.0.1:8795/mcp`**.
 3. **Auth — default to the FREE path first (no GCP needed):**
    - Get an **AI Studio** API key. In `.env`: `GOOGLE_API_KEY=...` and `GOOGLE_GENAI_USE_VERTEXAI=FALSE`.
    - This path needs **no GCP account at all** and is enough for the whole agent + the `adk web` visualization.

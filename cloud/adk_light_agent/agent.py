@@ -1,9 +1,9 @@
-"""Google ADK cloud agent for the Light-Control MCP server.
+"""Google ADK cooling agent for the governed machine-metrics MCP server.
 
 ``root_agent`` is an ``LlmAgent`` (Gemini) whose tools are the four Light MCP
 tools, reached over **Streamable HTTP** at the canonical, fixed URL
-``http://127.0.0.1:8790/mcp`` (build 03). This is one of two clients of that
-shared MCP tool layer — the other is the Goose local harness (build 02).
+``http://127.0.0.1:8795/mcp`` (build 03). Each physical agent deployment runs
+its own loopback MCP instance with its own ALICE signing identity.
 
 Auth defaults to the **free AI Studio key path** (no GCP needed):
 ``GOOGLE_GENAI_USE_VERTEXAI=FALSE`` + ``GOOGLE_API_KEY`` in the local ``.env``.
@@ -34,17 +34,18 @@ except ModuleNotFoundError:  # pragma: no cover - dotenv ships with google-adk
     pass
 
 # FIXED canonical endpoint — both agents depend on it (see build docs 01/02/03).
-LIGHT_MCP_URL = "http://127.0.0.1:8790/mcp"
+LIGHT_MCP_URL = os.getenv("LIGHT_MCP_URL", "http://127.0.0.1:8795/mcp")
 
 # Model is env-overridable but defaults to a current Gemini Flash. The free
 # AI Studio key serves this model on the non-Vertex path.
 MODEL = os.getenv("ADK_MODEL", "gemini-flash-latest")
 
 _INSTRUCTION = (
-    "You operate base/plant machines through the light_control tools "
-    "(list_machines, get_status, set_machine, blink). "
-    "Query status before acting, only use each machine's allowed_states, "
-    "and confirm state changes back to the user. If a tool returns ok:false, "
+    "You are the cooling agent for the server room. Read get_metrics before acting. "
+    "When temperature requires more cooling, request small set_fan_speed changes, "
+    "normally no more than 10 percentage points at a time. Never invent metric values, "
+    "and report ALLOW, CHALLENGE/HOLD, or DENY exactly as the tool returns it. "
+    "If a tool returns ok:false, "
     "report the error instead of retrying blindly."
 )
 
@@ -59,7 +60,7 @@ def build_agent(model: str = MODEL) -> LlmAgent:
     return LlmAgent(
         model=model,
         name="machine_ops_cloud",
-        description="Cloud operations agent that controls base/plant machine lights via the Light MCP.",
+        description="Cloud cooling agent that requests governed server-room fan changes.",
         instruction=_INSTRUCTION,
         tools=[
             McpToolset(

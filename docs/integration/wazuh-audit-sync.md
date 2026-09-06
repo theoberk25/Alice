@@ -301,7 +301,9 @@ GET `/health` proves only listener availability. Clients send the existing signe
 first-light envelope (`request`, `key_id`, `signature`); no Wazuh credentials or
 Mac signing key are served. Signature, agent binding, strict request schema and
 freshness (300 seconds, five seconds future tolerance) are checked before writes.
-Requests remain the eight-light contract; fan requests are not yet admitted.
+The strict request contract now admits eight-light actions and integer 0..100
+`set_fan_speed` requests for `SERVER-ROOM-FANS`. Ingress must load the same signed
+release generation as the Pi so fan agent keys and permissions agree.
 
 A dedicated create-only index `alice-enterprise-ingress-v1` stores the original
 signed envelope. The dedicated `alice_enterprise_ingress` account can create/read
@@ -334,6 +336,12 @@ and Pi idempotent replay. Pi reached Mac health over the switch. Five ingress
 tests passed. Actual wireless laptop test is pending. Index receipt is ingestion,
 not a Wazuh detection-rule alert. Technician visibility comes from the Pi's ledger
 feed; this does not automatically activate enterprise permissions or model caches.
+
+Live fan proof `82d209dc-a4b7-4489-bfc2-9165b6e704bf` used signed generation 5:
+enterprise ingress created and read back its Wazuh receipt, cached that receipt on
+Pi USB, forwarded the original envelope, and received Pi
+`CHALLENGE/ANOMALY_REVIEW_REQUIRED`. Pi REQUEST/ASSESSMENT/DECISION records then
+arrived in `alice-ledger-v1` as sequences 698–700. The USB fan state stayed 70%.
 
 The operator source now routes through ingress by default (`--enterprise-url`).
 The already-running localhost:8789 process still uses old direct-to-Pi code:

@@ -26,9 +26,9 @@ A locally-running Goose agent that, driven by a local Ollama model, controls the
      light_control:
        enabled: true
        type: streamable_http   # use SSE/remote type per your Goose version
-       uri: http://127.0.0.1:8790/mcp
+       uri: http://127.0.0.1:8795/mcp
    ```
-   > Goose's remote-extension config key/type names vary by version — verify against `goose configure`'s own prompts and the installed version's docs. The target URL is fixed: **`http://127.0.0.1:8790/mcp`**.
+   > Goose's remote-extension config key/type names vary by version — verify against `goose configure`'s own prompts and the installed version's docs. The target URL is fixed: **`http://127.0.0.1:8795/mcp`**.
 5. **Give it a system/role prompt** framing it as the local machine-operations agent: it manages machines exposed by the `light_control` tools, can query status, and turn machines on/off or blink them on request. Keep a human in the loop for state changes if you want the demo to show confirmation.
 
 ## Acceptance / verification
@@ -36,7 +36,7 @@ With the Light MCP server (file 03) running in `mock` mode:
 1. `goose session` starts and lists the `light_control` tools (`list_machines`, `get_status`, `set_machine`, `blink`).
 2. Prompt: *"Which machines are off? Turn machine-02 on."* → Goose calls `get_status` then `set_machine("machine-02","on")`; the MCP server's MockDriver logs the calls; a follow-up `get_status` shows `machine-02: on`.
 3. Prompt: *"Blink machine-02 three times."* → `blink` is called; state returns to `on`.
-4. Confirm no network egress beyond localhost (Ollama :11434 + MCP :8790) — this is the air-gapped claim.
+4. Confirm no network egress beyond localhost (Ollama :11434 + MCP :8795) — this is the air-gapped claim.
 
 ## Notes
 - Nothing here depends on the PCB being real — the MockDriver behind the MCP makes this fully demoable today; swapping to real hardware later is invisible to Goose.
